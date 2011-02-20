@@ -1,0 +1,33 @@
+# ========================================================================
+# Changelog v2->v3t
+# ========================================================================
+# * v2->v3t0.01
+#   ----------------------------------------------------------------------
+# 	 - better pnp4nagios integration
+# 	 - better documentation on usage
+# 	 - parameters treatment block code, for easier maintenance
+# 	 - debug mode review
+# 	 - arrays in option hash to avoid reformating in sub functions 
+# 	 - cleaning of unused blocks of code. might be reviewed in the future
+# 	 - added comments
+# 	 - added bits output feature for performance data
+# 	 - check_multi perfdata output type with interface name. Global and Port 
+# 	   perfdata types
+# 	 - rewrite the plugin to follow the nagios plugin development guidelines:
+# 	   * turn to "use warnings"
+# 	 - pnp6 templates
+# 	 - separate history cleaning and dataset selection from bps calculation
+# * v2->v3t0.02
+#   ----------------------------------------------------------------------
+#
+#
+# ========================================================================
+# 	TODO list:
+# 	 - option to exclude change tracking for interfaces going from down to up
+# 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
+# 	   against the use of unix snmpwalk
+# 	 - replace "nochange" by "tochange" for change tracking. Default: only 
+# 	   operstatus from up to an other status
+# 	 - review the nagios plugin development guidelines to see if it fits now
+# 	 - pnp6 templates update
+# ========================================================================

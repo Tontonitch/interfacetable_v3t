@@ -480,33 +480,6 @@ More details see:
 # Nagios and the Nagios logo are registered trademarks of Ethan Galstad.
 # ------------------------------------------------------------------------
 
-
-
-# ========================================================================
-# Changelog v2->v3
-# ========================================================================
-# DONE list:
-#  - better pnp4nagios integration
-#  - better documentation on usage
-#  - parameters treatment block code, for easier maintenance
-#  - debug mode review
-#  - arrays in option hash to avoid reformating in sub functions 
-#  - cleaning of unused blocks of code. might be reviewed in the future
-#  - added comments
-#  - added bits output feature for performance data
-#  - check_multi perfdata output type with interface name. Global and Port 
-#    perfdata types
-# TODO list:
-#  - option to exclude change tracking for interfaces going from down to up
-#  - GetSnmpWalkxxxxx -> use of get_table
-#  - replace "nochange" by "tochange" for change tracking. Default: only 
-#    operstatus from up to an other status
-#  - rewrite the plugin to follow the nagios plugin development guidelines:
-#    * turn to "use warnings"
-#  - pnp6 templates
-# ========================================================================
-
-
 use strict;
 use warnings;
 
