@@ -51,13 +51,11 @@ print header;
 print start_html('Table Reset'),
     h1('Interface Table Reset Procedure'),
     hr;
-print 
-    "Resetting...",
+print "Resetting... ",
     hr;
         
 if ($ENV{WIT_DBG}) {
-    print 
-        "Your want to reset: ",em(param('What')),
+    print "Your want to reset: ",em(param('What')),
         hr;
 }
 
@@ -65,6 +63,9 @@ if ($ENV{WIT_DBG}) {
 # Read data
 # ------------------------------------------------------------------------------
 
+print "Reading data... ", 
+    hr;
+    
 # read all interfaces and its properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
 
@@ -76,26 +77,31 @@ if ($ENV{WIT_DBG}) {
 # clean up
 # ------------------------------------------------------------------------------
 
+print "Cleanup data... ", 
+    hr;
+
 # we reset the last reset of the file -> next run of the check script will recognize this
 delete $grefhFile->{TableReset};
 delete $grefhFile->{If};
 #delete $grefhFile->{MD};
 
 if ($ENV{WIT_DBG}) { 
-    print 
-        "so we do reset: ",em(param('What')),
+    print "so we do reset: ",
+        em(param('What')),
         hr;
-    print pre(Dumper ($grefhFile));
+        pre(Dumper ($grefhFile));
 }
 
 # ------------------------------------------------------------------------------
 # write interface information file
 # ------------------------------------------------------------------------------
 
+print "Rewrite interface information file... ", 
+    hr;
+    
 WriteConfigFileNew ("$gInterfaceInformationFile",$grefhFile);
 
-print 
-    "New set of reference data saved. The interface table and the raised alarms will be resetted at the next check launch.",
+print "New set of reference data saved. The interface table and the raised alarms will be resetted at the next check launch.",
     hr;
 
 print q(<a href=JavaScript:history.back();>Back to the table</a>);

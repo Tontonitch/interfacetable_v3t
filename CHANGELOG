@@ -1,6 +1,7 @@
 # ========================================================================
-# Changelog v2->v3t
+# CHANGELOG v2->v3t
 # ========================================================================
+#
 # * v2->v3t0.01
 #   ----------------------------------------------------------------------
 # 	 - better pnp4nagios integration
@@ -17,7 +18,10 @@
 # 	   * turn to "use warnings"
 # 	 - pnp6 templates
 # 	 - separate history cleaning and dataset selection from bps calculation
+#    - restricted the html link generated as the pluging output to "[detail]",
+#      for better integration in third party tools such as nagstamon,...
 # * v2->v3t0.02
+#    - cleaner and step-by-step output when resetting stats
 #   ----------------------------------------------------------------------
 #
 #
@@ -30,4 +34,5 @@
 # 	   operstatus from up to an other status
 # 	 - review the nagios plugin development guidelines to see if it fits now
 # 	 - pnp6 templates update
+#    - snmp v2c / v3 support
 # ========================================================================

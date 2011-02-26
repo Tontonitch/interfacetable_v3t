@@ -1,0 +1,22 @@
+# ==============================
+# README
+# ==============================
+
+check_interface_table_v3t.pl is a Nagios(R) plugin that allows you to monitor
+the network interfaces of a node (e.g. router, switch, server) without knowing 
+each interface in detail. Only the hostname (or ip address) and the snmp community 
+string are required.
+
+check_interface_table_v3t.pl comes from:
+    1. check_interface_table.pl: 
+       released by ITdesign Software Projects & Consulting. this is the first 
+       version of the plugin, extracted from the commercial suite proposed by 
+       ITdesign.
+    2. check_interface_table_v2.pl: released by NETWAYS GmbH, it adds the 
+       performance data related to bandwidth usage.
+
+This new version, called v3t, is/will propose lots of enhancements, pnp4nagios 
+support, much more documented plugin options, be closer to nagios plugin guidelines,
+snmp v2 & v3 support, and much more !
+
+For curious, 't' in v3t stand for 'tontonitch' (my pseudo)

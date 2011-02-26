@@ -3,20 +3,20 @@
 
 =head1 NAME
 
-  check_interface_table_v3.pl -H <host> -C <community string> [OPTIONS]
+  check_interface_table_v3t.pl -H <host> -C <community string> [OPTIONS]
 
 =head1 DESCRIPTION
 
 =head2 Introduction
 
-B<check_interface_table_v3.pl> is a Nagios(R) plugin that allows you to monitor
+B<check_interface_table_v3t.pl> is a Nagios(R) plugin that allows you to monitor
 one network device (e.g. router, switch, server) without knowing each interface
 in detail. Only the hostname (or ip address) and the snmp community string are
 required.
 
   Simple Example:
 
-  # check_interface_table_v3.pl -H server1 -C public
+  # check_interface_table_v3t.pl -H server1 -C public
 
   Output:
 
@@ -65,8 +65,8 @@ information from the network and compares it against this state file.
 
 =head1 SYNOPSIS
 
-  check_interface_table_v3.pl -H <host> -C <snmp community> [options]
-  check_interface_table_v3.pl -H <host> -C <snmp community> -w <warn> -c <crit> [options]
+  check_interface_table_v3t.pl -H <host> -C <snmp community> [options]
+  check_interface_table_v3t.pl -H <host> -C <snmp community> -w <warn> -c <crit> [options]
 
 =head1 PREREQUISITS
 
@@ -313,7 +313,7 @@ Specifies the remote host to display in the HTML link.
 
  Example:
 
- check_interface_table_v3.pl -h firewall -H srv-itd-99.itdesign.at -C mkjz65a
+ check_interface_table_v3t.pl -h firewall -H srv-itd-99.itdesign.at -C mkjz65a
 
 This option is maybe useful when you want to poll a host with -H and display
 another link for it.
@@ -365,7 +365,7 @@ executed.
   Example:
 
   # su - nagios
-  nagios> check_interface_table_v3.pl -H <host> -C <community string> -Debug 1
+  nagios> check_interface_table_v3t.pl -H <host> -C <community string> -Debug 1
 
 =head1 LICENSE
 
@@ -2252,9 +2252,9 @@ sub colorcode {
     my $colorcode;
 
     # just traffic light color codes for the lame
-    if ($ifLoad < $gIfLoadWarnCounter) {            # green / ok
+    if ($ifLoad < $gh_options{ifloadwarn}) {            # green / ok
         $colorcode = 'green';
-    } elsif ($ifLoad < $gIfLoadCritCounter) {       # yellow / warn
+    } elsif ($ifLoad < $gh_options{ifloadcrit}) {       # yellow / warn
         $colorcode = 'yellow';
         $gIfLoadWarnCounter++;
     } else {                          # red / crit
@@ -2270,10 +2270,10 @@ sub colorcode {
         #   #FF0000 (red) at $crit % and over
 
         # first adjust the percent value according to the given warning and critical levels
-        if ($ifLoad <= $gIfLoadWarnCounter) {
-            $ifLoad = $ifLoad * 50 / $gIfLoadWarnCounter;
-        } elsif ($ifLoad <= $gIfLoadCritCounter) {
-            $ifLoad = $ifLoad * 100 / $gIfLoadCritCounter;
+        if ($ifLoad <= $gh_options{ifloadwarn}) {
+            $ifLoad = $ifLoad * 50 / $gh_options{ifloadwarn};
+        } elsif ($ifLoad <= $gh_options{ifloadcrit}) {
+            $ifLoad = $ifLoad * 100 / $gh_options{ifloadcrit};
         }
         my $color = 5.12 * $ifLoad;      # (256+256) * $ifLoad / 100
         if ($color > 512) { $color = 512 }
