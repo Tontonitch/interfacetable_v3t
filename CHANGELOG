@@ -2,6 +2,7 @@
 # CHANGELOG v2->v3t
 # ========================================================================
 #
+#   ----------------------------------------------------------------------
 # * v2->v3t0.01
 #   ----------------------------------------------------------------------
 # 	 - better pnp4nagios integration
@@ -20,7 +21,9 @@
 # 	 - separate history cleaning and dataset selection from bps calculation
 #    - restricted the html link generated as the pluging output to "[detail]",
 #      for better integration in third party tools such as nagstamon,...
+#   ----------------------------------------------------------------------
 # * v2->v3t0.02
+#   ----------------------------------------------------------------------
 #    - cleaner and step-by-step output when resetting stats
 #    - finished option track, replacement of nochange, which list the field
 #      concerned by tracking. Default in only ifOperStatus.
