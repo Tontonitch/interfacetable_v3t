@@ -22,6 +22,14 @@
 #      for better integration in third party tools such as nagstamon,...
 # * v2->v3t0.02
 #    - cleaner and step-by-step output when resetting stats
+#    - finished option track, replacement of nochange, which list the field
+#      concerned by tracking. Default in only ifOperStatus.
+#    - replaced column name/field notations from csv style to arrays
+#    - clearly referenced html tables in variable names for better maintenance
+#    - some typo fixes
+#    - readded 'human' option (previously missed)
+#    - fixed some 'variable not defined' problems
+#    - added operstatus as performance data for interface status tracking
 #   ----------------------------------------------------------------------
 #
 #

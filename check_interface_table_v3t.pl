@@ -589,26 +589,31 @@ sub check_options();
 # Get command line options and adapt default values in %gh_options
 check_options();
 
-my $grefaHeader;                        # Contents of the Header table (Uptime, SysDescr, ...)
-my $gHeader;                            # Generated HTML code of the Header table
-my $grefaInterfaceTableData;            # Contents of the interface table (Uptime, OperStatus, ...)
-my $gInterfaceTable;                    # Html code of the interface table
-my $grefaAllIndizes;                    # Sorted array which holds all interface indexes
+my $gInfoTable;                                      # Generated HTML code of the Info table
+my $grefaInfoTableHeader = [                         # Header for the colomns of the Info table
+    'Name','Uptime','System Information','Type','Serial','Ports',
+    'delta seconds used for bandwidth calculations'
+    ];                        
+my $grefaInfoTableData;                              # Contents of the Info table (Uptime, SysDescr, ...)
 
-# replaced by '@nochange'
-# my $grefaExludedProperties;             # List of exclued properties
-
-# replaced by '$gh_options{'delta'}'
-my $gUsedDelta               = 0;       # time delta for bandwidth calculations (really used)
-my $gFieldsForTable          = '';      # Hash keys for the content of the html table
-my $gHeaderForTable          = '';      # Header for the cols of the html table
-if ($gh_options{'vlan'}) { # show VLANs per port
-        $gFieldsForTable = 'index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic';
-        $gHeaderForTable = 'index;Description;Alias;AdminStatus;OperStatus;Speed;VLANs;Load In;Load Out;IP;bpsIn;bpsOut;last traffic';
-} else {
-        $gFieldsForTable = 'index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic';
-        $gHeaderForTable = 'Index;Description;Alias;AdminStatus;OperStatus;Speed;Load In;Load Out;IP;bpsIn;bpsOut;Last traffic';
+my $gInterfaceTable;                                 # Html code of the interface table
+my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
+    'index','Description','Alias','AdminStatus','OperStatus','Speed',
+    'Load In','Load Out','IP','bpsIn','bpsOut','last traffic'
+    ];
+my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
+    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable',
+    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','ifLastTraffic'
+    ];
+if ($gh_options{'vlan'}) { 
+    # show VLANs per port
+    splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
+    splice(@$grefaInterfaceTableHeader,7,0,'VLANs');
 }
+my $grefaInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
+
+my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
+my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
 
 my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
 my $gDifferenceCounter               = 0;            # Number of changes. This variable is used in the exitcode algorithm
@@ -648,7 +653,7 @@ my $gInterfaceInformationFile = "$gh_options{'statedir'}/$gFile.txt";
 
 # If -snapshot is set or DisableTrackingChanges is disabled on all interfaces
 # we dont track changes
-if (($gh_options{'nochanges'} and $gh_options{'nochanges'}->[1] eq "ALL") or $gh_options{'snapshot'}) {
+if (($gh_options{'track'} and ($gh_options{'track'}[0] eq "ALL")) or $gh_options{'snapshot'}) {
     $gInitialRun = 1;
 }
 
@@ -835,25 +840,22 @@ if ( $gNumberOfPerfdataInterfaces > 0 and $gh_options{'enableportperf'}) {
 # Create host information table data
 # ------------------------------------------------------------------------------
 
-$grefaHeader->[0]->[0]->{Value} = "$grefhCurrent->{MD}->{sysName}";
-$grefaHeader->[0]->[1]->{Value} = TimeDiff (1,$grefhCurrent->{MD}->{sysUpTime} / 100); # start at 1 because else we get "NoData"
-$grefaHeader->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{sysDescr}";
-$grefaHeader->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
-$grefaHeader->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
-$grefaHeader->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-$grefaHeader->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-if ($gh_options{'delta'}) {$grefaHeader->[0]->[6]->{Value} = "$gh_options{'delta'}" }
-else { $grefaHeader->[0]->[6]->{Value} =  'no data to compare with'; }
+$grefaInfoTableData->[0]->[0]->{Value} = "$grefhCurrent->{MD}->{sysName}";
+$grefaInfoTableData->[0]->[1]->{Value} = TimeDiff (1,$grefhCurrent->{MD}->{sysUpTime} / 100); # start at 1 because else we get "NoData"
+$grefaInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{sysDescr}";
+$grefaInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
+$grefaInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
+$grefaInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+$grefaInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+if ($gh_options{'delta'}) {$grefaInfoTableData->[0]->[6]->{Value} = "$gh_options{'delta'}" }
+else { $grefaInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
 
 #
 # Generate Html Table
 # do not compare ifDescr and ifIndex because they can change during reboot
 # Field list: index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic
 #
-$grefaInterfaceTableData = GenerateHtmlTable ({
-    Fields               => "$gFieldsForTable",
-    FieldsNoCompare      => "ifDescr,ifAlias,index,OctetsIn,OctetsOut,ifLoadIn,ifLoadOut,bpsIn,bpsOut,ifLastTraffic",
-});
+$grefaInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$gh_options{track});
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -873,10 +875,10 @@ if ( $gInitialRun ) {
 }
 
 # Create "mini" info table
-$gHeader = Csv2Html ("Name;Uptime;System Information;Type;Serial;Ports;delta seconds used for bandwidth calculations",$grefaHeader);
+$gInfoTable = Csv2Html ($grefaInfoTableHeader,$grefaInfoTableData);
 
 # Create "big" interface table
-$gInterfaceTable   = Csv2Html ($gHeaderForTable,$grefaInterfaceTableData);
+$gInterfaceTable   = Csv2Html ($grefaInterfaceTableHeader,$grefaInterfaceTableData);
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -917,7 +919,7 @@ if ($grefhCurrent->{MD}->{cisco_type} ne '' and $grefhCurrent->{MD}->{cisco_seri
 
 # Write Html Table
 WriteHtmlTable ({
-    Header      => $gHeader,
+    Header      => $gInfoTable,
     Body        => $gInterfaceTable,
     Dir         => $gh_options{'htmldir'},
     FileName    => "$gh_options{'htmldir'}/$gFile".'.html'
@@ -1009,7 +1011,7 @@ sub perfdataout {
 # This file will be visible on the browser
 #
 # WriteHtmlTable ({
-#    Header      => $gHeader,
+#    Header      => $gInfoTable,
 #    Body        => $gInterfaceTable,
 #    FileName    => $gHtmlFileName
 # });
@@ -1080,23 +1082,22 @@ sub mcompare {
 # ------------------------------------------------------------------------
 # Compare data from refhFile and refhCurrent and create the csv data for
 # html table.
-#
-# $grefaInterfaceTableData = GenerateHtmlTable ({
-#     Fields      => "ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,IpInfo"
-# });
 # ------------------------------------------------------------------------
 sub GenerateHtmlTable {
 
-    my $refhStruct               = shift;
-    my $refaFields               = [ split ( ',', $refhStruct->{Fields} ) ] ;          # Array of the fields for the table
-    my $refaNoCompare            = [ split ( ',', $refhStruct->{FieldsNoCompare} ) ] ; # Array of fields which should be excluded from change tracking
-    my $iLineCounter             = 0;                                                  # Fluss Variable (ah geh ;-) )
-    my $refaContentForHtmlTable;                                                       # This is the final data structure which we pass to csv2htmlnew
-    my $DataForMD5CheckSum       = "";                                                 # MD5 Checksum
+    my $refaFields               = shift;               # Array of the fields for the table
+    my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
+    my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
+    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to csv2htmlnew
+    my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
     logger(1, "x"x50);
-
+    
+    # Print tracking info
+    logger(3, "Available fields:".Dumper($refaFields));
+    logger(3, "Tracked fields:".Dumper($refaToCompare));
+    
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $InterfaceIndex (@$grefaAllIndizes) {
 
@@ -1106,13 +1107,8 @@ sub GenerateHtmlTable {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        # Avoid undefined exclusion setting
-        unless (defined $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded}) {
-            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "false";
-        }
-
         # Netways Nagios Grapher - one link per line/interface/port
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") { # explicitely included
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
             #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
             my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
             $servicename =~ s/#/%23/g;
@@ -1153,38 +1149,31 @@ sub GenerateHtmlTable {
                 $FileFieldContent     = $refhInterFaceDataFile->{"$FieldName"};
             }
 
-            # Flag if the current status of this field should not be compared with the
+            # Flag if the current status of this field should be compared with the
             # "snapshoted" status of this field.
-            my $DontCompareThisField = grep (/$FieldName/i, @$refaNoCompare);
+            my $CompareThisField = grep (/$FieldName/i, @$refaToCompare);
 
             # some fields have a change time property in the interface information file.
             # if the change time exists we store this and write into html table
             $ChangeTime = $grefhFile->{MD}->{If}->{$oid_ifDescr}->{$FieldName."ChangeTime"};
 
-            # If interface is excluded or this is the initial run we dont lookup
-            # data changes and mark all properties of this interface olive
+            # If interface is excluded or this is the initial run we don't lookup for
+            # data changes
             if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "true" or $gInitialRun)  {
-                $DontCompareThisField = 1;
+                $CompareThisField = 0;
                 # Change the font color to "olive"
                 $CellColor     = '<font color="#808000">';
-            }
-            # if interface is over its limits, change backgroundcolor
-            elsif (defined $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"}) {
+            } elsif (defined $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"}) {
                 $CellBackgroundColor = $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"};
             }
-
+            
             # Set LastChangeInfo to this Format "(since 0d 0h 43m)"
             if ( defined $ChangeTime and $gh_options{trackduration} ) {
                 $ChangeTime = TimeDiff ("$ChangeTime",time());
                 $LastChangeInfo = "(since $ChangeTime)";
             }
 
-            # If this field wont be compared we just write the current field - value
-            # in the table.
-            if ( $DontCompareThisField  ) {
-                logger(1, "Not comparing $FieldName on interface ".denormalize($oid_ifDescr));
-                $CellContent = denormalize( $CurrentFieldContent );
-            } else {
+            if ( $CompareThisField  ) {
                 # Field content has NOT changed
                 logger(1, "Compare \"".denormalize($oid_ifDescr)."($FieldName)\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
                 if ( $CurrentFieldContent eq $FileFieldContent ) {
@@ -1205,6 +1194,10 @@ sub GenerateHtmlTable {
                         $CellBackgroundColor = "#F5A9A9"; # light red
                     }
                 }
+            } else {
+                # Filed will not be compared, just write the current field - value in the table.
+                logger(1, "Not comparing $FieldName on interface ".denormalize($oid_ifDescr));
+                $CellContent = denormalize( $CurrentFieldContent );
             }
 
             # Write an empty cell content if CellContent is empty
@@ -2591,10 +2584,10 @@ sub ExecuteCommand {
 # This function generates a html table
 #
 # Function call:
-# $gHtml   = Csv2Html ("Name;Surname",$refaLines);
+# $gHtml   = Csv2Html ($refaHeader,$refaLines);
 # ------------------------------------------------------------------------------
 sub Csv2Html {
-    my $Header     = shift;       # Header contains the HTML table header as scalar
+    my $refaHeader = shift;       # Header contains the HTML table header as scalar
     my $refaLines  = shift;       # Reference to array of table lines
 
     my $refaProperties;           # List of properties from each line
@@ -2617,7 +2610,7 @@ sub Csv2Html {
         #
         # - It will be transformed to:
         # <th>index</th><th>Description</th><th>Alias</th> ...
-        $HTML .= "<th>$_</th>" for (split /$FS/,$Header);
+        $HTML .= "<th>$_</th>" for ( @$refaHeader );
 
         foreach my $Line ( @$refaLines ) {
             #logger(3, "CSVline: " . Dumper ($Line));
@@ -2797,7 +2790,11 @@ sub logger {
 
     # fetch the name of the function which called logger()
     my $caller = (caller(1))[3];
-    if($caller){$caller="|".$caller."| "}
+    if($caller){
+        $caller="|".$caller."| ";
+    }else{
+        $caller="|main| ";
+    }
 
     if($loglevel <= $gh_options{verbose}){
         my $space = "";
@@ -2865,8 +2862,14 @@ sub print_usage () {
 
     --ifloadgradient | --ifLoadGradient
         enable color gradient from green over yellow to red for the load percentage representation
-    --nochange
-        list of exclued properties
+    --track
+        list of tracked properties. Values can be:
+         * 'ifAdminStatus'      : the administrative status of the interface
+         * 'ifOperStatus'       : the operational status of the interface
+         * 'ifSpeedReadable'    : the speed of the interface
+         * 'ifVlanNames'        : the vlan on which the interface was associated
+         * 'IpInfo'             : the ip configuration for the interface
+        default is 'ifOperStatus'
     --snapshot
 
     --version | -V
@@ -2933,7 +2936,8 @@ sub check_options () {
         'reseturl|ResetUrl=s',              # URL to tablereset program
         'vlan|VLANs',
         'ifloadgradient|ifLoadGradient',    # color gradient from green over yellow to red representing the load percentage
-        'nochange=s',                       # list of exclued properties
+        'human|Human',                      # translate bandwidth usage in human readable format (G/M/K bps)
+        'track=s',                          # list of exclued properties
         'snapshot',
         'version',
         'exclude|Exclude=s',
@@ -2963,9 +2967,10 @@ sub check_options () {
         'cache'             => 3600,
         'reseturl'          => "/icinga/cgi-bin",
         'vlan'              => 0,
-        'loadgradient'      => 0,
+        'ifloadgradient'    => 1,
+        'human'             => 1,
         'snapshot'          => 0,
-        'nochange'          => undef,
+        'track'             => ['ifOperStatus'],        # can be compared: ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,IpInfo
         'exclude'           => undef,
         'include'           => undef,
         'timeout'           => $TIMEOUT,
@@ -3033,15 +3038,15 @@ sub check_options () {
         $gh_options{'ifs'} = "$commandline{ifs}";
     }
     # organizing not tracked fields
-    if (exists $commandline{nochange}) {
-        my @tmparray = split("$gh_options{ifs}", join("$gh_options{ifs}",$commandline{nochange}));
-        $gh_options{'nochange'} = \@tmparray;
+    if (exists $commandline{track}) {
+        my @tmparray = split("$gh_options{ifs}", join("$gh_options{ifs}",$commandline{track}));
+        $gh_options{'track'} = \@tmparray;
     }
     # organizing excluded/included interfaces
     if (exists $commandline{exclude}) {
         my @tmparray = split("$gh_options{ifs}", join("$gh_options{ifs}",$commandline{exclude}));
         $gh_options{'exclude'} = \@tmparray;
-    }
+    } 
     if (exists $commandline{include}) {
         my @tmparray = split("$gh_options{ifs}", join("$gh_options{ifs}",$commandline{include}));
         $gh_options{'include'} = \@tmparray;
@@ -3067,6 +3072,9 @@ sub check_options () {
     if (exists $commandline{ifloadgradient}) {
         $gh_options{'ifloadgradient'} = 1;
     }
+    if (exists $commandline{human}) {
+        $gh_options{'human'} = 1;
+    }
     if (exists $commandline{vlan}) {
         $gh_options{'vlan'} = 1;
     }
@@ -3074,10 +3082,10 @@ sub check_options () {
         $gh_options{'snapshot'} = 1;
     }
     if (exists $commandline{warning}) {
-        $gh_options{'warning'} = 1;
+        $gh_options{'warning'} = "$commandline{warning}";
     }
     if (exists $commandline{critical}) {
-        $gh_options{'critical'} = 1;
+        $gh_options{'critical'} = "$commandline{critical}";
     }
     if (exists $commandline{ifloadwarn}) {
         $gh_options{ifloadwarn} = "$commandline{ifloadwarn}";
