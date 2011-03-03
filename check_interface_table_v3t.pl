@@ -3131,12 +3131,14 @@ sub check_options () {
         $ghOptions{'hostdisplay'} = "$commandline{hostquery}";
     }
     if (exists $commandline{cachedir}) {
-        $ghOptions{'cachedir'} = "$commandline{cachedir}/$commandline{hostquery}";
+        $ghOptions{'cachedir'} = "$commandline{cachedir}";
     }
+	$ghOptions{'cachedir'} = "$ghOptions{'cachedir'}/$commandline{hostquery}";
     -d "$ghOptions{'cachedir'}" or MyMkdir ("$ghOptions{'cachedir'}");
     if (exists $commandline{statedir}) {
-        $ghOptions{'statedir'} = "$commandline{statedir}/$commandline{hostquery}";
+        $ghOptions{'statedir'} = "$commandline{statedir}";
     }
+	$ghOptions{'statedir'} = "$ghOptions{'statedir'}/$commandline{hostquery}";
     -d "$ghOptions{'statedir'}" or MyMkdir ("$ghOptions{'statedir'}");
     if (exists $commandline{accessmethod} && ($commandline{accessmethod} ne "ssh" && $commandline{accessmethod} ne "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";

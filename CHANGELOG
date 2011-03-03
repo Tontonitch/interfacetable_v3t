@@ -58,6 +58,7 @@
 #    - fix: corrected and completed physical interface pattern matching in
 #      check_for_unused_interfaces
 #    - fix: readded 'regexp' option (previously missed)
+#    - fix: cachedir/statedir naming including hostquery
 #   ----------------------------------------------------------------------
 #
 #
