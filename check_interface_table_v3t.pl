@@ -653,7 +653,7 @@ my $gInterfaceInformationFile = "$gh_options{'statedir'}/$gFile.txt";
 
 # If -snapshot is set or DisableTrackingChanges is disabled on all interfaces
 # we dont track changes
-if (($gh_options{'track'} and ($gh_options{'track'}[0] eq "ALL")) or $gh_options{'snapshot'}) {
+if (($gh_options{'track'} and ($gh_options{'track'}[0] eq "NONE")) or $gh_options{'snapshot'}) {
     $gInitialRun = 1;
 }
 
@@ -1273,7 +1273,7 @@ sub EvaluateInterfaces {
         # By default, don't exclude the interface
         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "false";
         
-        # For each exclusion
+        # Process the interface exclusion list
         for my $ExcludeString (@$ExcludeList) {
             if ($gh_options{regexp}) {
                 if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
@@ -1287,7 +1287,9 @@ sub EvaluateInterfaces {
             }
         }
 
-        # Include interfaces ..
+        # Process the interface inclusion list
+        # Inclusions are done after exclusions to be able to include a 
+        # subset of a group of interfaces which were excluded previously
         for my $IncludeString (@$IncludeList) {
             if ($gh_options{regexp}) {
                 if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
@@ -1303,6 +1305,7 @@ sub EvaluateInterfaces {
         
         # Update the counter if needed
         ($gh_options{'enableportperf'} and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false")
+#            and $gNumberOfPerfdataInterfaces++;
             and $gNumberOfPerfdataInterfaces++;
 
     } # for each interface
@@ -1657,6 +1660,8 @@ sub CalculateBps {
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $Index (@$grefaAllIndizes) {
 
+        # ---------- Bandwidth calculation -----------
+        
         # check if the counter is back to 0 after 2^32 / 2^64.
         my $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{OctetsIn}->{"$Index"} >=
             $grefhFile->{'history'}->{$firsttime}->{OctetsIn}->{"$Index"} ) ? 0 : $overfl_mod;
@@ -1724,6 +1729,8 @@ sub CalculateBps {
         $grefhCurrent->{If}->{$oid_ifDescr}->{bpsIn} = sprintf("%.2f$SpeedUnitIn", $bpsIn);
         $grefhCurrent->{If}->{$oid_ifDescr}->{bpsOut} = sprintf("%.2f$SpeedUnitOut", $bpsOut);
 
+        # ---------- Last traffic calculation -----------
+        
         # remember last traffic time
         if ($bpsIn > 0 or $bpsOut > 0) { # there is traffic now, remember it
             $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{LastTraffic} = $STARTTIME;
@@ -2282,6 +2289,11 @@ sub colorcode {
 
 # ------------------------------------------------------------------------
 # check_for_unused_interfaces
+#  * arg 1: oid ifDescr of the interface
+#  * arg 2: free???
+#     . -1  -> interface used, unknown last traffic
+#     . 0   -> interface used, last traffic is < crit duration
+#     . 1   -> interface unused, last traffic is >= crit duration
 # ------------------------------------------------------------------------
 sub check_for_unused_interfaces {
     my ($oid_ifDescr, $free) = @_;
