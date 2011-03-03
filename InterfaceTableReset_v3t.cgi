@@ -48,6 +48,7 @@ my $gInterfaceInformationFile = param('What');
 
 
 print header;
+print start_html('<script type="text/javascript"><!--history.go(-1);--></script>');
 print start_html('Table Reset'),
     h1('Interface Table Reset Procedure'),
     hr;

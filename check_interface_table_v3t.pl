@@ -1878,14 +1878,14 @@ sub Get_IpAddress_SubnetMask {
 
     # remove all invisible chars incl. \r and \n
     $grefhCurrent->{MD}->{SnmpIpInfo} =~ s/[\000-\037]|[\177-\377]//g;
-
+	
     # # snmpwalk -Oqn -v 1 -c public router IP-MIB::ipAdEntNetMask
     # .1.3.6.1.2.1.4.20.1.3.172.31.92.91 255.255.255.255
     # .1.3.6.1.2.1.4.20.1.3.172.31.92.97 255.255.255.255
     #
     # read the subnet masks with caching 0 only if the ip addresses
     # have changed
-    if ($grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
+    if (defined $grefhFile->{MD}->{SnmpIpInfo} and $grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
         $refaNetMask = GetDataWithUnixSnmpWalk ($oid_ipAdEntNetMask,$gLongCacheTimer);
     } else {
         $refaNetMask = GetDataWithUnixSnmpWalk ($oid_ipAdEntNetMask,0);
@@ -3045,7 +3045,7 @@ sub check_options () {
         'human|Human',                      # translate bandwidth usage in human readable format (G/M/K bps)
         'track=s',                          # list of exclued properties
         'snapshot',
-        'version',
+        'version|V',
         'exclude|Exclude=s',
         'include|Include=s',
         'regexp|Regexp',
