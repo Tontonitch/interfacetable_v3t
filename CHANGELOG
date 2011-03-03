@@ -3,46 +3,69 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
-# * v2->v3t0.01
-#   ----------------------------------------------------------------------
-# 	 - better pnp4nagios integration
-# 	 - better documentation on usage
-# 	 - parameters treatment block code, for easier maintenance
-# 	 - debug mode review
-# 	 - arrays in option hash to avoid reformating in sub functions 
-# 	 - cleaning of unused blocks of code. might be reviewed in the future
-# 	 - added comments
-# 	 - added bits output feature for performance data
-# 	 - check_multi perfdata output type with interface name. Global and Port 
-# 	   perfdata types
-# 	 - rewrite the plugin to follow the nagios plugin development guidelines:
-# 	   * turn to "use warnings"
-# 	 - pnp6 templates
-# 	 - separate history cleaning and dataset selection from bps calculation
-#    - restricted the html link generated as the pluging output to "[detail]",
-#      for better integration in third party tools such as nagstamon,...
-#   ----------------------------------------------------------------------
 # * v2->v3t0.02
 #   ----------------------------------------------------------------------
-#    - cleaner and step-by-step output when resetting stats
-#    - finished option track, replacement of nochange, which list the field
-#      concerned by tracking. Default in only ifOperStatus.
-#    - replaced column name/field notations from csv style to arrays
-#    - clearly referenced html tables in variable names for better maintenance
-#    - some typo fixes
-#    - readded 'human' option (previously missed)
-#    - fixed some 'variable not defined' problems
+# 	 - enhancement: better pnp4nagios integration
+# 	 - enhancement: better documentation on usage
+# 	 - enhancement: parameters treatment block code, for easier maintenance
+# 	 - enhancement: debug mode review
+# 	 - enhancement: arrays in option hash to avoid reformating in sub 
+#      functions 
+# 	 - enhancement: cleaning of unused blocks of code. might be reviewed 
+#      in the future
+# 	 - enhancement: added comments
+# 	 - enhancement: added bits output feature for performance data
+# 	 - enhancement: check_multi perfdata output type with interface name. 
+#      Global and Port perfdata types
+# 	 - enhancement: rewrite the plugin to follow the nagios plugin development 
+#      guidelines:
+# 	   * use of "use warnings"
+# 	 - enhancement: pnp6 templates
+# 	 - enhancement: separate history cleaning and dataset selection from bps 
+#      calculation
+#    - enhancement: restricted the html link generated as the pluging output 
+#      to "[detail]", for better integration in third party tools such as 
+#      nagstamon,...
+#   ----------------------------------------------------------------------
+# * v2->v3t0.0x
+#   ----------------------------------------------------------------------
+#    - enhancement: cleaner and step-by-step output when resetting stats
+#    - enhancement: finished option 'track', replacement of nochange, which 
+#      list the field concerned by tracking. Default: only ifOperStatus.
+#    - enhancement: replaced column name/field notations from csv style to 
+#      arrays
+#    - enhancement: clearly referenced html tables in variable names for 
+#      better maintenance
+#    - fix: some typo fixes
+#    - fix: readded 'human' option (previously missed)
+#    - fix: some 'variable not defined' problems
 #    - added operstatus as performance data for interface status tracking
+#    - enhancement: don't alert for interfaces OperStatus going to "up"
+#    - fix: vlan column moved to the correct place
+#    - enhancement: avoid global perfdata to be returned in case of initial
+#      run or no history, as the perfdata are wrong and produce drops on 
+#      graphs
+#    - enhancement: rewrite the plugin to follow the nagios plugin development 
+#      guidelines:
+# 	   * use of "use warnings"
+#         => second review, protected lots of undefined variables
+#    - enhancement: added excludeportperf and includeportperf, allowing 
+#      to filter which tracked interfaces generates performance data
+#    - fix/enhancement: port performance data now depend on what data are 
+#      available. ex: unrouted vlans doesn't have ifOctetIn... statistics
+#    - enhancement: last traffic calculation a bit cleaned and commented for
+#      better maintenance
+#    - fix: corrected and completed physical interface pattern matching in
+#      check_for_unused_interfaces
+#    - fix: readded 'regexp' option (previously missed)
 #   ----------------------------------------------------------------------
 #
 #
 # ========================================================================
 # 	TODO list:
-# 	 - option to exclude change tracking for interfaces going from down to up
+# 	 - option to enable change tracking for interfaces going from down to up
 # 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 # 	   against the use of unix snmpwalk
-# 	 - replace "nochange" by "tochange" for change tracking. Default: only 
-# 	   operstatus from up to an other status
 # 	 - review the nagios plugin development guidelines to see if it fits now
 # 	 - pnp6 templates update
 #    - snmp v2c / v3 support
