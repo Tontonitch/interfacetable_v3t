@@ -1377,7 +1377,7 @@ sub GetUptime {
     });
 
     # we got data
-    if ($Value > 0) {
+    if ($Value) {
         return $Value;
     } else {
         # und tschuess - hat keinen Sinn weiter zu machen

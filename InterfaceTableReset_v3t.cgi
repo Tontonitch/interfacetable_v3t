@@ -48,7 +48,7 @@ my $gInterfaceInformationFile = param('What');
 
 
 print header;
-print start_html('<script type="text/javascript"><!--history.go(-1);--></script>');
+# print start_html('<script type="text/javascript"><!--history.go(-1);--></script>');
 print start_html('Table Reset'),
     h1('Interface Table Reset Procedure'),
     hr;
@@ -64,8 +64,8 @@ if ($ENV{WIT_DBG}) {
 # Read data
 # ------------------------------------------------------------------------------
 
-print "Reading data... ", 
-    hr;
+print "<ul>";
+print li("Reading data... ");
     
 # read all interfaces and its properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
@@ -78,8 +78,7 @@ if ($ENV{WIT_DBG}) {
 # clean up
 # ------------------------------------------------------------------------------
 
-print "Cleanup data... ", 
-    hr;
+print li("Cleanup data... ");
 
 # we reset the last reset of the file -> next run of the check script will recognize this
 delete $grefhFile->{TableReset};
@@ -97,9 +96,9 @@ if ($ENV{WIT_DBG}) {
 # write interface information file
 # ------------------------------------------------------------------------------
 
-print "Rewrite interface information file... ", 
-    hr;
-    
+print li("Rewrite interface information file... ");
+print "</ul>";
+
 WriteConfigFileNew ("$gInterfaceInformationFile",$grefhFile);
 
 print "New set of reference data saved. The interface table and the raised alarms will be resetted at the next check launch.",

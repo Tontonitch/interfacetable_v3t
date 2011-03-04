@@ -59,6 +59,7 @@
 #      check_for_unused_interfaces
 #    - fix: readded 'regexp' option (previously missed)
 #    - fix: cachedir/statedir naming including hostquery
+#    - fix: never ignore case in options
 #   ----------------------------------------------------------------------
 #
 #
