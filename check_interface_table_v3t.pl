@@ -2377,86 +2377,44 @@ sub colorcode {
 sub check_for_unused_interfaces {
     my ($oid_ifDescr, $free) = @_;
     
-    if ($oid_ifDescr =~ /Ethernet(\d+)Q2F(\d+)Q2F(\d+)/) {
-        # we look for ethernet ports (and decide if it is a stacked switch), x/x/x format
-        if (not defined $gInterfacesWithoutTrunk->{"$1/$2/$4"}) {
-            $gInterfacesWithoutTrunk->{"$1/$2/$4"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
+    if ($grefhCurrent->{If}->{"$oid_ifDescr"}->{ifSpeed}) {
+        # Interface has a speed property, that can be a physical interface
+        
+        if ($oid_ifDescr =~ /Ethernet(\d+)Q2F(\d+)Q2F(\d+)/) {
+            # we look for ethernet ports (and decide if it is a stacked switch), x/x/x format
+            if (not defined $gInterfacesWithoutTrunk->{"$1/$2/$4"}) {
+                $gInterfacesWithoutTrunk->{"$1/$2/$4"} = $free;
+                $gNumberOfInterfacesWithoutTrunk++;
+                # look for free ports with admin status up
+                if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
             }
-        }
-    } elsif ($oid_ifDescr =~ /Ethernet(\d+)Q2F(\d+)/) {
-        # we look for ethernet ports (and decide if it is a stacked switch), x/x format
-        if (not defined $gInterfacesWithoutTrunk->{"$1/$2"}) {
-            $gInterfacesWithoutTrunk->{"$1/$2"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
+        } elsif ($oid_ifDescr =~ /Ethernet(\d+)Q2F(\d+)/) {
+            # we look for ethernet ports (and decide if it is a stacked switch), x/x format
+            if (not defined $gInterfacesWithoutTrunk->{"$1/$2"}) {
+                $gInterfacesWithoutTrunk->{"$1/$2"} = $free;
+                $gNumberOfInterfacesWithoutTrunk++;
+                # look for free ports with admin status up
+                if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
             }
-        }
-    } elsif ($oid_ifDescr =~ /^(?:(?:fast|gigabit)?eth(?:ernet)?)?(\d+)$/i) {
-        # we look for ethernet ports
-        if (not defined $gInterfacesWithoutTrunk->{"$1"}) {
-            $gInterfacesWithoutTrunk->{"$1"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
+        } elsif (not $oid_ifDescr =~ /^vif|Loopback/i) {
+            # we look for all interfaces having speed property but not looking like a virtual interface
+            if (not defined $gInterfacesWithoutTrunk->{"$oid_ifDescr"}) {
+                $gInterfacesWithoutTrunk->{"$oid_ifDescr"} = $free;
+                $gNumberOfInterfacesWithoutTrunk++;
+                # look for free ports with admin status up
+                if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
             }
-        }
-    } elsif ($oid_ifDescr =~ /^(.*Ethernet.*)$/i) {
-        # we look for ethernet ports more generally
-        if (not defined $gInterfacesWithoutTrunk->{"$1"}) {
-            $gInterfacesWithoutTrunk->{"$1"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
-            }
-        }
-    } elsif (($oid_ifDescr =~ /^(vif\d+Q2D\d+)$/i) or ($oid_ifDescr =~ /^(e\d.)$/i)){
-        # we look for NetApp virtual interfaces
-        # ex: e0a, e4M, vif00, vif00, vif01-1, vif01-250
-        # TODO: filter virtual interfaces
-        if (not defined $gInterfacesWithoutTrunk->{"$1"}) {
-            $gInterfacesWithoutTrunk->{"$1"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') { 
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
-            }
-        }
-    } elsif ($oid_ifDescr =~ /^((eri|eth|bge|ce|sppp)\d+)$/i) {
-        # we look for Unix / Linux network interface names
-        if (not defined $gInterfacesWithoutTrunk->{"$1"}) {
-            $gInterfacesWithoutTrunk->{"$1"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
-            }
-        }
-    } elsif ($oid_ifDescr =~ /^(FCQ20portQ20.*)$/i) {
-        # we look for Brocade FC ports
-        if (not defined $gInterfacesWithoutTrunk->{"$1"}) {
-            $gInterfacesWithoutTrunk->{"$1"} = $free;
-            $gNumberOfInterfacesWithoutTrunk++;
-            # look for free ports with admin status up
-            if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-                $gNumberOfFreeUpInterfaces++;
-            }
-        }
-    } 
+        } 
+    }
     logger(1, "ifDescr: $oid_ifDescr\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk");
 }
 
