@@ -60,6 +60,9 @@
 #    - fix: readded 'regexp' option (previously missed)
 #    - fix: cachedir/statedir naming including hostquery
 #    - fix: never ignore case in options
+#    - enhancement: reviewed the way the ports are counted. based on the 
+#      speed property availability, this seems to permit a correct counting 
+#      for most of the possible nodes (cisco, windows, linux, ...)
 #   ----------------------------------------------------------------------
 #
 #
@@ -69,6 +72,8 @@
 # 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 # 	   against the use of unix snmpwalk
 # 	 - review the nagios plugin development guidelines to see if it fits now
+#       * use warnings
+#       * use strict
 # 	 - pnp6 templates update
 #    - snmp v2c / v3 support
 # ========================================================================
