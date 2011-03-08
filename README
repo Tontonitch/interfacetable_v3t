@@ -20,8 +20,16 @@ This new version, called v3t, provides some enhancements:
  * much more documented plugin options
  * closer to nagios plugin guidelines
  * code review for better maintenance
- 
+
 Coming:
  * snmp v2 & v3 support
+
+Support the check of the following node types:
+ * Brocade fiberchannel switches
+ * Cisco routers
+ * Linux hosts
+ * Windows hosts
+ * Solaris hosts
+ * Netapp filers
  
 Note: 't' in v3t stand for 'tontonitch' (my pseudo)
