@@ -488,7 +488,7 @@ use lib "/usr/local/icinga/libexec";
 use Net::SNMP qw(oid_base_match);
 use Config::General;
 use Data::Dumper;
-use Getopt::Long;
+use Getopt::Long qw(:config no_ignore_case no_ignore_case_always);
 use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
 
 # ========================================================================
@@ -591,9 +591,15 @@ check_options();
 
 my $gInfoTable;                                      # Generated HTML code of the Info table
 my $grefaInfoTableHeader = [                         # Header for the colomns of the Info table
-    'Name','Uptime','System Information','Type','Serial','Ports',
+    'Name','Uptime','System Information','Ports',
     'delta seconds used for bandwidth calculations'
-    ];                        
+    ];
+if ($ghOptions{'cisco'}) { 
+    # show some specific cisco info in the info table: type and serial
+    splice(@$grefaInfoTableHeader,3,0,'Type');
+    splice(@$grefaInfoTableHeader,4,0,'Serial');
+}
+    
 my $grefaInfoTableData;                              # Contents of the Info table (Uptime, SysDescr, ...)
 
 my $gInterfaceTable;                                 # Html code of the interface table
@@ -607,8 +613,8 @@ my $grefaInterfaceTableFields = [                    # Hash keys for the content
     ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
-    splice(@$grefaInterfaceTableFields,6,0,'ifVlanNames');
     splice(@$grefaInterfaceTableHeader,6,0,'VLANs');
+    splice(@$grefaInterfaceTableFields,6,0,'ifVlanNames');
 }
 my $grefaInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -616,6 +622,7 @@ my $grefaAllIndizes;                                 # Sorted array which holds 
 my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
 
 my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
+my $gNoHistory                       = 0;            # Flag that will be set in case there's no valid historical dataset
 my $gDifferenceCounter               = 0;            # Number of changes. This variable is used in the exitcode algorithm
 my $gIfLoadWarnCounter               = 0;            # counter for interfaces with load warning. This variable is used in the exitcode algorithm
 my $gIfLoadCritCounter               = 0;            # counter for interfaces with critical load. This variable is used in the exitcode algorithm
@@ -668,13 +675,18 @@ $grefhCurrent->{MD}->{sysUpTime} = GetUptime ([ "$oid_sysUpTime" ],0);
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
 logger(3, "grefhFile:".Dumper ($grefhFile));
 
-# get sysDescr and sysName caching the long parameter
-#$grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName" ],$gLongCacheTimer);
-$grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$gLongCacheTimer);
-$grefhCurrent->{MD}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
-$grefhCurrent->{MD}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
-$grefhCurrent->{MD}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
-$grefhCurrent->{MD}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_serial}";
+# get sysDescr, sysName and other info for the info table. caching the long parameter
+if ($ghOptions{'cisco'}) { 
+    $grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$gLongCacheTimer);
+    $grefhCurrent->{MD}->{sysDescr}     = "$grefhSNMP->{$oid_sysDescr}";
+    $grefhCurrent->{MD}->{sysName}      = "$grefhSNMP->{$oid_sysName}";
+    $grefhCurrent->{MD}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
+    $grefhCurrent->{MD}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_serial}";
+} else {
+    $grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName" ],$gLongCacheTimer);
+    $grefhCurrent->{MD}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
+    $grefhCurrent->{MD}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
+}    
 
 # get lines with interface oper status - no caching !
 $grefaOperStatusLines = GetDataWithUnixSnmpWalk ($oid_ifOperStatus,0);
@@ -770,7 +782,11 @@ logger(3, " Include / Exclude interfaces -> generated hash\ngrefhCurrent:".Dumpe
 logger(3, " Interface information table data -> generated array\ngrefaAllIndizes:".Dumper ($grefaAllIndizes));
 
 my $basetime = CleanAndSelectHistoricalDataset();
-(defined $basetime) and CalculateBps($basetime);
+if (defined $basetime) {
+    CalculateBps($basetime);
+} else {
+    $gNoHistory = 1;
+}
 
 # ------------------------------------------------------------------------------
 # write perfdata stdout and files
@@ -843,12 +859,19 @@ if ( $gNumberOfPerfdataInterfaces > 0 and $ghOptions{'enableportperf'}) {
 $grefaInfoTableData->[0]->[0]->{Value} = "$grefhCurrent->{MD}->{sysName}";
 $grefaInfoTableData->[0]->[1]->{Value} = TimeDiff (1,$grefhCurrent->{MD}->{sysUpTime} / 100); # start at 1 because else we get "NoData"
 $grefaInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{sysDescr}";
-$grefaInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
-$grefaInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
-$grefaInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-$grefaInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-if ($ghOptions{'delta'}) {$grefaInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
-else { $grefaInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
+if ($ghOptions{'cisco'}) {
+    $grefaInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
+    $grefaInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
+    $grefaInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+    $grefaInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($ghOptions{'delta'}) {$grefaInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
+    else { $grefaInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
+} else {
+    $grefaInfoTableData->[0]->[3]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+    $grefaInfoTableData->[0]->[3]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($ghOptions{'delta'}) {$grefaInfoTableData->[0]->[4]->{Value} = "$ghOptions{'delta'}" }
+    else { $grefaInfoTableData->[0]->[4]->{Value} =  'no data to compare with'; }
+}
 
 #
 # Generate Html Table
@@ -868,7 +891,12 @@ my $TimeDiff = $EndTime-$STARTTIME;
 if ( $gInitialRun ) {
     logger(1, " (Debug) Initial run -> Setting DifferenceCounter to zero.");
     $gDifferenceCounter = 0;
-    $gText = "$gNumberOfInterfacesWithoutTrunk interface(s)";
+    #$gText = "$gNumberOfInterfacesWithoutTrunk interface(s)";
+    $gText = "Initial run...";    
+} elsif ( $gNoHistory ){
+    logger(1, " (Debug) Initial run -> Setting DifferenceCounter to zero.");
+    $gDifferenceCounter = 0;
+    $gText = "No valid historical dataset...";        
 } else {
     logger(1, " (Debug) Differences: $gDifferenceCounter");
     if ($gDifferenceCounter > 0) { $gText .= ", $gDifferenceCounter change(s)"; }
@@ -913,7 +941,7 @@ $gText = AppendLinkToText({
           File        => "$gFile.html"
         });
 
-if ($grefhCurrent->{MD}->{cisco_type} ne '' and $grefhCurrent->{MD}->{cisco_serial} ne '') {
+if ($ghOptions{'cisco'} and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
 }
 
@@ -1055,6 +1083,7 @@ sub WriteHtmlTable {
         print OUT $Footer;
         print OUT '<center></body></html>';
     close (OUT);
+    logger(1, "HTML table file created: $refhStruct->{FileName}");
     return 0;
 }
 
@@ -1894,11 +1923,12 @@ sub Get_IpAddress_SubnetMask {
     # Example lines:
     # .1.3.6.1.2.1.4.20.1.2.172.31.99.76 15
     # .1.3.6.1.2.1.4.20.1.2.193.83.153.254 29
+    logger(3, "IP information lines (refaIPLines): ".Dumper($refaIPLines));
     for (@$refaIPLines) {
         my ($IpAddress,$Index) = split / /,$_,2;        # blank splits OID & ifIndex
         $IpAddress  =~  s/^.*1\.4\.20\.1\.2\.//;    # remove up to the ip address
         $Index          =~  s/\D//g;                    # remove all but numbers
-
+                
         # extract the netmask
         #
         # $refaNetMaks looks like this:
@@ -1912,29 +1942,37 @@ sub Get_IpAddress_SubnetMask {
         my ($Tmp,$NetMask) = split (" ",join ("",grep /$IpAddress /,@$refaNetMask),2);
         $NetMask    =~ s/\s+$//;    # remove invisible chars from the end
 
+        logger(3, "Index: $Index, IpAddress: $IpAddress, Netmask: $NetMask");
+        
         # get the interface description stored before from the index table
         my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"};
-
-        # separate multiple IP Adresses with a blank
-        # blank is good because the WEB browser can break lines
-        if ($grefhCurrent->{If}->{"$Desc"}->{IpInfo}) {
-            $grefhCurrent->{If}->{"$Desc"}->{IpInfo} =
-            $grefhCurrent->{If}->{"$Desc"}->{IpInfo}." "
-        }
-        # now we are finished with the puzzle of getting ip and subnet mask
-        # add IpInfo as property to the interface
-        my $IpInfo = "$IpAddress/$NetMask";
-        $grefhCurrent->{If}->{"$Desc"}->{IpInfo} .= $IpInfo;
-
-        # check if the IP address has changed to its first run
-        my $FirstIpInfo = $grefhFile->{If}->{"$Desc"}->{IpInfo};
-        unless ($FirstIpInfo) {$FirstIpInfo = "";}
         
-        # disable caching of this interface if ip information has changed
-        if ("$IpInfo" ne "$FirstIpInfo") {
-            $grefhCurrent->{MD}->{If}->{"$Desc"}->{CacheTimer} = 0;
-            $grefhCurrent->{MD}->{If}->{"$Desc"}->{CacheTimerComment} =
-                "caching is disabled because of first or current IpInfo";
+        #Check that a mapping was possible between the ip info and an interface
+        if ($Desc) {
+        
+            # separate multiple IP Adresses with a blank
+            # blank is good because the WEB browser can break lines
+            if ($grefhCurrent->{If}->{"$Desc"}->{IpInfo}) {
+                $grefhCurrent->{If}->{"$Desc"}->{IpInfo} =
+                $grefhCurrent->{If}->{"$Desc"}->{IpInfo}." "
+            }
+            # now we are finished with the puzzle of getting ip and subnet mask
+            # add IpInfo as property to the interface
+            my $IpInfo = "$IpAddress/$NetMask";
+            $grefhCurrent->{If}->{"$Desc"}->{IpInfo} .= $IpInfo;
+    
+            # check if the IP address has changed to its first run
+            my $FirstIpInfo = $grefhFile->{If}->{"$Desc"}->{IpInfo};
+            unless ($FirstIpInfo) {$FirstIpInfo = "";}
+            
+            # disable caching of this interface if ip information has changed
+            if ("$IpInfo" ne "$FirstIpInfo") {
+                $grefhCurrent->{MD}->{If}->{"$Desc"}->{CacheTimer} = 0;
+                $grefhCurrent->{MD}->{If}->{"$Desc"}->{CacheTimerComment} =
+                    "caching is disabled because of first or current IpInfo";
+            }
+        } else {
+            logger(3, "Impossible to map the IP info to any existing interface: no corresponding interface index. Skipping IP info.");
         }
     }
     return 0;
@@ -2844,8 +2882,8 @@ sub logger {
     $loglevel    = shift;
     $msg         = shift;
 
-    unless($loglevel >= 1 && $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
-    unless($ghOptions{verbose} >= 0 && $ghOptions{verbose} <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
+    unless($loglevel >= 1 and $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
+    unless($ghOptions{verbose} >= 0 and $ghOptions{verbose} <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
 
     # define labels for different loglevels
     my %level_labels = ( 1 => "INFO", 2 => "DEBUG", 3 => "TRACE" );
@@ -2921,9 +2959,13 @@ sub print_usage () {
     --reseturl | --ResetUrl
         URL to tablereset program
     --vlan | --VLANs
-
+        add vlan attribution info for each interface
+    --cisco
+        add cisco specific info in the information table
     --ifloadgradient | --ifLoadGradient
         enable color gradient from green over yellow to red for the load percentage representation
+    --human | --Human
+        translate bandwidth usage in human readable format (G/M/K bps)
     --track
         list of tracked properties. Values can be:
          * 'ifAdminStatus'      : the administrative status of the interface
@@ -2998,7 +3040,8 @@ sub check_options () {
         'ifs|IFS=s',                        # input field separator
         'cache=s',                          # cache timer
         'reseturl|ResetUrl=s',              # URL to tablereset program
-        'vlan|VLANs',
+        'vlan|VLANs',                       # Add vlan attribution info for each interface
+        'cisco',                            # Add cisco specific info in the info table
         'ifloadgradient|ifLoadGradient',    # color gradient from green over yellow to red representing the load percentage
         'human|Human',                      # translate bandwidth usage in human readable format (G/M/K bps)
         'track=s',                          # list of exclued properties
@@ -3034,6 +3077,7 @@ sub check_options () {
         'cache'             => 3600,
         'reseturl'          => "/icinga/cgi-bin",
         'vlan'              => 0,
+        'cisco'             => 0,
         'ifloadgradient'    => 1,
         'human'             => 1,
         'snapshot'          => 0,
@@ -3098,7 +3142,7 @@ sub check_options () {
     }
 	$ghOptions{'statedir'} = "$ghOptions{'statedir'}/$commandline{hostquery}";
     -d "$ghOptions{'statedir'}" or MyMkdir ("$ghOptions{'statedir'}");
-    if (exists $commandline{accessmethod} && ($commandline{accessmethod} ne "ssh" && $commandline{accessmethod} ne "telnet")) {
+    if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
     }
     if (exists $commandline{enableportperf}) {
@@ -3113,8 +3157,8 @@ sub check_options () {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{includeportperf}));
         $ghOptions{'includeportperf'} = \@tmparray;
     }
-    if (exists $commandline{portperfunit} && ($commandline{portperfunit} ne "bit" && $commandline{portperfunit} ne "octet")) {
-        $ghOptions{'portperfunit'} = "bit";
+    if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
+        $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
     }
     # organizing not tracked fields
     if (exists $commandline{track}) {
@@ -3159,6 +3203,9 @@ sub check_options () {
     }
     if (exists $commandline{vlan}) {
         $ghOptions{'vlan'} = 1;
+    }
+    if (exists $commandline{cisco}) {
+        $ghOptions{'cisco'} = 1;
     }
     if (exists $commandline{snapshot}) {
         $ghOptions{'snapshot'} = 1;

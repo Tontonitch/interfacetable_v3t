@@ -63,6 +63,13 @@
 #    - enhancement: reviewed the way the ports are counted. based on the 
 #      speed property availability, this seems to permit a correct counting 
 #      for most of the possible nodes (cisco, windows, linux, ...)
+#    - enhancement: option "cisco" for specific cisco info requests and printing
+#    - fix: fixed some options no properly interpreted
+#    - fix: fixed some options no properly interpreted
+#    - enhancement: now checking the IP info <-> interface mapping  
+#    - enhancement: 2 new output cases, reflecting the leak of data for 
+#      calculation. For initial run and for no valid historical dataset
+#    - enhancement: now checking the IP info <-> interface mapping  
 #   ----------------------------------------------------------------------
 #
 #
@@ -75,5 +82,9 @@
 #       * use warnings
 #       * use strict
 # 	 - pnp6 templates update
+#    - rewrite the way the fields in the info table are selected for more 
+#      flexibility
 #    - snmp v2c / v3 support
+#    - extend the debug with new debug levels. Might be in the model of 
+#      an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
 # ========================================================================
