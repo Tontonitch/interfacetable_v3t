@@ -2440,7 +2440,7 @@ sub check_for_unused_interfaces {
                     $gNumberOfFreeUpInterfaces++;
                 }
             }
-        } elsif (not $oid_ifDescr =~ /^vif|Loopback/i) {
+        } elsif (not $oid_ifDescr =~ /^vif|Loopback|^lo/i) {
             # we look for all interfaces having speed property but not looking like a virtual interface
             if (not defined $gInterfacesWithoutTrunk->{"$oid_ifDescr"}) {
                 $gInterfacesWithoutTrunk->{"$oid_ifDescr"} = $free;
