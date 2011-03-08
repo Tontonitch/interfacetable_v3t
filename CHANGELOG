@@ -14,13 +14,13 @@
 # 	 - enhancement: cleaning of unused blocks of code. might be reviewed 
 #      in the future
 # 	 - enhancement: added comments
-# 	 - enhancement: added bits output feature for performance data
+# 	 - feature: added bits output feature for performance data
 # 	 - enhancement: check_multi perfdata output type with interface name. 
 #      Global and Port perfdata types
 # 	 - enhancement: rewrite the plugin to follow the nagios plugin development 
 #      guidelines:
 # 	   * use of "use warnings"
-# 	 - enhancement: pnp6 templates
+# 	 - feature: pnp6 templates
 # 	 - enhancement: separate history cleaning and dataset selection from bps 
 #      calculation
 #    - enhancement: restricted the html link generated as the pluging output 
@@ -30,44 +30,46 @@
 # * v2->v3t0.0x
 #   ----------------------------------------------------------------------
 #    - enhancement: cleaner and step-by-step output when resetting stats
-#    - enhancement: finished option 'track', replacement of nochange, which 
+#    - feature: finished option 'track', replacement of nochange, which 
 #      list the field concerned by tracking. Default: only ifOperStatus.
 #    - enhancement: replaced column name/field notations from csv style to 
 #      arrays
 #    - enhancement: clearly referenced html tables in variable names for 
 #      better maintenance
-#    - fix: some typo fixes
-#    - fix: readded 'human' option (previously missed)
-#    - fix: some 'variable not defined' problems
-#    - added operstatus as performance data for interface status tracking
+#    - bugfix: some typo fixes
+#    - bugfix: readded 'human' option (previously missed)
+#    - bugfix: some 'variable not defined' problems
+#    - feature: added operstatus as performance data for interface status tracking
 #    - enhancement: don't alert for interfaces OperStatus going to "up"
-#    - fix: vlan column moved to the correct place
-#    - enhancement: avoid global perfdata to be returned in case of initial
+#    - bugfix: vlan column moved to the correct place
+#    - bugfix: avoid global perfdata to be returned in case of initial
 #      run or no history, as the perfdata are wrong and produce drops on 
 #      graphs
 #    - enhancement: rewrite the plugin to follow the nagios plugin development 
 #      guidelines:
 # 	   * use of "use warnings"
-#         => second review, protected lots of undefined variables
+#         => multiple reviews and finally done
 #    - enhancement: added excludeportperf and includeportperf, allowing 
 #      to filter which tracked interfaces generates performance data
-#    - fix/enhancement: port performance data now depend on what data are 
-#      available. ex: unrouted vlans doesn't have ifOctetIn... statistics
+#    - bugfix: port performance data now depend on what data are 
+#      available. ex: unrouted vlans doesn't have ifOctetIn statistics on catalyst
 #    - enhancement: last traffic calculation a bit cleaned and commented for
 #      better maintenance
-#    - fix: corrected and completed physical interface pattern matching in
+#    - bugfix: corrected and completed physical interface pattern matching in
 #      check_for_unused_interfaces
-#    - fix: readded 'regexp' option (previously missed)
-#    - fix: cachedir/statedir naming including hostquery
-#    - fix: never ignore case in options
+#    - bugfix: readded 'regexp' option (previously missed)
+#    - bugfix: cachedir/statedir naming including hostquery
+#    - bugfix: never ignore case in options
 #    - enhancement: reviewed the way the ports are counted. based on the 
 #      speed property availability, this seems to permit a correct counting 
 #      for most of the possible nodes (cisco, windows, linux, ...)
-#    - enhancement: option "cisco" for specific cisco info requests and printing
-#    - fix: fixed some options no properly interpreted
-#    - enhancement: now checking the IP info <-> interface mapping  
-#    - enhancement: 2 new output cases, reflecting the leak of data for 
+#    - feature: option "cisco" for specific cisco info requests and printing
+#    - bugfix: fixed some options no properly interpreted
+#    - bugfix: now checking the IP info <-> interface mapping  
+#    - feature: 2 new output cases, reflecting the leak of data for 
 #      calculation. For initial run and for no valid historical dataset
+#    - feature: operstatus in pnp4nagios port templates, for easier  
+#      interface status tracking.
 #   ----------------------------------------------------------------------
 #
 #
@@ -77,12 +79,12 @@
 # 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 # 	   against the use of unix snmpwalk
 # 	 - review the nagios plugin development guidelines to see if it fits now
-#       * use warnings
 #       * use strict
-# 	 - pnp6 templates update
 #    - rewrite the way the fields in the info table are selected for more 
 #      flexibility
 #    - snmp v2c / v3 support
 #    - extend the debug with new debug levels. Might be in the model of 
 #      an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
+#    - option for NETWAYS Grapher v2 urls 
+#    - info table (first table) building way review for more flexibility
 # ========================================================================
