@@ -994,27 +994,28 @@ sub perfdataout {
             $servicename =~ s/[()]//g;
             #my $servicename = 'Interface - ' . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
             my $perfdata = "";
-            if ($ghOptions{'portperfunit'} eq "octet") {
-                    $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                             "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
-                             "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
-            } else {
-                    $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                             "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
-                             "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
-            }
-            #Add pkt errors/discards if available
-            if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
-                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
-                             "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
-                             "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
-                             "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
-            }
             #Add interface status if available
             if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
-                $perfdata .= "OperStatus=".$gh_operstatus{"$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}"}.";;;0; ";
+                if ($ghOptions{'portperfunit'} eq "octet") {
+                        $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                "OperStatus=".$gh_operstatus{"$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}"}.";;;0; " .
+                                "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
+                                "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
+                } else {
+                        $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                "OperStatus=".$gh_operstatus{"$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}"}.";;;0; " .
+                                "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
+                                "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
+                }
+                #Add pkt errors/discards if available
+                if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
+                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
+                                "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
+                                "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
+                                "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                }
             }
-
+            
             logger(1, "collected perfdata: $oid_ifDescr\t$perfdata");
             if ($ghOptions{perfdatadir}) { # perfdata to file
                 #TODO: make it atomic (ie rename after write) and use a save filename
