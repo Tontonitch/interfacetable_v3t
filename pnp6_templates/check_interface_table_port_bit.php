@@ -62,7 +62,7 @@ if($display_traffic == 1){
     $def[$num_graph] .= rrd::def     ("bits_in", $RRDFILE[2], $DS[2], "AVERAGE");
     $def[$num_graph] .= rrd::def     ("bits_out", $RRDFILE[3], $DS[3], "AVERAGE");
     if(($display_operstatus == 2)){
-        $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "MAX");
+        $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
         $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, -0.02,"ff","#00ff00","#ff0000","#ff8c00");
     }
     $def[$num_graph] .= rrd::cdef    ("bits_in_redef", "bits_in,UN,PREV,bits_in,IF");
@@ -103,7 +103,7 @@ if($display_operstatus == 1){
     $opt[$num_graph] = " --vertical-label \"\"  --title 'Operational status' ";
     $opt[$num_graph] .= "--watermark=\"Template: check_snmp_netint.php by Yannick Charton\" ";
     $def[$num_graph] = "";
-    $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "MAX");
+    $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
     $def[$num_graph] .= rrd::alerter ("oper_status", "Operational status", 1.1, 2.1, "FF", $UNIT[2],"#00ff00","#ff0000","#ff8c00") ;
 }
 
