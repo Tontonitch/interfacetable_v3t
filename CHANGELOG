@@ -87,4 +87,6 @@
 #      an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
 #    - option for NETWAYS Grapher v2 urls 
 #    - info table (first table) building way review for more flexibility
+#    - problematic interfaces clearly identified directly in the output of 
+#      the plugin
 # ========================================================================
