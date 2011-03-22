@@ -70,6 +70,12 @@
 #      calculation. For initial run and for no valid historical dataset
 #    - feature: operstatus in pnp4nagios port templates, for easier  
 #      interface status tracking.
+#    - enhancement: normal plugin output includes now load thresholds
+#    - feature: --grapher and --grapherurl options to specify which grapher
+#      solution is used. And alternative url can be specified. 
+#    - feature: --short or --long options for less or more detailed plugin 
+#      outputs. Using --long allow to clearly identify problematic interfaces
+#      directly in the output of the plugin
 #   ----------------------------------------------------------------------
 #
 #
@@ -85,8 +91,8 @@
 #    - snmp v2c / v3 support
 #    - extend the debug with new debug levels. Might be in the model of 
 #      an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
-#    - option for NETWAYS Grapher v2 urls 
 #    - info table (first table) building way review for more flexibility
-#    - problematic interfaces clearly identified directly in the output of 
-#      the plugin
+#    - review general structure of the plugin
+#    - see if the short (old) plugin output is really relevant or can be 
+#      simply replaced by the long output
 # ========================================================================

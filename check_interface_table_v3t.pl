@@ -904,7 +904,9 @@ if ( $gInitialRun ) {
         if ($ghOptions{'long'}) { 
             $gText .= ", $gDifferenceCounter change(s):";
             for my $field ( keys %{$grefhListOfChanges} ) {
-                $gText .= " $field - @{$grefhListOfChanges->{$field}}";
+                if (not $field =~ /^load/i) {
+                    $gText .= " $field - @{$grefhListOfChanges->{$field}}";
+                }
             }
         } else {
             $gText .= ", $gDifferenceCounter change(s)";
@@ -936,12 +938,20 @@ my $ExitCode = mcompare ({
 
 if ($gIfLoadWarnCounter > 0 ) {
     $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
-    $gText .= ", load warning: $gIfLoadWarnCounter";
+    if ($ghOptions{'long'}) {
+        $gText .= ", $gIfLoadWarnCounter warning load(s) (>$ghOptions{ifloadwarn}%): @{$grefhListOfChanges->{loadwarning}}";
+    } else {
+        $gText .= ", load warning (>$ghOptions{ifloadwarn}%): $gIfLoadWarnCounter";
+    }
 }
 
 if ($gIfLoadCritCounter > 0 ) {
     $ExitCode = $ERRORS{'CRITICAL'};
-    $gText .= ", load critical: $gIfLoadCritCounter";
+    if ($ghOptions{'long'}) {
+        $gText .= ", $gIfLoadCritCounter critical load(s) (>$ghOptions{ifloadcrit}%): @{$grefhListOfChanges->{loadcritical}}";
+    } else {
+        $gText .= ", load critical (>$ghOptions{ifloadcrit}%): $gIfLoadCritCounter";
+    }
 }
 
 # Append html table link to text
@@ -1796,6 +1806,14 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
             # check interface utilization in percent
             if ($ifLoadIn > 0) {
+                # just traffic light color codes for the lame
+                if ($ifLoadIn > $ghOptions{ifloadcrit}) {
+                    push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($oid_ifDescr));
+                    $gIfLoadCritCounter++;
+                } elsif ($ifLoadIn > $ghOptions{ifloadwarn}) {
+                    push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($oid_ifDescr));
+                    $gIfLoadWarnCounter++;
+                } 
                 $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn);
             }
             if ($ifLoadOut > 0) {
@@ -2393,10 +2411,8 @@ sub colorcode {
         $colorcode = 'green';
     } elsif ($ifLoad < $ghOptions{ifloadcrit}) {       # yellow / warn
         $colorcode = 'yellow';
-        $gIfLoadWarnCounter++;
     } else {                          # red / crit
         $colorcode = 'red';
-        $gIfLoadCritCounter++;
     }
 
     if ($ghOptions{'ifloadgradient'}) {
