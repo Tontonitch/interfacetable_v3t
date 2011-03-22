@@ -99,4 +99,5 @@
 #    - review general structure of the plugin
 #    - see if the short (old) plugin output is really relevant or can be 
 #      simply replaced by the long output
+#    - add check and threshold options for packet errors/discards
 # ========================================================================
