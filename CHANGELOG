@@ -76,6 +76,10 @@
 #    - feature: --short or --long options for less or more detailed plugin 
 #      outputs. Using --long allow to clearly identify problematic interfaces
 #      directly in the output of the plugin
+#    - enhancement: some options can now be specified multiple times and are
+#      concatenated. Exemple: --exclude 'pat1' --exclude 'pat2,pat3'. 
+#      Concerned options: track, exclude, include, excludeportperf, 
+#      includeportperf
 #   ----------------------------------------------------------------------
 #
 #

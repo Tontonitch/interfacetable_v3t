@@ -3071,39 +3071,39 @@ sub check_options () {
         'help|?',
         'verbose|v|debug|Debug+',
         'man|manual',
-        'cachedir|CacheDir=s',              # caching directory
-        'statedir|StateDir=s',              # interface table state directory
-        'accessmethod|AccessMethod=s',      # access method for the link to the host in the HTML page
-        'htmldir|HTMLDir=s',                # interface table HTML directory
-        'htmlurl|HTMLUrl=s',                # interface table URL location
-        'enableportperf|EnablePortPerf',    # enable port performance data, default is port perfdata disabled
-        'excludeportperf|ExcludePortPerf=s',# list of port for which performance data are NOT generated
-        'includeportperf|IncludePortPerf=s',# list of port for which performance data are generated
-        'portperfunit|PortPerfUnit=s',      # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
-        'community|C=s',                    # community string
-        'delta|Delta=i',                    # interface throuput delta in seconds
-        'ifs|IFS=s',                        # input field separator
-        'cache=s',                          # cache timer
-        'reseturl|ResetUrl=s',              # URL to tablereset program
-        'vlan|VLANs',                       # Add vlan attribution info for each interface
-        'cisco',                            # Add cisco specific info in the info table
-        'ifloadgradient|ifLoadGradient',    # color gradient from green over yellow to red representing the load percentage
-        'human|Human',                      # translate bandwidth usage in human readable format (G/M/K bps)
-        'track=s',                          # list of exclued properties
+        'cachedir|CacheDir=s',                  # caching directory
+        'statedir|StateDir=s',                  # interface table state directory
+        'accessmethod|AccessMethod=s',          # access method for the link to the host in the HTML page
+        'htmldir|HTMLDir=s',                    # interface table HTML directory
+        'htmlurl|HTMLUrl=s',                    # interface table URL location
+        'enableportperf|EnablePortPerf',        # enable port performance data, default is port perfdata disabled
+        'excludeportperf|ExcludePortPerf=s@',   # list of port for which performance data are NOT generated
+        'includeportperf|IncludePortPerf=s@',   # list of port for which performance data are generated
+        'portperfunit|PortPerfUnit=s',          # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+        'community|C=s',                        # community string
+        'delta|Delta=i',                        # interface throuput delta in seconds
+        'ifs|IFS=s',                            # input field separator
+        'cache=s',                              # cache timer
+        'reseturl|ResetUrl=s',                  # URL to tablereset program
+        'vlan|VLANs',                           # Add vlan attribution info for each interface
+        'cisco',                                # Add cisco specific info in the info table
+        'ifloadgradient|ifLoadGradient',        # color gradient from green over yellow to red representing the load percentage
+        'human|Human',                          # translate bandwidth usage in human readable format (G/M/K bps)
+        'track=s@',                             # list of exclued properties
         'snapshot',
         'version|V',
-        'exclude|Exclude=s',
-        'include|Include=s',
+        'exclude|Exclude=s@',
+        'include|Include=s@',
         'regexp|Regexp',
         'timeout=i',
         'warning|w=i',
         'critical|c=i',
         'ifloadwarn|ifLoadWarn=i',
         'ifloadcrit|ifLoadCrit=i',
-        'short',                            # the plugin only returns general counts (nb ports, nb changes,...)
-        'long',                             # the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
-        'grapher',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
-        'grapherurl'                        # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
+        'short',                                # the plugin only returns general counts (nb ports, nb changes,...)
+        'long',                                 # the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
+        'grapher',                              # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+        'grapherurl'                            # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         );
     # Default option values
     %ghOptions = (
@@ -3208,11 +3208,11 @@ sub check_options () {
     }
     # organizing excluded/included interfaces for performance data
     if (exists $commandline{excludeportperf}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{excludeportperf}));
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludeportperf}}));
         $ghOptions{'excludeportperf'} = \@tmparray;
     } 
     if (exists $commandline{includeportperf}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{includeportperf}));
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includeportperf}}));
         $ghOptions{'includeportperf'} = \@tmparray;
     }
     if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
@@ -3220,16 +3220,16 @@ sub check_options () {
     }
     # organizing not tracked fields
     if (exists $commandline{track}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{track}));
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{track}}));
         $ghOptions{'track'} = \@tmparray;
     }
     # organizing excluded/included interfaces
     if (exists $commandline{exclude}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{exclude}));
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{exclude}}));
         $ghOptions{'exclude'} = \@tmparray;
     } 
     if (exists $commandline{include}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",$commandline{include}));
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{include}}));
         $ghOptions{'include'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
