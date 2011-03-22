@@ -650,6 +650,7 @@ my $gChangeText;                                     # Contains data of changes 
 my $grefhSNMP;                                       # Temp snmp structure
 my $grefhFile;                                       # Properties from the interface file
 my $grefhCurrent;                                    # Properties from current interface states
+my $grefhListOfChanges               = undef;        # List all the changes for long plugin output
 
 
 # create uniq file name without extension
@@ -901,8 +902,10 @@ if ( $gInitialRun ) {
     logger(1, " (Debug) Differences: $gDifferenceCounter");
     if ($gDifferenceCounter > 0) { 
         if ($ghOptions{'long'}) { 
-            $gText .= ", $gDifferenceCounter change(s): ";
-            ### TODO ### 
+            $gText .= ", $gDifferenceCounter change(s):";
+            for my $field ( keys %{$grefhListOfChanges} ) {
+                $gText .= " $field - @{$grefhListOfChanges->{$field}}";
+            }
         } else {
             $gText .= ", $gDifferenceCounter change(s)";
         }
@@ -1127,7 +1130,6 @@ sub GenerateHtmlTable {
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
     my $refaContentForHtmlTable;                        # This is the final data structure which we pass to csv2htmlnew
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
-    my $refhListOfChanges        = undef;               # List all the changes for long plugin output
 
     # Print a header for debug information
     logger(1, "x"x50);
@@ -1238,7 +1240,7 @@ sub GenerateHtmlTable {
                     }
                     
                     # Update the list of changes
-                    push @{$refhListOfChanges->{"$FieldName"}}, trim(denormalize($oid_ifDescr));
+                    push @{$grefhListOfChanges->{"$FieldName"}}, trim(denormalize($oid_ifDescr));
                 }
             } else {
                 # Filed will not be compared, just write the current field - value in the table.
@@ -1267,7 +1269,7 @@ sub GenerateHtmlTable {
     } # for $InterfaceIndex
 
     # Print a footer for debug information
-    print Dumper($refhListOfChanges);
+    logger(3, " List of changes -> generated hash of array\ngrefhListOfChanges:".Dumper ($grefhListOfChanges));
     logger(1, "x"x50);
 
     return $refaContentForHtmlTable;
