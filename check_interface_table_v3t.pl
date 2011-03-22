@@ -899,7 +899,14 @@ if ( $gInitialRun ) {
     $gText = "No valid historical dataset...";        
 } else {
     logger(1, " (Debug) Differences: $gDifferenceCounter");
-    if ($gDifferenceCounter > 0) { $gText .= ", $gDifferenceCounter change(s)"; }
+    if ($gDifferenceCounter > 0) { 
+        if ($ghOptions{'long'}) { 
+            $gText .= ", $gDifferenceCounter change(s): ";
+            ### TODO ### 
+        } else {
+            $gText .= ", $gDifferenceCounter change(s)";
+        }
+    }
 }
 
 # Create "mini" info table
@@ -1120,6 +1127,7 @@ sub GenerateHtmlTable {
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
     my $refaContentForHtmlTable;                        # This is the final data structure which we pass to csv2htmlnew
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
+    my $refhListOfChanges        = undef;               # List all the changes for long plugin output
 
     # Print a header for debug information
     logger(1, "x"x50);
@@ -1140,12 +1148,17 @@ sub GenerateHtmlTable {
         # Netways Nagios Grapher - one link per line/interface/port
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false" and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
             #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
-            my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
+            my $servicename = "If_" . trim(denormalize($oid_ifDescr));
             $servicename =~ s/#/%23/g;
             $servicename =~ s/:/_/g;
             $servicename =~ s/[()]//g;
-            $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} =
-                '/pnp4nagios/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename;
+            if ($ghOptions{'grapher'} eq  "pnp4nagios") {
+                $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} =
+                    $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename;
+            } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher" or $ghOptions{'grapher'} eq  "netwaysgrapherv2") {
+                $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} = 
+                    $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $grefhCurrent->{MD}->{sysName} . '&service=' . $servicename . '&page_act=1+traffic';
+            }
         }
 
         # This is the If datastructure from the interface information file
@@ -1180,7 +1193,7 @@ sub GenerateHtmlTable {
             }
 
             # Flag if the current status of this field should be compared with the
-            # "snapshoted" status of this field.
+            # "snapshoted" status.
             my $CompareThisField = grep (/$FieldName/i, @$refaToCompare);
 
             # some fields have a change time property in the interface information file.
@@ -1204,12 +1217,12 @@ sub GenerateHtmlTable {
             }
 
             if ( $CompareThisField  ) {
-                # Field content has NOT changed
                 logger(1, "Compare \"".denormalize($oid_ifDescr)."($FieldName)\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
                 if ( $CurrentFieldContent eq $FileFieldContent ) {
+                    # Field content has NOT changed
                     $CellContent = denormalize ( $CurrentFieldContent );
                 } else {
-                # Field content has changed ...
+                    # Field content has changed ...
                     $CellContent = "now: " . denormalize( $CurrentFieldContent ) . "$LastChangeInfo was: " . denormalize ( $FileFieldContent );
 
                     if ($ghOptions{verbose} or $ghOptions{warning} > 0 or $ghOptions{critical} > 0) {
@@ -1223,6 +1236,9 @@ sub GenerateHtmlTable {
                     } else {
                         $CellBackgroundColor = "#F5A9A9"; # light red
                     }
+                    
+                    # Update the list of changes
+                    push @{$refhListOfChanges->{"$FieldName"}}, trim(denormalize($oid_ifDescr));
                 }
             } else {
                 # Filed will not be compared, just write the current field - value in the table.
@@ -1251,6 +1267,7 @@ sub GenerateHtmlTable {
     } # for $InterfaceIndex
 
     # Print a footer for debug information
+    print Dumper($refhListOfChanges);
     logger(1, "x"x50);
 
     return $refaContentForHtmlTable;
@@ -2988,7 +3005,18 @@ sub print_usage () {
     --warning | -w
 
     --critical | -c
-
+    
+    --short, --long
+        define the verbosity of the plugin output.
+         * short    : the plugin only returns general counts (nb ports, nb changes,...)
+         * long     : the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
+    --grapher
+        graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+    --grapherurl
+        graphing system url. Default values are:
+         * pnp4nagios       : /pnp4nagios
+         * nagiosgrapher    : /nagios/cgi-bin (?)
+         * netwaysgrapherv2 : /nagios/cgi-bin (?)
 
 EOUS
 
@@ -3055,7 +3083,11 @@ sub check_options () {
         'warning|w=i',
         'critical|c=i',
         'ifloadwarn|ifLoadWarn=i',
-        'ifloadcrit|ifLoadCrit=i'
+        'ifloadcrit|ifLoadCrit=i',
+        'short',                            # the plugin only returns general counts (nb ports, nb changes,...)
+        'long',                             # the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
+        'grapher',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+        'grapherurl'                        # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         );
     # Default option values
     %ghOptions = (
@@ -3082,7 +3114,7 @@ sub check_options () {
         'ifloadgradient'    => 1,
         'human'             => 1,
         'snapshot'          => 0,
-        'track'             => ['ifOperStatus'],        # can be compared: ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,IpInfo
+        'track'             => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
         'exclude'           => undef,
         'include'           => undef,
         'regexp'            => 0,
@@ -3090,8 +3122,17 @@ sub check_options () {
         'warning'           => 0,
         'critical'          => 0,
         'ifloadwarn'        => 101,
-        'ifloadcrit'        => 101
+        'ifloadcrit'        => 101,
+        'short'             => 1,
+        'long'              => 0,
+        'grapher'           => "pnp4nagios",
+        'grapherurl'        => ""
     );
+    my %defaultgrapherurl = (
+        'pnp4nagios'        => '/pnp4nagios', 
+        'nagiosgrapher'     => '/nagios/cgi-bin',
+        'netwaysgrapherv2'  => '/nagios/cgi-bin'
+        );
     # gathering commandline options
     if (! GetOptions(\%commandline, @params)) {
         print_help();
@@ -3223,7 +3264,25 @@ sub check_options () {
     if (exists $commandline{ifloadcrit}) {
         $ghOptions{ifloadcrit} = "$commandline{ifloadcrit}";
     }
-
+    if (exists $commandline{short}) {
+        $ghOptions{'short'} = 1;
+        $ghOptions{'long'} = 0;
+    }
+    if (exists $commandline{long}) {
+        $ghOptions{'long'} = 1;
+        $ghOptions{'short'} = 0;
+    }
+    if (exists $commandline{grapher}) {
+        if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$/i) {
+            $ghOptions{'grapher'} = "$commandline{grapher}";
+        }
+    }
+    if (exists $commandline{grapherurl}) {
+        $ghOptions{'grapherurl'} = "$commandline{grapherurl}";
+    } else {
+        $ghOptions{'grapherurl'} = "$defaultgrapherurl{$ghOptions{grapher}}";
+    }
+    
     # print the options in command line, and the resulting full option hash
     logger(3, "commandline\n".Dumper(\%commandline));
     logger(3, "options\n".Dumper(\%ghOptions));
