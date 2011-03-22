@@ -988,9 +988,7 @@ exit $ERRORS{"UNKNOWN"};
 # ------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------
-# write performance data for
-#  - netways nagios grapher
-#  - or pnp4nagios
+# write performance data
 # perfdataout ();
 # ------------------------------------------------------------------------
 sub perfdataout {
