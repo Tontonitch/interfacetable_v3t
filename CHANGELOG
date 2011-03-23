@@ -1,9 +1,9 @@
 # ========================================================================
-# CHANGELOG v2->v3t
+# CHANGELOG v3t
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
-# * v2->v3t0.02
+# * 0.02
 #   ----------------------------------------------------------------------
 # 	 - enhancement: better pnp4nagios integration
 # 	 - enhancement: better documentation on usage
@@ -27,7 +27,7 @@
 #      to "[detail]", for better integration in third party tools such as 
 #      nagstamon,...
 #   ----------------------------------------------------------------------
-# * v2->v3t0.0x
+# * 0.0x
 #   ----------------------------------------------------------------------
 #    - enhancement: cleaner and step-by-step output when resetting stats
 #    - feature: finished option 'track', replacement of nochange, which 
@@ -101,4 +101,5 @@
 #      simply replaced by the long output
 #    - add check and threshold options for packet errors/discards
 #    - check and remove the % character if any in the commandline arguments
+#    - add an option to print the default values of the options (ex: -D)
 # ========================================================================
