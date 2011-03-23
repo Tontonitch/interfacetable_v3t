@@ -10,53 +10,25 @@
 =head2 Introduction
 
 B<check_interface_table_v3t.pl> is a Nagios(R) plugin that allows you to monitor
-one network device (e.g. router, switch, server) without knowing each interface
-in detail. Only the hostname (or ip address) and the snmp community string are
-required.
+the network devices of various nodes (e.g. router, switch, server) without knowing 
+each interface in detail. Only the hostname (or ip address) and the snmp community 
+string are required.
 
   Simple Example:
-
   # check_interface_table_v3t.pl -H server1 -C public
 
   Output:
-
   <a href="/nagios/interfacetable/server1-Interfacetable.html">total 3 interface(s)</a>
 
-The above example polls our netware server (server1) and reads all interfaces.
-The output is a HTML link to a web page which shows all interface in a table.
-
-When clicking on the link the output looks like:
-
-  server1 updated: Fri Nov 16 13:22:08 2007 (1 sec.)
-
-  Name      Uptime        System Information
-  ---------------------------------------------------------------
-  server1 71d 17h 56m   Novell NetWare 5.70.06 October 26, 2006
-
-  index Description Alias AdminStatus OperStatus Speed IP
-  --------------------------------------------------------
-  1 HP NC10xx/... Gigabit Server Adapter   up up 1.00 Gbit 10.1.1.4/255.255.0.0
-  2 HP NC10xx/... Gigabit Server Adapter (0x000f2097890c)   up up 1.00 Gbit 10.4.1.2/255.255.0.0
-  3 3COM Etherlink PCI   up up 100.00 Mbit 192.168.17.4/255.255.0.0
-
-  [back] [reset table]
-
-The first line tells the name and when the table was last updated.
-(1 sec.) means that the polling process took one second.
-
-"Name", "Uptime" and "System Information" are for information only.
-
-The table below these information fields shows different interface properties.
-The last line has two ascii buttons which allow to navigate back and to reset the table.
+The output is a HTML link to a web page which shows all interfaces in a table.
 
 =head2 Theory of operation
 
 The perl program polls the remote machine in a highly efficient manner.
-It collects all data from all interfaces and stores these data into the directory
-/tmp/.ifState.
+It collects all data from all interfaces and stores these data into "state" files in a
+specific directory (ex: /tmp/.ifState).
 
-  Each host (option -H) holds one text file:
-
+Each host (option -H) holds one text file:
   # ls /tmp/.ifState/*.txt
   /tmp/.ifState/server1-Interfacetable.txt
 
@@ -77,22 +49,20 @@ running:
 
 The B<snmpwalk> command must be available on your operating system.
 
-  Test your snmpwalk output with a command like:
+Test your snmpwalk output with a command like:
 
   # snmpwalk -Oqn -v 1 -c public router.itdesign.at | head -3
-
-  .1.3.6.1.2.1.1.1.0 Cisco IOS Software, 2174 Software Version 11.7(3c), REL.
-  SOFTWARE (fc2)Technical Support: http://www.cisco.com/techsupport
-  Copyright (c) 1986-2005 by Cisco Systems, Inc.
-  Compiled Mon 22-Oct-03 9:46 by antonio
-  .1.3.6.1.2.1.1.2.0 .1.3.6.1.4.1.9.1.620
-  .1.3.6.1.2.1.1.3.0 9:11:09:19.48
+    .1.3.6.1.2.1.1.1.0 Cisco IOS Software, 2174 Software Version 11.7(3c), REL.
+    SOFTWARE (fc2)Technical Support: http://www.cisco.com/techsupport
+    Copyright (c) 1986-2005 by Cisco Systems, Inc.
+    Compiled Mon 22-Oct-03 9:46 by antonio
+    .1.3.6.1.2.1.1.2.0 .1.3.6.1.4.1.9.1.620
+    .1.3.6.1.2.1.1.3.0 9:11:09:19.48
 
   snmpwalk parameters:
-
-  -Oqn -v 1 ............ some noise (please read "man snmpwalk")
-  -c public  ........... snmp community string
-  router.itdesign.at ... host where you do the snmp queries
+    -Oqn -v 1 ............ some noise (please read "man snmpwalk")
+    -c public  ........... snmp community string
+    router.itdesign.at ... host where you do the snmp queries
 
 B<snmpwalk> is part of the net-snmp suit (http://net-snmp.sourceforge.net/).
 Some more unix commands to find it:
@@ -110,14 +80,13 @@ Some more unix commands to find it:
   /usr/bin/snmpwalk
   /usr/share/man/man1/snmpwalk.1.gz
 
-=head2 PERL V5 installed
+=head2 PERL v5 installed
 
 You need a working perl 5.x installation. Currently we use V5.8.8 under
 SUSE Linux Enterprise Server 10 SP1 for development. We know that it works
 with other versions, too.
 
 Get your perl version with:
-
   # perl -V
 
 =head2 PERL Net::SNMP library
@@ -131,28 +100,21 @@ B<Net::SNMP> is the perl's snmp library. Some ideas to see if it is installed:
   /usr/lib/perl5/vendor_perl/5.8.8/Net/SNMP.pm
 
   if it is not installed please check your operating systems packages or install it
-  from CPAN:
-
-  http://search.cpan.org/search?query=Net%3A%3ASNMP&mode=all
+  from CPAN: http://search.cpan.org/search?query=Net%3A%3ASNMP&mode=all
 
 =head2 PERL Config::General library installed
 
 B<Config::General> is the only "excotic" library typically not installed on your OS.
-We use this excelent library to write all interface information data back to the
+We use this excellent library to write all interface information data back to the
 file system.
 
-  See:
-
-  http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all
-
-Version 2.31 of this library is part of the kit here - but it should work with
-newer versions, too.
-
-Installation is quite easy - extract the kit and type
-
-  perl Makefile.PL
-  make
-  make install
+This perl library should be available via the package management tool of your 
+system distribution.
+  
+  For Debian distribution:
+  # apt-get install libconfig-general-perl
+  
+  CPAN page: http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all
 
 =head2 CGI script to reset the interface table
 
@@ -160,30 +122,31 @@ If everything is working fine you need the possibility to reset the interface ta
 Often it is necessary that someone changes ip addresses or other properties. These
 changes are necessary and you want to update (=reset) the table.
 
-Resetting the table means to delete the state file in /tmp/.ifState.
+Resetting the table means to delete the state file (ex: in /tmp/.ifState).
 
 Withing this kit you find an example shell script which does this job for you.
 To install this cgi script do the following:
 
   1) Copy the cgi script to the correct location on your WEB server
-
   # cp -i InterfaceTableReset_v3t.cgi /usr/local/nagios/sbin
 
   2) Check permissions
-
   # ls -l /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
   -rwxr-xr-x 1 nagios nagios 2522 Nov 16 13:14 /usr/local/nagios/sbin/Inte...
 
   3) Prepare the /etc/sudoers file so that the web server's account can call
   the cgi script (as shell script)
+    Suse linux based distrib:
+        # visudo
+        wwwrun ALL=(ALL) NOPASSWD: /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
+    Debian based distrib:
+        # visudo
+        www-data ALL=(ALL) NOPASSWD: /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
 
-  # visudo
-  wwwrun ALL=(ALL) NOPASSWD: /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
+The above unix commands are tested with apache2 installed and nagios v3 compiled 
+into /usr/local/nagios.
 
-The above unix commands are tested under SUSE Linux Enterprise Server 10 SP1
-with apache2 installed and nagios Version 3 compiled into /usr/local/nagios.
-
-Please send me an email if you have information from other operating systems
+Note: please send me an email if you have information from other operating systems
 on these details. I will update the documentation.
 
 =head2 Configure Nagios 3.x to display HTML links in Plugin Output
@@ -193,132 +156,106 @@ In Nagios version 3.x there is html output per default disabled.
   1) Edit cgi.cfg and set this option to zero
       escape_html_tags=0
 
-cgi.cfg is located in your configuration directory. (/usr/local/nagios/etc on
-SuSe Linux)
+cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
 =head1 OPTIONS
 
 =head2 -H <host> (required option)
 
- no default
-
-Specifies the remote host to poll.
+ No default
+ Specifies the remote host to poll.
 
 =head2 -C <snmp community string> (required)
 
- default = public
-
-Specifies the snmp version 1 community string. Other snmp versions are not
-implemented.
+ Default = public
+ Specifies the snmp version 1 community string. Other snmp versions are not
+ implemented.
 
 =head2 -w <warning counter> (optional)
 
-Must be a positiv integer number. Changes in the interface table are compared
-against this threshold.
-
-  Example:
-
+ Must be a positiv integer number. Changes in the interface table are compared
+ against this threshold.
+ Example:
     ... -H server1 -C public -w 1
-
-  Leads to WARNING (exit code 1) when one or more interface properties were
-  changed.
+ Leads to WARNING (exit code 1) when one or more interface properties were
+ changed.
 
 =head2 -c <critical counter> (optional)
 
-Must be a positiv integer number. Changes in the interface table are compared
-against this threshold.
-
-  Example:
-
+ Must be a positive integer number. Changes in the interface table are compared
+ against this threshold.
+ Example:
     ... -H server1 -C public -c 1
-
-  Leads to CRITICAL (exit code 2) when one or more interface properties were
-  changed.
+ Leads to CRITICAL (exit code 2) when one or more interface properties were
+ changed.
 
 =head2 -Exclude <interface description> [optional]
 
-Let's you exclude some interfaces from tracking. This is useful when you know
-that some interfaces tend to flap and you do not want to track these.
-
-  Example:
-
-  ... -H router -C public -Exclude Dialer0,BVI20,FastEthernet0
-
-Interface descriptions must match exactly!
+ Let's you exclude some interfaces from tracking. This is useful when you know
+ that some interfaces tend to flap and you do not want to track these.
+ Example:
+    ... -H router -C public -Exclude Dialer0,BVI20,FastEthernet0
+ 
+ Interface descriptions must match exactly!
 
 =head2 -Include <interface description> [optional]
 
-This is the opposite to the -Exclude option and incudes only some
-interfaces.
-
-  Example:
-
-  ... -H router -C public -Ixclude FastEthernet0,FastEthernet1
+ This is the opposite to the -Exclude option and incudes only some
+ interfaces.
+ Example:
+    ... -H router -C public -Ixclude FastEthernet0,FastEthernet1
 
 =head2 -HTMLDir <directory> (optional)
 
- default = /usr/local/nagios/share/interfacetable
-
-Sets another directory where the interfae HTML files are stored. Specifies the
-path in the file system. See option B<-HTMLUrl> for changing the HTML link.
+ Default = /usr/local/nagios/share/interfacetable
+ Sets another directory where the interfae HTML files are stored. Specifies the
+ path in the file system. See option B<-HTMLUrl> for changing the HTML link.
 
 =head2 -HTMLUrl <url praefix> (optional)
 
- default = /nagios/interfacetable
+ Default = /nagios/interfacetable
+ B<-HTMLUrl> allows you to change the URL praefix in the output of the plugin.
 
-B<-HTMLUrl> allows you to change the URL praefix in the output of the plugin.
+ Example 1:
+ # check_interface_table.txt -H server1 -C public -HTMLUrl ''
+ <a href="/server1-Interfacetable.html">total 3 interface(s)</a>
 
-  Example 1:
+ Example 2:
+ # check_interface_table.txt -H server1 -C public -HTMLUrl 'https://server1/iftbls'
+ <a href="https://server1/iftbls/server1-Interfacetable.html">total 3 interface(s)</a>
 
-  # check_interface_table.txt -H server1 -C public -HTMLUrl ''
-  <a href="/server1-Interfacetable.html">total 3 interface(s)</a>
-
-  Example 2:
-
-  # check_interface_table.txt -H server1 -C public -HTMLUrl 'https://server1/iftbls'
-  <a href="https://server1/iftbls/server1-Interfacetable.html">total 3 interface(s)</a>
-
-Specifies the HTML link only. See option B<HTMLDir> for the file system path.
+ Specifies the HTML link only. See option B<HTMLDir> for the file system path.
 
 =head2 -ResetUrl <url praefix> (optional)
 
-B<-ResetUrl> allows you to change the URL praefix for the reset cgi program.
-
-  Example - SUSE Linux paths':
-
-  # check_interface_table/check_interface_table.txt -H server1 -C public \
+ B<-ResetUrl> allows you to change the URL praefix for the reset cgi program.
+ Example - SUSE Linux paths':
+    check_interface_table/check_interface_table.txt -H server1 -C public \
     -HTMLDir '/srv/www/htdocs' -ResetUrl 'cgi-bin' -HTMLUrl ''
 
 =head2 -StateDir <directory> (optional)
 
- default = /tmp/.ifState
+ Default = /tmp/.ifState
+ Sets another directory where the interfae states are stored.
+ Example:
+    check_interface_table.txt -H server1 -C public -StateDir '/var/tmp'
 
-Sets another directory where the interfae states are stored.
+ Interface states are stored in a reference txt file. This option
+ changes the file system location of that file.
 
-  Example:
-
-  check_interface_table.txt -H server1 -C public -StateDir '/var/tmp'
-
-Interface states are stored in a reference txt file. This option
-changes the file system location of that file.
-
-ATTENTION! When implementing the "table reset" feature you must modify your
-InterfaceTableReset_v3t program, too.
+ ATTENTION! When implementing the "table reset" feature you must modify your
+ InterfaceTableReset_v3t program, too.
 
 =head2 -h <host> (optinal option)
 
- if omitted it defaults to the host with -H
-
-Specifies the remote host to display in the HTML link.
-
+ If omitted it defaults to the host with -H
+ Specifies the remote host to display in the HTML link.
  Example:
+    check_interface_table_v3t.pl -h firewall -H srv-itd-99.itdesign.at -C mkjz65a
 
- check_interface_table_v3t.pl -h firewall -H srv-itd-99.itdesign.at -C mkjz65a
-
-This option is maybe useful when you want to poll a host with -H and display
-another link for it.
-
-
+ This option is maybe useful when you want to poll a host with -H and display
+ another link for it.
+ 
 =head1 ATTENTION - KNOWN ISSUES
 
 =head2 Interaction with Nagios
@@ -329,13 +266,13 @@ to write all required files into the filesystem (see chapter "Theory of operatio
 
 =head2 Reset table
 
-The "reset table button" is the next challange. Clicking in the web browser means to
-trigger the "InterfaceTableReset_v3t" script which then tries to remove the state
+The "reset table button" is the next challenge. Clicking in the web browser means to
+trigger the "InterfaceTableReset_v3t.cgi" script which then tries to remove the state
 file.
 
  If this does not work please check the following:
 
- * correct directory and permissions of InterfaceTableReset_v3t
+ * correct directory and permissions of InterfaceTableReset_v3t.cgi
  * correct entry in the /etc/sudoers file
  * look at /var/log/messages or /var/log/secure to see what "sudo" calls
  * look at the web servers access and error log files
@@ -375,11 +312,17 @@ commercial suite of monitoring add ons around Nagios from ITdesign.
 This version is free software under the terms and conditions of GPLV3.
 
 Netways had adapted it to include performance data and calculate bandwidth
-usage. So now the features mentioned in the COMMERCIAL Version section are
+usage, making some features mentioned in the COMMERCIAL version available in 
+the GPL version (version 2 of the plugin)
 available in this GPL version.
+
+The 3rd version (by Yannnick Charton) (version v3t, to make the distinction w
+ith other possible v3 versions) brings lots of enhancements and new features 
+to the v2 version. See the README and CHANGELOG files for more information.
 
 Copyright (C) [2007]  [ITdesign Software Projects & Consulting GmbH]
 Copyright (C) [2009]  [Netways GmbH]
+Copyright (C) [2011]  [Yannick Charton]
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -394,88 +337,32 @@ details.
 You should have received a copy of the GNU General Public License along
 with this program; if not, see <http://www.gnu.org/licenses/>.
 
-=head1 COMMERCIAL Version
-
-This version differs from our commercial version in the following:
-
- * Throughput on each intefcace is measured and displayed as graphs
- * Warning and critical can be set on throughput, too
- * Frequency of updates and bug fixes
-
-Why dont't we have these features here?
-
-From the technical point of view it is very time consuming to extract
-these features out of our closed suite of add ons around nagios so
-we decided not to do it.
-
-What is out commercial version?
-
-Our commercial suite of add ons around nagios contains the following
-features:
-
- * Service Level Agreement calculation
- * AS/400, iSeries Monitoring
- * VMWARE ESX Monitoring
- * Servicemonitorung
- * Graph and Reports
- * Extended notification possibilities (distribution lists,
-   Notify by mobile phone, UDP, FTP, etc.)
- * and much much more
-
-More details see:
-
- http://www.watchit.at
-
 =head1 CONTACT INFORMATION
 
- Werner Neunteufl
- ITdesign Software Projects & Consulting
- Anton Freunschlaggasse 49, 1230 Wien
- Werner.Neunteufl@itdesign.at
+ Yannick Charton
+ Email: tontonitch-pro[at]yahoo.fr
+ Website: www.tontonitch.com
 
 =cut
 
 # ------------------------------------------------------------------------
 # COPYRIGHT:
 #
-# This software is Copyright (c) 2009 NETWAYS GmbH, Birger Schmidt
-#                                <info@netways.de>
-#      (Except where explicitly superseded by other copyright notices)
+# This software and the additional scripts provided with this software are
+# Copyright (c) 2011 Yannick Charton (tontonitch-pro[at]yahoo.fr)
+# (Except where explicitly superseded by other copyright notices)
 #
 # LICENSE:
 #
-# This work is made available to you under the terms of Version 2 of
+# This work is made available to you under the terms of version 3 of
 # the GNU General Public License. A copy of that license should have
-# been provided with this software, but in any event can be snarfed
-# from http://www.fsf.org.
+# been provided with this software. 
+# If not, see <http://www.gnu.org/licenses/>.
 #
 # This work is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301 or visit their web page on the internet at
-# http://www.fsf.org.
-#
-# CONTRIBUTION SUBMISSION POLICY:
-#
-# (The following paragraph is not intended to limit the rights granted
-# to you to modify and distribute this software under the terms of
-# the GNU General Public License and is only of importance to you if
-# you choose to contribute your changes and enhancements to the
-# community by submitting them to NETWAYS GmbH.)
-#
-# By intentionally submitting any modifications, corrections or
-# derivatives to this work, or any other work intended for use with
-# this Software, to NETWAYS GmbH, you confirm that
-# you are the copyright holder for those contributions and you grant
-# NETWAYS GmbH a nonexclusive, worldwide, irrevocable,
-# royalty-free, perpetual, license to use, copy, create derivative
-# works based on those contributions, and sublicense and distribute
-# those contributions and any derivatives thereof.
 #
 # Nagios and the Nagios logo are registered trademarks of Ethan Galstad.
 # ------------------------------------------------------------------------
@@ -3051,7 +2938,7 @@ sub print_revision ($$) {
   $pluginRevision =~ s/^\$Revision: //;
   $pluginRevision =~ s/ \$\s*$//;
   print "$commandName ($pluginRevision)\n";
-  print "This nagios/icinga plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute\ncopies of this plugin under the terms of the GNU General Public License.\n";
+  print "This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute\ncopies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).\n";
 }
 sub support () {
   my $support='Send email to tontonitch-pro@yahoo.fr if you have questions\nregarding use of this plugin. \nPlease include version information with all correspondence (when possible,\nuse output from the -V option of the plugin itself).\n';
