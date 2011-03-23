@@ -375,7 +375,7 @@ use lib "/usr/local/icinga/libexec";
 use Net::SNMP qw(oid_base_match);
 use Config::General;
 use Data::Dumper;
-use Getopt::Long qw(:config no_ignore_case no_ignore_case_always);
+use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
 use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
 
 # ========================================================================
@@ -387,7 +387,7 @@ use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '3.0.0';
+$REVISION       = '0.02';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -2838,89 +2838,135 @@ sub print_usage () {
   print <<EOUS;
 
   Usage:
-    $PROGNAME [-v] [-t <timeout>] --hostquery=<hostname/IP> [--hostdisplay <host alias to display>]
-        [...TODO...]
-    $PROGNAME [-h | --help]
-    $PROGNAME [--man | --manual]
-    $PROGNAME [-V | --version]
+    * basic usage:
+      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
+        [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
+        [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
+        [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
+    * advanced usage:
+      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
+        [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
+        [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
+        [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
+        [--cachedir <caching directory>] [--statedir <state files directory>] [--vlan] [--cisco]
+        [--accessmethod <method>] [--htmldir <system path to html interface tables>] 
+        [--htmlurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
+        [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--ifloadgradient] 
+        [--human] [--snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
+    * other usages:
+      $PROGNAME [--help | -?]
+      $PROGNAME [--man | --manual]
+      $PROGNAME [-V | --version]
 
-  Options:
-    --hostdisplay | -h
-        host alias to display
-    --hostquery | -H
-        host to query
+  Common options:
     --help | -?
-        help page
-    --verbose | -v | --debug | --Debug
-        verbose mode
+        Show this help page
     --man | --manual
-        manual
-    --cachedir | --CacheDir
-        caching directory
-    --statedir | --StateDir
-        interface table state directory
-    --accessmethod | AccessMethod
-        access method for the link to the host in the HTML page
-    --htmldir | --HTMLDir
-        interface table HTML directory
-    --htmlurl | --HTMLUrl
-        interface table URL location
-    --enableportperf | --EnablePortPerf
-        enable port performance data, default is port perfdata disabled
-    --portperfunit | --PortPerfUnit
-        bit|octet: in/out traffic in perfdata could be reported in octets or in bits
-    --community | -C
-        community string
-    --delta | --Delta
-        interface throuput delta in seconds
-    --ifs | --IFS
-        input field separator
-    --cache
-        cache timer
-    --reseturl | --ResetUrl
-        URL to tablereset program
-    --vlan | --VLANs
-        add vlan attribution info for each interface
-    --cisco
-        add cisco specific info in the information table
-    --ifloadgradient | --ifLoadGradient
-        enable color gradient from green over yellow to red for the load percentage representation
-    --human | --Human
-        translate bandwidth usage in human readable format (G/M/K bps)
-    --track
-        list of tracked properties. Values can be:
+        Print the manual
+    --version | -V
+        Plugin version
+    --verbose | -v
+        Verbose mode. Can be specified multiple times to increase the verbosity (max 3 times).
+    --hostquery | -H (required)
+        Specifies the remote host to poll.
+    --hostdisplay | -h (optional)
+        Specifies the remote host to display in the HTML link.
+        If omitted, it defaults to the host with -H
+    --community | -C (required)
+        Specifies the snmp v1 community string. Other snmp versions are not
+        implemented yet.
+    --exclude | -e (optional)
+        Comma separated list of interfaces excluded from tracking. Can be used to exclude:
+         * virtual or loopback interfaces
+         * flapping interfaces
+    --include | -i (optional)
+        Comma separated list of interfaces included for tracking. By default, all the 
+        interfaces are included. But there are some case where you need to include an 
+        interface which is part of a group of previously excluded interfaces.
+    --track | -t (optional)
+        List of tracked properties. Values can be:
          * 'ifAdminStatus'      : the administrative status of the interface
          * 'ifOperStatus'       : the operational status of the interface
          * 'ifSpeedReadable'    : the speed of the interface
          * 'ifVlanNames'        : the vlan on which the interface was associated
          * 'IpInfo'             : the ip configuration for the interface
-        default is 'ifOperStatus'
-    --snapshot
-
-    --version | -V
-        plugin version
-    --exclude | --Exclude
-
-    --include | --Include
-
-    --timeout
-
-    --warning | -w
-
-    --critical | -c
-    
-    --short, --long
+        Default is 'ifOperStatus'
+        Note: interface traffic load(s) is not considered as a property, and is always 
+              monitored following defined thresholds. 
+    --regexp | -r (optional)
+        Interface names and property names for some other options will be interpreted as
+        regular expressions.
+    --warning | -w (optional)
+        Number of property changes before leading to a warning alert
+    --critical | -c (optional)
+        Number of property changes before leading to a critical alert
+    --ifloadwarn | -W
+        Interface traffic load percentage leading to a warning alert 
+    --ifloadcrit | -C
+        Interface traffic load percentage leading to a critical alert 
+    --enableportperf | -f (optional)
+        Enable port performance data, default is port perfdata disabled
+    --grapher (optional)
+        Specify the used graphing solution. 
+        Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
+    --short, --long (optional)
         define the verbosity of the plugin output.
          * short    : the plugin only returns general counts (nb ports, nb changes,...)
-         * long     : the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
-    --grapher
-        graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+                      This is close to the way the previous versions of the plugin was 
+                      working.
+         * long     : the plugin returns general counts (nb ports, nb changes,...) 
+                      + what changes has been detected 
+                      + what interface(s) suffer(s) from high load.
+    
+  Advanced options:
+    --cachedir
+        Sets the directory where snmp responses are cached.
+    --statedir
+        Sets the directory where the interface states are stored.
+    --vlan (optional)
+        Add the vlan attribution property for each interface in the interface table.
+    --cisco (optional)
+        Add cisco specific info in the information table.
+    --accessmethod
+        Access method for the link to the host in the HTML page.
+    --htmldir
+        Specifies the directory in the file system where HTML interface table are stored.
+    --htmlurl
+        Specifies the URL by which the interface table are accessible.
+    --delta | -d
+        Set the delta used for interface throuput calculation. In seconds.
+    --ifs
+        Input field separator. The specified separator is used for all options allowing
+        a list to be specified.
+    --cache
+        Define the retention time of the cached data. In seconds.
+    --reseturl
+        Specifies the URL to the tablereset program.
+    --ifloadgradient
+        Enable color gradient from green over yellow to red for the load percentage 
+        representation.
+    --human
+        Translate bandwidth usage in human readable format (G/M/K bps).
+    --snapshot
+        Force the plugin to run like if it was the first launch. Cached data will be 
+        ignored.
+    --timeout
+        Define the timeout limit of the plugin.
+    --portperfunit
+        In/out traffic in perfdata could be reported in octets or in bits.
+        Possible values: bit or octet
     --grapherurl
         graphing system url. Default values are:
          * pnp4nagios       : /pnp4nagios
          * nagiosgrapher    : /nagios/cgi-bin (?)
          * netwaysgrapherv2 : /nagios/cgi-bin (?)
 
+  Notes:
+    - For options --track, --exclude, --include, --excludeportperf, --includeportperf:
+       * These options can be used multiple times, the lists of interfaces/properties 
+         will be concatenated.
+       * The separator can be changed using the --ifs option.
+        
 EOUS
 
 }
@@ -2956,40 +3002,40 @@ sub check_options () {
         'hostdisplay|h=s',
         'hostquery|H=s',
         'help|?',
-        'verbose|v|debug|Debug+',
+        'verbose|v+',
         'man|manual',
-        'cachedir|CacheDir=s',                  # caching directory
-        'statedir|StateDir=s',                  # interface table state directory
-        'accessmethod|AccessMethod=s',          # access method for the link to the host in the HTML page
-        'htmldir|HTMLDir=s',                    # interface table HTML directory
-        'htmlurl|HTMLUrl=s',                    # interface table URL location
-        'enableportperf|EnablePortPerf',        # enable port performance data, default is port perfdata disabled
-        'excludeportperf|ExcludePortPerf=s@',   # list of port for which performance data are NOT generated
-        'includeportperf|IncludePortPerf=s@',   # list of port for which performance data are generated
-        'portperfunit|PortPerfUnit=s',          # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+        'cachedir=s',                           # caching directory
+        'statedir=s',                           # interface table state directory
+        'accessmethod=s',                       # access method for the link to the host in the HTML page
+        'htmldir=s',                            # interface table HTML directory
+        'htmlurl=s',                            # interface table URL location
+        'enableportperf|f',                     # enable port performance data, default is port perfdata disabled
+        'excludeportperf|E=s@',                 # list of port for which performance data are NOT generated
+        'includeportperf|I=s@',                 # list of port for which performance data are generated
+        'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
         'community|C=s',                        # community string
-        'delta|Delta=i',                        # interface throuput delta in seconds
-        'ifs|IFS=s',                            # input field separator
+        'delta|d=i',                            # interface throuput delta in seconds
+        'ifs=s',                                # input field separator
         'cache=s',                              # cache timer
-        'reseturl|ResetUrl=s',                  # URL to tablereset program
-        'vlan|VLANs',                           # Add vlan attribution info for each interface
+        'reseturl=s',                           # URL to tablereset program
+        'vlan',                                 # Add vlan attribution info for each interface
         'cisco',                                # Add cisco specific info in the info table
-        'ifloadgradient|ifLoadGradient',        # color gradient from green over yellow to red representing the load percentage
-        'human|Human',                          # translate bandwidth usage in human readable format (G/M/K bps)
-        'track=s@',                             # list of exclued properties
+        'ifloadgradient',                       # color gradient from green over yellow to red representing the load percentage
+        'human',                                # translate bandwidth usage in human readable format (G/M/K bps)
+        'track|t=s@',                           # list of exclued properties
         'snapshot',
         'version|V',
-        'exclude|Exclude=s@',
-        'include|Include=s@',
-        'regexp|Regexp',
+        'exclude|e=s@',
+        'include|i=s@',
+        'regexp|r',
         'timeout=i',
         'warning|w=i',
         'critical|c=i',
-        'ifloadwarn|ifLoadWarn=i',
-        'ifloadcrit|ifLoadCrit=i',
+        'ifloadwarn|W=i',
+        'ifloadcrit|C=i',
         'short',                                # the plugin only returns general counts (nb ports, nb changes,...)
         'long',                                 # the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
-        'grapher',                              # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+        'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl'                            # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         );
     # Default option values
@@ -3120,7 +3166,7 @@ sub check_options () {
         $ghOptions{'include'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
-        $ghOptions{'regexp'} = 1;
+        $ghOptions{'regexp'} = $commandline{regexp};
     }
     if (exists $commandline{htmldir}) {
         $ghOptions{'htmldir'} = "$commandline{htmldir}";
