@@ -100,4 +100,5 @@
 #    - see if the short (old) plugin output is really relevant or can be 
 #      simply replaced by the long output
 #    - add check and threshold options for packet errors/discards
+#    - check and remove the % character if any in the commandline arguments
 # ========================================================================
