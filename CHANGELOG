@@ -80,6 +80,7 @@
 #      concatenated. Exemple: --exclude 'pat1' --exclude 'pat2,pat3'. 
 #      Concerned options: track, exclude, include, excludeportperf, 
 #      includeportperf
+#    - feature: added an option to print the default values of the options
 #   ----------------------------------------------------------------------
 #
 #
@@ -101,5 +102,4 @@
 #      simply replaced by the long output
 #    - add check and threshold options for packet errors/discards
 #    - check and remove the % character if any in the commandline arguments
-#    - add an option to print the default values of the options (ex: -D)
 # ========================================================================
