@@ -2838,12 +2838,14 @@ sub print_usage () {
   print <<EOUS;
 
   Usage:
+
     * basic usage:
       $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
         [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
-    * advanced usage:
+
+	* advanced usage:
       $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
@@ -2853,10 +2855,12 @@ sub print_usage () {
         [--htmlurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--ifloadgradient] 
         [--human] [--snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
-    * other usages:
+
+	* other usages:
       $PROGNAME [--help | -?]
       $PROGNAME [--man | --manual]
-      $PROGNAME [-V | --version]
+      $PROGNAME [--version | -V]
+	  $PROGNAME [--showdefaults | -D]
 
   Common options:
     --help | -?
@@ -2867,6 +2871,8 @@ sub print_usage () {
         Plugin version
     --verbose | -v
         Verbose mode. Can be specified multiple times to increase the verbosity (max 3 times).
+    --showdefaults | -D
+		Print the option default values
     --hostquery | -H (required)
         Specifies the remote host to poll.
     --hostdisplay | -h (optional)
@@ -2970,6 +2976,10 @@ sub print_usage () {
 EOUS
 
 }
+sub print_defaults () {
+  print "Default option values:\n\n";
+  print Dumper(%ghOptions);
+}
 sub print_help () {
   print "Copyright (c) 2011 Yannick Charton\n\n";
   print "\n";
@@ -3004,7 +3014,8 @@ sub check_options () {
         'help|?',
         'verbose|v+',
         'man|manual',
-        'cachedir=s',                           # caching directory
+        'showdefaults|D',						# print all option default values
+		'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmldir=s',                            # interface table HTML directory
@@ -3042,6 +3053,7 @@ sub check_options () {
     %ghOptions = (
         'help'              => 0,
         'verbose'           => 0,
+		'showdefaults'      => 0,
         'hostquery'         => '',
         'hostdisplay'       => '',
         'cachedir'          => "$TMPDIR/.ifCache",
@@ -3102,6 +3114,10 @@ sub check_options () {
     }
     if (exists $commandline{man}) {
         pod2usage(1);
+        exit $ERRORS{OK};
+    }
+    if (exists $commandline{showdefaults}) {
+        print_defaults();
         exit $ERRORS{OK};
     }
     if (exists $commandline{timeout}) {
