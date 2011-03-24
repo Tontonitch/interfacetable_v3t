@@ -81,6 +81,9 @@
 #      Concerned options: track, exclude, include, excludeportperf, 
 #      includeportperf
 #    - feature: added an option to print the default values of the options
+#    - enhancement: updated the pod doc and moved to end for better reading.
+#    - enhancement: data::dumper sorting
+#    - enhancement: removed man option (prefered perldoc reading)
 #   ----------------------------------------------------------------------
 #
 #
@@ -89,8 +92,6 @@
 # 	 - option to enable change tracking for interfaces going from down to up
 # 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 # 	   against the use of unix snmpwalk
-# 	 - review the nagios plugin development guidelines to see if it fits now
-#       * use strict
 #    - rewrite the way the fields in the info table are selected for more 
 #      flexibility
 #    - snmp v2c / v3 support
