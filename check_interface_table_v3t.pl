@@ -2855,6 +2855,7 @@ sub print_usage () {
         [--htmlurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--ifloadgradient] 
         [--human] [--snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
+        [-E <interface perfdata exclusion list>] [-I <interface perfdata inclusion list>]
 
 	* other usages:
       $PROGNAME [--help | -?]
@@ -2906,9 +2907,9 @@ sub print_usage () {
         Number of property changes before leading to a warning alert
     --critical | -c (optional)
         Number of property changes before leading to a critical alert
-    --ifloadwarn | -W
+    --ifloadwarn | -W (optional)
         Interface traffic load percentage leading to a warning alert 
-    --ifloadcrit | -C
+    --ifloadcrit | -C (optional)
         Interface traffic load percentage leading to a critical alert 
     --enableportperf | -f (optional)
         Enable port performance data, default is port perfdata disabled
@@ -2925,43 +2926,51 @@ sub print_usage () {
                       + what interface(s) suffer(s) from high load.
     
   Advanced options:
-    --cachedir
+    --cachedir (optional)
         Sets the directory where snmp responses are cached.
-    --statedir
+    --statedir (optional)
         Sets the directory where the interface states are stored.
     --vlan (optional)
         Add the vlan attribution property for each interface in the interface table.
     --cisco (optional)
         Add cisco specific info in the information table.
-    --accessmethod
+    --accessmethod (optional)
         Access method for the link to the host in the HTML page.
-    --htmldir
+        Can be ssh or telnet.
+    --htmldir (optional)
         Specifies the directory in the file system where HTML interface table are stored.
-    --htmlurl
+    --htmlurl (optional)
         Specifies the URL by which the interface table are accessible.
-    --delta | -d
+    --delta | -d (optional)
         Set the delta used for interface throuput calculation. In seconds.
-    --ifs
+    --ifs (optional)
         Input field separator. The specified separator is used for all options allowing
         a list to be specified.
-    --cache
+    --cache (optional)
         Define the retention time of the cached data. In seconds.
-    --reseturl
+    --reseturl (optional)
         Specifies the URL to the tablereset program.
-    --ifloadgradient
+    --ifloadgradient (optional)
         Enable color gradient from green over yellow to red for the load percentage 
         representation.
-    --human
+    --human (optional)
         Translate bandwidth usage in human readable format (G/M/K bps).
-    --snapshot
+    --snapshot (optional)
         Force the plugin to run like if it was the first launch. Cached data will be 
         ignored.
-    --timeout
+    --timeout (optional)
         Define the timeout limit of the plugin.
-    --portperfunit
+    --excludeportperf | -E (optional)
+        Comma separated list of interfaces for which performance data are NOT generated. 
+    --includeportperf | -I (optional)
+        Comma separated list of interfaces for which performance data are generated. 
+        By default, all the interfaces that are tracked are included. But there are some 
+        case where you need to include an interface which is part of a group of previously 
+        excluded interfaces.
+    --portperfunit (optional)
         In/out traffic in perfdata could be reported in octets or in bits.
         Possible values: bit or octet
-    --grapherurl
+    --grapherurl (optional)
         graphing system url. Default values are:
          * pnp4nagios       : /pnp4nagios
          * nagiosgrapher    : /nagios/cgi-bin (?)
