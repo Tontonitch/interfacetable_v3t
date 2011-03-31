@@ -27,7 +27,7 @@
 #      to "[detail]", for better integration in third party tools such as 
 #      nagstamon,...
 #   ----------------------------------------------------------------------
-# * 0.0x
+# * 0.02
 #   ----------------------------------------------------------------------
 #    - enhancement: cleaner and step-by-step output when resetting stats
 #    - feature: finished option 'track', replacement of nochange, which 
