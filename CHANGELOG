@@ -84,6 +84,8 @@
 #    - enhancement: updated the pod doc and moved to end for better reading.
 #    - enhancement: data::dumper sorting
 #    - enhancement: removed man option (prefered perldoc reading)
+#    - enhancement: reviewed the way the operstatus is presented for 
+#      $display_operstatus = 1 (separate graph for operstatus)
 #   ----------------------------------------------------------------------
 #
 #
