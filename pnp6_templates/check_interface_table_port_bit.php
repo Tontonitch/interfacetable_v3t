@@ -4,7 +4,7 @@
 # Pnp template for check_interface_table, port perfdata part, output in bits
 # Includes the possibility to choose what to display
 # By Yannick Charton (tontonitch-pro@yahoo.fr)
-# Based on Joerg Linge templates
+# For pnp4nagios v0.6.11 and above
 #
 
 #
@@ -39,7 +39,7 @@ $colors     = array("#CC3300","#CC3333","#CC3366","#CC3399","#CC33CC",
 ## Parameters
 $display_traffic    = 1; # 0/1: disable/enable the traffic graph
 $display_errors     = 1; # 0/1: disable/enable the error graph
-$display_operstatus = 2; # 0: disable the operational status info in graphs
+$display_operstatus = 1; # 0: disable the operational status info in graphs
                          # 1: generate a new graph for operstatus
                          # 2: add a red/orange/green line on the top of the traffic graph depending on the operstatus
 
@@ -104,7 +104,7 @@ if($display_operstatus == 1){
     $opt[$num_graph] .= " --watermark=\"Template: check_snmp_netint.php by Yannick Charton\" ";
     $def[$num_graph] = "";
     $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
-    $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, 0.5,"ff","#00ff00","#ff0000","#ff8c00");
+    $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, 0.33,"ff","#00ff00","#ff0000","#ff8c00");
 }
 
 ?>
