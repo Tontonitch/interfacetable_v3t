@@ -2516,15 +2516,12 @@ sub print_usage () {
 
 	* other usages:
       $PROGNAME [--help | -?]
-      $PROGNAME [--man | --manual]
       $PROGNAME [--version | -V]
 	  $PROGNAME [--showdefaults | -D]
 
   Common options:
     --help | -?
         Show this help page
-    --man | --manual
-        Print the manual
     --version | -V
         Plugin version
     --verbose | -v
@@ -2638,9 +2635,9 @@ sub print_usage () {
        * These options can be used multiple times, the lists of interfaces/properties 
          will be concatenated.
        * The separator can be changed using the --ifs option.
-	   * The manual is included in this plugin in pod format. To read it, use the perldoc
-	     program (if not installed, just intall the perl-doc package):
-		   perldoc ./check_interface_table_v3t.pl
+	- The manual is included in this plugin in pod format. To read it, use the perldoc
+      program (if not installed, just intall the perl-doc package):
+      perldoc ./check_interface_table_v3t.pl
         
 EOUS
 
@@ -2666,7 +2663,7 @@ sub print_revision ($$) {
   print "This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute\ncopies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).\n";
 }
 sub support () {
-  my $support='Send email to tontonitch-pro@yahoo.fr if you have questions\nregarding use of this plugin. \nPlease include version information with all correspondence (when possible,\nuse output from the -V option of the plugin itself).\n';
+  my $support='Send email to tontonitch-pro@yahoo.fr if you have questions\nregarding the use of this plugin. \nPlease include version information with all correspondence (when possible,\nuse output from the -V option of the plugin itself).\n';
   $support =~ s/@/\@/g;
   $support =~ s/\\n/\n/g;
   print $support;
@@ -2727,8 +2724,8 @@ sub check_options () {
         'cachedir'          => "$TMPDIR/.ifCache",
         'statedir'          => "$TMPDIR/.ifState",
         'accessmethod'      => "ssh",
-        'htmldir'           => "/usr/local/icinga/share/addons/interfacetables",
-        'htmlurl'           => "http://monitor/icinga/addons/interfacetables",
+        'htmldir'           => "/usr/local/nagios/share/addons/interfacetables",
+        'htmlurl'           => "http://monitor/nagios/addons/interfacetables",
         'enableportperf'    => 0,
         'excludeportperf'   => undef,
         'includeportperf'   => undef,
@@ -2737,7 +2734,7 @@ sub check_options () {
         'delta'             => 600,
         'ifs'               => ',',
         'cache'             => 3600,
-        'reseturl'          => "/icinga/cgi-bin",
+        'reseturl'          => "/nagios/cgi-bin",
         'vlan'              => 0,
         'cisco'             => 0,
         'ifloadgradient'    => 1,
