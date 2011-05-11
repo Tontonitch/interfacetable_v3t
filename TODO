@@ -1,0 +1,28 @@
+# ========================================================================
+# 	TODO list
+# ========================================================================
+#
+#   ----------------------------------------------------------------------
+# * Todo for 0.03
+#   ----------------------------------------------------------------------
+# 	 - option to enable change tracking for interfaces going from down to up
+# 	 - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
+# 	   against the use of unix snmpwalk
+#    - rewrite the way the fields in the info table are selected for more 
+#      flexibility
+#    - snmp v2c / v3 support
+#    - extend the debug with new debug levels. Might be in the model of 
+#      an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
+#    - info table (first table) building way review for more flexibility
+#    - review general structure of the plugin
+#    - see if the short (old) plugin output is really relevant or can be 
+#      simply replaced by the long output
+#    - add check and threshold options for packet errors/discards
+#    - check and remove the % character if any in the commandline arguments
+#    - dissociate load calculation/checking from port perfdata selection
+#      -> to allow to select particular interface for properties tracking,
+#         while the other interfaces are still checked for traffic load and
+#         perfdata well generated
+#    - add a little icon in each field of the interface table which correspond 
+#      to a tracked property 
+# ========================================================================
