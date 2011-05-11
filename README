@@ -16,14 +16,14 @@ check_interface_table_v3t.pl comes from:
        performance data related to bandwidth usage.
 
 This new version, called v3t, provides some enhancements:
- * better pnp4nagios support
- * much more documented plugin options
+ * better pnp4nagios support, including templates
+ * better documentation
+ * code cleaned & review for better maintenance
  * closer to nagios plugin guidelines
- * code review for better maintenance
- * and lots more !!! (see changelog)
+ * new and more flexible options
+ * and more ! (see changelog)
 
-Coming:
- * snmp v2 & v3 support
+See the TODO file for coming features.
 
 Support the check of the following node types:
  * Brocade fiberchannel switches
