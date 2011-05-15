@@ -25,4 +25,7 @@
 #         perfdata well generated
 #    - add a little icon in each field of the interface table which correspond 
 #      to a tracked property 
+#    - move all html style properties from the generated html page to a css
+#      stylesheet. To allow easier customisation of the generated html page.
+#
 # ========================================================================
