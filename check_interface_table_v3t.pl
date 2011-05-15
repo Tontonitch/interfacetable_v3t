@@ -49,7 +49,7 @@ $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
-my %COLORS      = ('HighLight' => '#81BEF7', 'PerfGraph' => '#DCFAC9');
+my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
@@ -458,11 +458,11 @@ if ( $gInitialRun ) {
     }
 }
 
-# Create "mini" info table
-$gInfoTable = Csv2Html ($grefaInfoTableHeader,$grefaInfoTableData);
+# Create "small" information table
+$gInfoTable = Csv2Html ($grefaInfoTableHeader,$grefaInfoTableData,"infotable");
 
 # Create "big" interface table
-$gInterfaceTable   = Csv2Html ($grefaInterfaceTableHeader,$grefaInterfaceTableData);
+$gInterfaceTable   = Csv2Html ($grefaInterfaceTableHeader,$grefaInterfaceTableData,"interfacetable");
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -627,15 +627,8 @@ sub WriteHtmlTable {
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
-    <script type="text/javascript">
-      function ChangeColor(tableRow, highLight) {
-        if (highLight) { tableRow.style.backgroundColor = "' . $COLORS{"HighLight"} . '"; }
-        else { tableRow.style.backgroundColor = "' . $COLORS{"PerfGraph"} . '"; }
-      }
-      function DoNav(theUrl) {
-        document.location.href = theUrl;
-      }
-    </script>
+    <link rel="stylesheet" type="text/css" href="css/common.css">
+	<script type="text/javascript" src="js/functions.js"></script>
   </head>
 <body>
 ';
@@ -728,8 +721,9 @@ sub GenerateHtmlTable {
 
             my $ChangeTime;
             my $LastChangeInfo          = "";
-            my $CellColor;
+            #my $CellColor;
             my $CellBackgroundColor;
+			my $CellStyle;
             my $CellContent;
             my $CurrentFieldContent     = "";
             my $FileFieldContent        = "";
@@ -758,8 +752,9 @@ sub GenerateHtmlTable {
             # data changes
             if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "true" or $gInitialRun)  {
                 $CompareThisField = 0;
+				$CellStyle = "statusNotCompared";
                 # Change the font color to "olive"
-                $CellColor     = '<font color="#808000">';
+                #$CellColor     = '<font color="#808000">';
             } elsif (defined $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"}) {
                 $CellBackgroundColor = $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"};
             }
@@ -785,11 +780,12 @@ sub GenerateHtmlTable {
                     }
 
                     if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
-                        $CellBackgroundColor = "red";
+                        $CellStyle = "statusChanged";
+						#$CellBackgroundColor = "red";
                         $gDifferenceCounter++;
-                    } else {
-                        $CellBackgroundColor = "#F5A9A9"; # light red
-                    }
+                    } #else {
+                    #    $CellBackgroundColor = "#F5A9A9"; # light red
+                    #}
                     
                     # Update the list of changes
                     push @{$grefhListOfChanges->{"$FieldName"}}, trim(denormalize($oid_ifDescr));
@@ -807,13 +803,18 @@ sub GenerateHtmlTable {
             # Store cell content in table
             $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{"Value"} = "$CellContent";
 
-            # Change font and background color
-            defined $CellColor and
-              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Font} =
-              $CellColor;
+            # Change font color
+            #  defined $CellColor and
+            #  $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Font} =
+            #  $CellColor;
+            # Change background color
             defined $CellBackgroundColor and
               $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Background} =
               $CellBackgroundColor;
+			# Change cell style
+            defined $CellStyle and
+              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Style} =
+              $CellStyle;
 
             $iFieldCounter++;
         } # for FieldName
@@ -2173,7 +2174,7 @@ sub MyMkdir {
     my @Dirs    =   split /\//,$Directory;
 
     # growing directory structure
-    my $Snake;
+    my $Snake = "";
 
     # walk through each directory and create it
     for my $Dir (@Dirs) {
@@ -2189,9 +2190,11 @@ sub MyMkdir {
     }
 
     # remove last / and return the directory back to the caller
-    if ("$Snake" =~ /\/$/) {
-        chop ($Snake);
-    }
+    if ($Snake) {
+	    if ("$Snake" =~ /\/$/) {
+            chop ($Snake);
+        }
+	}
     return $Snake;
 }
 
@@ -2267,7 +2270,8 @@ sub ExecuteCommand {
 sub Csv2Html {
     my $refaHeader = shift;       # Header contains the HTML table header as scalar
     my $refaLines  = shift;       # Reference to array of table lines
-
+	my $cssClass   = shift;       # Css class to use for the table
+	
     my $refaProperties;           # List of properties from each line
     my $HTML;                     # HTML Content back to the caller
     my $HTMLTable;                # HTML Table code only
@@ -2278,8 +2282,8 @@ sub Csv2Html {
         # Build HTML format and table header
         $HTML .= '<a name=top></a>'."\n";
         $HTML .= '<br>';
-        $HTML .='<span style="font-size:8pt" style="font-family:monospace">'."\n";
-        $HTML .='<table border style="font-size:8pt;WORD-BREAK:NORMAL;" bgcolor=#D2D2D2>'."\n";
+        $HTML .='<span>'."\n";
+        $HTML .='<table '."class=$cssClass".'>'."\n";
 
         # Build html table title header
         #
@@ -2300,16 +2304,15 @@ sub Csv2Html {
 
                 my $Value;
                 my $SpecialCellFormat      = "";
-                my $SpecialTextFormatHead  = "";
-                my $SpecialTextFormatFoot  = "";
+                #my $SpecialTextFormatHead  = "";
+                #my $SpecialTextFormatFoot  = "";
 
             if ( defined $Cell->{InterfaceGraphURL} ) {
                 if($ghOptions{'enableportperf'}){         # thd
-                    $HTMLTable .= ' bgcolor="' . $COLORS{"PerfGraph"} .
-                        '" onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" '.
+                    $HTMLTable .= ' onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" '.
                         'onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
                 }else{
-                    $HTMLTable .= ' bgcolor="' . $COLORS{"PerfGraph"} . '" onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" >';
+                    $HTMLTable .= ' onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" >';
                 }
                 $trTagclose = '';
             }
@@ -2318,14 +2321,19 @@ sub Csv2Html {
                 #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
                 # if background is defined ---------------------------------
                 if ( defined $Cell->{Background} ) {
-                    $SpecialCellFormat .= 'bgcolor="' . $Cell->{Background} . '"';
+                    $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
+                }
+				
+				# if style is defined ---------------------------------
+                if ( defined $Cell->{Style} ) {
+                    $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
                 }
 
                 # if a special font is indicated ---------------------------
-                if ( defined $Cell->{Font} ) {
-                    $SpecialTextFormatHead .= $Cell->{Font};
-                    $SpecialTextFormatFoot .= '</font>';
-                }
+                #if ( defined $Cell->{Font} ) {
+                #    $SpecialTextFormatHead .= $Cell->{Font};
+                #    $SpecialTextFormatFoot .= '</font>';
+                #}
 
                 # if we got a value write into cell ------------------------
                 if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
@@ -2341,9 +2349,12 @@ sub Csv2Html {
                 }
 
                 # finally build the table line;
-                $HTMLTable .= "\n" . '<td ' . $SpecialCellFormat . '>' .
-                    $SpecialTextFormatHead . $Value .
-                    $SpecialTextFormatFoot. '</td>';
+                $HTMLTable .= "\n" . '<td ' . 
+				    $SpecialCellFormat . '>' .
+                    #$SpecialTextFormatHead . 
+					$Value .
+                    #$SpecialTextFormatFoot . 
+					'</td>';
             }
             # end table line -----------------------------------------------
             $HTMLTable .= "</tr>";
@@ -2422,7 +2433,7 @@ sub HtmlLinks {
     my $HTML;
 
     # nice font
-    $HTML.='<span style="font-size:8pt" style="font-family:monospace">'."\n";
+    $HTML.='<span>'."\n";
 
     # back button
     if ($refhStruct->{Back}) {
