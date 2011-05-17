@@ -1,0 +1,59 @@
+/***** GENERAL *****/
+
+body {
+	font-size: 1em;
+	font-family: Verdana Geneva Arial Helvetica sans-serif;
+}
+
+/***** TABLES *****/
+
+table {
+	border-width: 1px;
+	border-spacing: 2px;
+	border-style: outset;
+	border-color: gray;
+	border-collapse: separate;
+	font-size:8pt;
+	background-color: #D2D2D2;
+}
+
+tr {
+	background-color: rgb(220, 250, 201);
+}
+
+th {
+	background-color: #D2D2D2;
+	border-width: 1px;
+	border-style: inset;
+	padding: 0px 5px 0px 5px;
+}
+
+td {
+	border-width: 1px;
+	border-style: inset;
+	padding: 0px 5px 0px 5px;
+}
+
+/* Information table */ 
+
+.infotable tr {
+	background-color: #D2D2D2;
+}
+
+/* Interface table */
+
+.trackedOk {
+	background-color: #00CC33; 
+	color: #fff;
+}
+ 
+.trackedChange {
+	background-color: #FF3300; 
+	color: #fff;
+}
+
+/***** SPANS *****/
+
+span {
+	font-size: 8px;
+}
