@@ -44,7 +44,7 @@ use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.02';
+$REVISION       = '0.03';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -53,6 +53,7 @@ my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
+my $css_stylesheet	= "classic.css";
 # NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
@@ -627,7 +628,7 @@ sub WriteHtmlTable {
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
-    <link rel="stylesheet" type="text/css" href="css/common.css">
+    <link rel="stylesheet" type="text/css" href="css/' . $css_stylesheet . '">
 	<script type="text/javascript" src="js/functions.js"></script>
   </head>
 <body>
@@ -2282,9 +2283,13 @@ sub Csv2Html {
         # Build HTML format and table header
         $HTML .= '<a name=top></a>'."\n";
         $HTML .= '<br>';
-        $HTML .='<span>'."\n";
-        $HTML .='<table '."class=$cssClass".'>'."\n";
-
+        $HTML .= '<span>'."\n";
+        $HTML .= '<table '."class=$cssClass";
+		if ($cssClass == "interfacetable") {
+			$HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
+		}
+		$HTML .= '>'."\n";
+		
         # Build html table title header
         #
         # - $Header looks like this:
@@ -2309,10 +2314,7 @@ sub Csv2Html {
 
             if ( defined $Cell->{InterfaceGraphURL} ) {
                 if($ghOptions{'enableportperf'}){         # thd
-                    $HTMLTable .= ' onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" '.
-                        'onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
-                }else{
-                    $HTMLTable .= ' onmouseover="ChangeColor(this, true);" onmouseout="ChangeColor(this, false);" >';
+                    $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
                 }
                 $trTagclose = '';
             }
