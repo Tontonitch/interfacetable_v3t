@@ -315,7 +315,7 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 # ------------------------------------------------------------------------------
 
 # Save include/exclude information of each interface in the metadata
-$grefhCurrent = EvaluateInterfaces ($ghOptions{exclude}, $ghOptions{include});
+$grefhCurrent = EvaluateInterfaces ($ghOptions{exclude}, $ghOptions{include}, $ghOptions{excludeportperf}, $ghOptions{includeportperf});
 logger(3, " Include / Exclude interfaces -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
 
 # ------------------------------------------------------------------------------
