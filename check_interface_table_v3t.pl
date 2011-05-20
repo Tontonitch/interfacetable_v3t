@@ -315,7 +315,7 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 # ------------------------------------------------------------------------------
 
 # Save include/exclude information of each interface in the metadata
-$grefhCurrent = EvaluateInterfaces ($ghOptions{exclude}, $ghOptions{include}, $ghOptions{excludeportperf}, $ghOptions{includeportperf});
+$grefhCurrent = EvaluateInterfaces ($ghOptions{excludeloadtrack}, $ghOptions{includeloadtrack}, $ghOptions{excludepropertytrack}, $ghOptions{includepropertytrack});
 logger(3, " Include / Exclude interfaces -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
 
 # ------------------------------------------------------------------------------
@@ -548,7 +548,7 @@ sub perfdataout {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} eq "false" and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
 
             my $port = sprintf("%03d", $InterfaceIndex);
             #my $servicename = "Port$port";
@@ -693,8 +693,10 @@ sub GenerateHtmlTable {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        # Netways Nagios Grapher - one link per line/interface/port
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false" and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
+        # Graphing solution link - one link per line/interface/port
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
+            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
+            and $ghOptions{'enableportperf'}) {
             #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
             my $servicename = "If_" . trim(denormalize($oid_ifDescr));
             $servicename =~ s/#/%23/g;
@@ -751,7 +753,7 @@ sub GenerateHtmlTable {
 
             # If interface is excluded or this is the initial run we don't lookup for
             # data changes
-            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "true" or $gInitialRun)  {
+            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true" or $gInitialRun)  {
                 $CompareThisField = 0;
 				$CellStyle = "statusNotCompared";
                 # Change the font color to "olive"
@@ -774,17 +776,18 @@ sub GenerateHtmlTable {
                 } else {
                     # Field content has changed ...
                     $CellContent = "now: " . denormalize( $CurrentFieldContent ) . "$LastChangeInfo was: " . denormalize ( $FileFieldContent );
-
                     if ($ghOptions{verbose} or $ghOptions{warning} > 0 or $ghOptions{critical} > 0) {
                         $gChangeText .= "(" . denormalize ($oid_ifDescr) .
                             ") $FieldName now <b>$CurrentFieldContent</b> (was: <b>$FileFieldContent</b>)<br>";
                     }
-
-                    if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
-                        $CellStyle = "statusChanged";
-						#$CellBackgroundColor = "red";
-                        $gDifferenceCounter++;
-                    } #else {
+                    $CellStyle = "statusChanged";
+                    $gDifferenceCounter++;
+                    
+                    #if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
+                    #    $CellStyle = "statusChanged";
+					#	#$CellBackgroundColor = "red";
+                    #    $gDifferenceCounter++;
+                    #} #else {
                     #    $CellBackgroundColor = "#F5A9A9"; # light red
                     #}
                     
@@ -819,6 +822,7 @@ sub GenerateHtmlTable {
 
             $iFieldCounter++;
         } # for FieldName
+        
         $iLineCounter++;
     } # for $InterfaceIndex
 
@@ -863,100 +867,101 @@ sub GenerateHtmlTable {
 # ------------------------------------------------------------------------
 sub EvaluateInterfaces {
 
-    my $ExcludeList = shift;
-    my $IncludeList = shift;
-    my $ExcludePerfList = shift;
-    my $IncludePerfList = shift;
+    my $ExcludeLoadTrackList = shift;
+    my $IncludeLoadTrackList = shift;
+    my $ExcludePropertyTrackList = shift;
+    my $IncludePropertyTrackList = shift;
 
+    logger(1, "ExcludeLoadTrackList:\n".Dumper($ExcludeLoadTrackList));
+    logger(1, "IncludeLoadTrackList:\n".Dumper($IncludeLoadTrackList));
+    logger(1, "ExcludePropertyTrackList:\n".Dumper($ExcludePropertyTrackList));
+    logger(1, "IncludePropertyTrackList:\n".Dumper($IncludePropertyTrackList));
+    
     # Loop through all interfaces
     for my $oid_ifDescr (keys %{$grefhCurrent->{MD}->{If}}) {
 
-        #----- Includes or excludes interfaces from change comparison -----#
+        #----- Includes or excludes interfaces from traffic load traffic load tracking -----#
         
         # Denormalize interface name
         my $oid_ifDescrReadable = denormalize ($oid_ifDescr);
         my $oid_ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAlias});
         
         # By default, don't exclude the interface
-        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "false";
+        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
         
         # Process the interface exclusion list
-        for my $ExcludeString (@$ExcludeList) {
+        for my $ExcludeString (@$ExcludeLoadTrackList) {
             if ($ghOptions{regexp}) {
                 if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                     logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "true";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
                 }
             }
             elsif ("$oid_ifDescrReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                 logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "true";
+                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
             }
         }
 
         # Process the interface inclusion list
         # Inclusions are done after exclusions to be able to include a 
         # subset of a group of interfaces which were excluded previously
-        for my $IncludeString (@$IncludeList) {
+        for my $IncludeString (@$IncludeLoadTrackList) {
             if ($ghOptions{regexp}) {
                 if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                     logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "false";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
                 }
             }
             elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                 logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} = "false";
+                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
             }
         }
-        
+      
         # Update the counter if needed        
-        #if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
-        #    $gNumberOfInterfaces++;
-        #}    
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+            $gNumberOfPerfdataInterfaces++;
+        }
         
-        # For included interfaces, enable the performance data depending to the exclude and/or include perf port list
-        if ($ghOptions{'enableportperf'} and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
+        # For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
             
-            # By default, take the performance data for the interface
-            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "false";
+            # By default, track the properties of the interface
+            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
             
             # Process the interface exclusion list
-            for my $ExcludeString (@$ExcludePerfList) {
+            for my $ExcludeString (@$ExcludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
                     if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                         logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "true";
+                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "true";
                     }
                 }
                 elsif ("$oid_ifDescrReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                     logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "true";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "true";
                 }
             }
     
             # Process the interface inclusion list
             # Inclusions are done after exclusions to be able to include a 
             # subset of a group of interfaces which were excluded previously
-            for my $IncludeString (@$IncludePerfList) {
+            for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
                     if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                         logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "false";
+                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                     }
                 }
                 elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                     logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "false";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                 }
-            }
-            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} eq "false") {
-                # Update the counter if needed
-                $gNumberOfPerfdataInterfaces++;
             }
             
         } else {
-            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPerf} = "true";
+            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "true";
         }
         
     } # for each interface
@@ -1433,30 +1438,29 @@ sub CalculateBps {
         #   * -1  -> interface used, unknown last traffic
         #   * 0   -> interface used, last traffic is < crit duration
         #   * 1   -> interface unused, last traffic is >= crit duration
-        my $ifUsage = -1; # default: interface unused
         
         if ($LastTrafficStatus == $ERRORS{'CRITICAL'}) {
             logger(2, "  (debug) interface unused, last traffic is >= crit duration");
             # this means "no traffic seen during the last LastTrafficCrit seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "red";
-            $ifUsage = 1;   # interface unused
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 1; # interface unused
         } elsif ($LastTrafficStatus == $ERRORS{'WARNING'}) {
             logger(2, "  (debug) interface used, last traffic is < crit duration");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
-            $ifUsage = 0;   # interface used
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         } elsif ($LastTrafficStatus == $ERRORS{'UNKNOWN'}) {
             logger(2, "  (debug) interface used, unknown last traffic");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "orange";
-            $ifUsage = -1;  # interface unused
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = -1; # interface unused
         } else {
             logger(2, "  (debug) interface used, last traffic is < crit duration");            
             logger(1, "  (debug) LastTraffic ($oid_ifDescr): ", $grefhFile->{MD}->{If}->{$oid_ifDescr}->{LastTraffic});
             # this means "there is traffic on the interface during the last LastTrafficWarn seconds"
-            $ifUsage = 0;   # interface used
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         }
-        check_for_unused_interfaces ($oid_ifDescr, $ifUsage);
+        check_for_unused_interfaces ($oid_ifDescr, $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage});
 
     }
     #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent));
@@ -2285,7 +2289,7 @@ sub Csv2Html {
         $HTML .= '<br>';
         $HTML .= '<span>'."\n";
         $HTML .= '<table '."class=$cssClass";
-		if ($cssClass == "interfacetable") {
+		if ($cssClass eq "interfacetable") {
 			$HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
 		}
 		$HTML .= '>'."\n";
@@ -2302,7 +2306,7 @@ sub Csv2Html {
         foreach my $Line ( @$refaLines ) {
             #logger(3, "CSVline: " . Dumper ($Line));
             # start table line ---------------------------------------------
-            $HTMLTable .= "\n<tr";
+            $HTMLTable .= "<tr";
             my $trTagclose = '>';
 
             foreach my $Cell ( @$Line ) {
@@ -2312,12 +2316,12 @@ sub Csv2Html {
                 #my $SpecialTextFormatHead  = "";
                 #my $SpecialTextFormatFoot  = "";
 
-            if ( defined $Cell->{InterfaceGraphURL} ) {
-                if($ghOptions{'enableportperf'}){         # thd
-                    $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
+                if ( defined $Cell->{InterfaceGraphURL} ) {
+                    if($ghOptions{'enableportperf'}){         # thd
+                        $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
+                    }
+                    $trTagclose = '';
                 }
-                $trTagclose = '';
-            }
                 $HTMLTable .= $trTagclose;
                 $trTagclose = '';
                 #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
@@ -2834,11 +2838,11 @@ sub check_options () {
     # organizing excluded/included interfaces for performance data
     if (exists $commandline{excludeportperf}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludeportperf}}));
-        $ghOptions{'excludeportperf'} = \@tmparray;
+        $ghOptions{'excludepropertytrack'} = \@tmparray;
     } 
     if (exists $commandline{includeportperf}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includeportperf}}));
-        $ghOptions{'includeportperf'} = \@tmparray;
+        $ghOptions{'includepropertytrack'} = \@tmparray;
     }
     if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
         $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
@@ -2851,11 +2855,11 @@ sub check_options () {
     # organizing excluded/included interfaces
     if (exists $commandline{exclude}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{exclude}}));
-        $ghOptions{'exclude'} = \@tmparray;
+        $ghOptions{'excludeloadtrack'} = \@tmparray;
     } 
     if (exists $commandline{include}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{include}}));
-        $ghOptions{'include'} = \@tmparray;
+        $ghOptions{'includeloadtrack'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
