@@ -54,6 +54,7 @@ my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
 my $css_stylesheet	= "classic.css";
+my $feature_interfaceInfoDetail = 1;
 # NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
@@ -149,12 +150,12 @@ my $grefaInfoTableData;                              # Contents of the Info tabl
 
 my $gInterfaceTable;                                 # Html code of the interface table
 my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
-    'index','Description','Alias','AdminStatus','OperStatus','Speed',
-    'Load In','Load Out','IP','bpsIn','bpsOut','last traffic'
+    'Index','Description','Alias','AdminStatus','OperStatus','Speed',
+    'Load In','Load Out','IP','bpsIn','bpsOut','Last traffic','Actions'
     ];
 my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
     'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable',
-    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','ifLastTraffic'
+    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','ifLastTraffic','actions'
     ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
@@ -693,24 +694,6 @@ sub GenerateHtmlTable {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        # Graphing solution link - one link per line/interface/port
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
-            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
-            and $ghOptions{'enableportperf'}) {
-            #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
-            my $servicename = "If_" . trim(denormalize($oid_ifDescr));
-            $servicename =~ s/#/%23/g;
-            $servicename =~ s/:/_/g;
-            $servicename =~ s/[()]//g;
-            if ($ghOptions{'grapher'} eq  "pnp4nagios") {
-                $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} =
-                    $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename;
-            } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher" or $ghOptions{'grapher'} eq  "netwaysgrapherv2") {
-                $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} = 
-                    $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $grefhCurrent->{MD}->{sysName} . '&service=' . $servicename . '&page_act=1+traffic';
-            }
-        }
-
         # This is the If datastructure from the interface information file
         my $refhInterFaceDataFile     = $grefhFile->{If}->{$oid_ifDescr};
 
@@ -730,7 +713,14 @@ sub GenerateHtmlTable {
             my $CellContent;
             my $CurrentFieldContent     = "";
             my $FileFieldContent        = "";
-
+            my $FieldType               = "";
+            
+            if ($FieldName =~ /^index$|^ifDescr$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifVlanNames$|^IpInfo$/i) {
+                $FieldType = "property";
+            } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^ifLastTraffic$/i ) {
+                $FieldType = "load";
+            }
+            
             if (defined $refhInterFaceDataCurrent->{"$FieldName"}) {
                 # This is used to calculate the id (used for displaying the html table)
                 $DataForMD5CheckSum .= $refhInterFaceDataCurrent->{"$FieldName"};
@@ -740,7 +730,7 @@ sub GenerateHtmlTable {
                 $CurrentFieldContent =~ s/ $//;
             }
             if (defined $refhInterFaceDataFile->{"$FieldName"}) {
-                $FileFieldContent     = $refhInterFaceDataFile->{"$FieldName"};
+                $FileFieldContent = $refhInterFaceDataFile->{"$FieldName"};
             }
 
             # Flag if the current status of this field should be compared with the
@@ -753,11 +743,15 @@ sub GenerateHtmlTable {
 
             # If interface is excluded or this is the initial run we don't lookup for
             # data changes
-            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true" or $gInitialRun)  {
+            if ($gInitialRun)  {
                 $CompareThisField = 0;
-				$CellStyle = "statusNotCompared";
-                # Change the font color to "olive"
-                #$CellColor     = '<font color="#808000">';
+				$CellStyle = "cellInitialRun";
+            } elsif ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+                $CompareThisField = 0;
+				$CellStyle = "cellExcluded";
+            } elsif (($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true") && ( $FieldType eq "property" )) {
+                $CompareThisField = 0;
+				$CellStyle = "cellNotTracked";
             } elsif (defined $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"}) {
                 $CellBackgroundColor = $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"};
             }
@@ -773,6 +767,7 @@ sub GenerateHtmlTable {
                 if ( $CurrentFieldContent eq $FileFieldContent ) {
                     # Field content has NOT changed
                     $CellContent = denormalize ( $CurrentFieldContent );
+                    $CellStyle = "cellTrackedOk";
                 } else {
                     # Field content has changed ...
                     $CellContent = "now: " . denormalize( $CurrentFieldContent ) . "$LastChangeInfo was: " . denormalize ( $FileFieldContent );
@@ -780,16 +775,8 @@ sub GenerateHtmlTable {
                         $gChangeText .= "(" . denormalize ($oid_ifDescr) .
                             ") $FieldName now <b>$CurrentFieldContent</b> (was: <b>$FileFieldContent</b>)<br>";
                     }
-                    $CellStyle = "statusChanged";
+                    $CellStyle = "cellTrackedChange";
                     $gDifferenceCounter++;
-                    
-                    #if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{Excluded} eq "false") {
-                    #    $CellStyle = "statusChanged";
-					#	#$CellBackgroundColor = "red";
-                    #    $gDifferenceCounter++;
-                    #} #else {
-                    #    $CellBackgroundColor = "#F5A9A9"; # light red
-                    #}
                     
                     # Update the list of changes
                     push @{$grefhListOfChanges->{"$FieldName"}}, trim(denormalize($oid_ifDescr));
@@ -804,6 +791,39 @@ sub GenerateHtmlTable {
             # This is for visual purposes
             not $CellContent and $CellContent = '&nbsp';
 
+            # Actions field
+            if (grep (/$FieldName/i, "Actions")) {
+                # Graphing solution link - one link per line/interface/port
+                if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
+                    and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
+                    and $ghOptions{'enableportperf'}) {
+                        #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
+                        my $servicename = "If_" . trim(denormalize($oid_ifDescr));
+                        $servicename =~ s/#/%23/g;
+                        $servicename =~ s/:/_/g;
+                        $servicename =~ s/[()]//g;
+                        if ($ghOptions{'grapher'} eq  "pnp4nagios") {
+                            $CellContent .= '<a href="' . 
+                                           $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
+                                           '"><img src="' .
+                                           'img/chart.png' .
+                                           '" alt="Trends" /></a>&nbsp';
+                        } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher" or $ghOptions{'grapher'} eq  "netwaysgrapherv2") {
+                            $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} = 
+                                $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $grefhCurrent->{MD}->{sysName} . '&service=' . $servicename . '&page_act=1+traffic';
+                        }
+                }
+                # Retrieve detailed interface info via snmp link
+                if ($feature_interfaceInfoDetail and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+                    $CellContent .= '<a href="xxxxxxxxxxxx.cgi?' . 
+                                   'host=' . $ghOptions{'hostquery'} . 
+                                   '&ifindex=' . $InterfaceIndex .
+                                   '"><img src="' .
+                                   'img/binocular.png' .
+                                   '" alt="Details" /></a>&nbsp';
+                }
+            }
+            
             # Store cell content in table
             $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{"Value"} = "$CellContent";
 
@@ -813,12 +833,10 @@ sub GenerateHtmlTable {
             #  $CellColor;
             # Change background color
             defined $CellBackgroundColor and
-              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Background} =
-              $CellBackgroundColor;
+              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Background} = $CellBackgroundColor;
 			# Change cell style
             defined $CellStyle and
-              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Style} =
-              $CellStyle;
+              $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Style} = $CellStyle;
 
             $iFieldCounter++;
         } # for FieldName
