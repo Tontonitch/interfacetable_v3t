@@ -42,14 +42,27 @@ td {
 
 /* Interface table */
 
-.trackedOk {
+.cellInitialRun {
+    color: #808000;
+}
+
+.cellTrackedOk {
 	background-color: #00CC33; 
 	color: #fff;
 }
  
-.trackedChange {
+.cellTrackedChange {
 	background-color: #FF3300; 
 	color: #fff;
+}
+
+.cellNotTracked {
+/*	background-color: rgb(220, 250, 201);*/
+}
+
+.cellExcluded {
+    background-image: url(../img/overlay.png);
+    /*background-color: #D2D2D2;*/
 }
 
 /***** SPANS *****/
