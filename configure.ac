@@ -26,6 +26,7 @@ AC_PROG_MAKE_SET # @SET_MAKE@ needed in each Makefile.in
 AC_PATH_PROG([STRIP],[strip],[true])
 AC_PATH_PROG(CP,cp)
 AC_PATH_PROG(TOUCH,touch)
+AC_PATH_PROG(GREP,grep)
 AC_PATH_PROG(PERL,perl)
 AC_PATH_PROG(SNMPGET,snmpget)
 if test -n "$SNMPGET"
@@ -164,17 +165,33 @@ if test $(echo $naghtmurl | grep -i icinga | wc -l) -gt 0 -a "x$apache_authname"
 fi
 AC_SUBST(apache_authname)
 
+dnl Check for location of sudoers file
+SUDOERS=no
+AC_ARG_WITH(sudoers,[  --with-sudoers=<path_to_sudoers> sets path to sudoers file],SUDOERS=$withval,SUDOERS=no)
+if test x$SUDOERS = xno; then
+if test -e /etc/sudoers; then
+	# Redhat, Debian, Ubuntu, derivates of them
+	SUDOERS="/etc/sudoers"
+elif test -e /opt/sfw/etc/sudoers; then
+	# Solaris
+	SUDOERS="/opt/sfw/etc/sudoers"
+fi
+fi
+AC_SUBST(SUDOERS)
+
+
 AC_SUBST(LIB_DIR)
 AC_SUBST(CFG_DIR)
 
 AC_CONFIG_FILES(
-	subst
 	Makefile 
+	src/Makefile
 	src/sbin/Makefile
 	src/etc/Makefile 
 	src/etc/apache-conf.d/Makefile 
 	src/lib/Makefile 
-	src/libexec/Makefile)
+	src/libexec/Makefile
+	src/share/Makefile)
 
 AC_OUTPUT
 
@@ -208,8 +225,10 @@ AC_MSG_RESULT([           Nagios CGI URL:  $nagcgiurl])
 AC_MSG_RESULT([        Apache conf.d Dir:  $HTTPD_CONF])
 AC_MSG_RESULT([              Apache User:  $apache_user])
 AC_MSG_RESULT([          Apache AuthName:  $apache_authname])
+AC_MSG_RESULT([             Sudoers file:  $SUDOERS])
 echo ""
 echo ""
 echo "Review the options above for accuracy.  If they look okay,"
-echo "type 'make install' to install."
+echo "type 'make install' to install the software."
+echo "type 'make fullinstall' to install the software and environment configs (apache, sudo)."
 echo ""

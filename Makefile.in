@@ -21,7 +21,12 @@ INSTALL_OPTS=@INSTALL_OPTS@
 
 # Programs
 CP=@CP@
+GREP=@GREP@
 @SET_MAKE@
+
+# Configuration variables
+APACHE_USER=@apache_user@
+SUDOERS=@SUDOERS@
 
 # Usages
 none:
@@ -70,6 +75,40 @@ install-apache-config:
 	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
 	@echo ""
 
+install-sudo-config:
+	#TODO sudoers.d 
+	SUDOERS_OK=0
+	if [ "$(SUDOERS)" != "no" ] ; then \
+		chmod 0640 $(SUDOERS); \
+		if test -w $(SUDOERS); then \
+			if [ `$(GREP) -c "InterfaceReset" $(SUDOERS)` -eq 0 ] ; then \
+				echo "$(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi" >> $(SUDOERS); \
+				SUDOERS_OK=1; \
+				echo ""; \
+				echo "*** Sudo configuration updated. ***"; \
+				echo ""; \
+			else \
+				echo ""; \
+				echo "NOTICE: A rule concerning InterfaceTableReset_v3t.cgi is already configured."; \
+				echo "        Assuming that sudo configuration is already done."; \
+				echo ""; \
+			fi; \
+		else \
+			echo ""; \
+			echo "WARNING: The file $SUDOERS cannot be found, or is not writable"; \
+			echo "         You need to add the following rule manually:"; \
+			echo "         $(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi"; \
+			echo ""; \
+		fi; \
+		chmod 0440 $(SUDOERS); \
+	else \
+		echo ""; \
+		echo "NOTICE: The sudoers file was neither automatically found nor manually specified."; \
+		echo "        You need to add the following rule manually:"; \
+		echo "        $(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi"; \
+		echo ""; \
+	fi
+	
 install:
 	cd $(SRC_CGIBIN) && $(MAKE) $@
 	cd $(SRC_CONFIG) && $(MAKE) $@
@@ -94,4 +133,4 @@ install-basic:
 	@echo "Please run 'make install-apache-config' to install the related apache configuration file"
 	@echo ""
 
-fullinstall: install install-apache-config
+fullinstall: install install-apache-config install-sudo-config
