@@ -53,8 +53,8 @@ my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
-my $css_stylesheet	= "classic.css";
-my $feature_interfaceInfoDetail = 1;
+my $css_stylesheet	= "icinga.css";
+my $feature_interfaceInfoDetail = 0;
 # NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
@@ -819,7 +819,7 @@ sub GenerateHtmlTable {
                                    'host=' . $ghOptions{'hostquery'} . 
                                    '&ifindex=' . $InterfaceIndex .
                                    '"><img src="' .
-                                   'img/binocular.png' .
+                                   '../img/binocular.png' .
                                    '" alt="Details" /></a>&nbsp';
                 }
             }
