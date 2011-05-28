@@ -1,0 +1,97 @@
+#===================================#
+# Makefile for interfacetable_v3t
+#===================================#
+
+# Source directories
+SRC_CGIBIN=@srcdir@/sbin
+SRC_CONFIG=@srcdir@/etc
+SRC_LIBEXEC=@srcdir@/libexec
+SRC_LIBS=@srcdir@/lib
+SRC_SHARE=@srcdir@/share
+
+# Installation directories
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+CFGDIR=@sysconfdir@
+LIBEXECDIR=@libexecdir@
+CGIDIR=@sbindir@
+HTMLDIR=@datadir@
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+
+# Programs
+CP=@CP@
+@SET_MAKE@
+
+# Usages
+none:
+	@echo "Please supply a command line argument (i.e. 'make all').  Available targets are:"
+	@echo "   clean"
+	@echo "   all"
+	@echo "   install install-apache-config fullinstall"
+
+all:
+	cd $(SRC_CGIBIN) && $(MAKE) $@
+	cd $(SRC_LIBEXEC) && $(MAKE) $@
+	cd $(SRC_LIBS) && $(MAKE) $@
+
+	@echo ""
+	@echo "*** Compile finished ***"
+	@echo ""
+	@echo "  make install"
+	@echo "     - This installs the plugin, cgi files, and html resources"
+	@echo ""
+	@echo "  make install-apache-config"
+	@echo "     - This installs the apache config file for interfacetable_v3t"
+	@echo ""
+	@echo "  make fullinstall"
+	@echo "     - This installs the plugin, cgi files, html resources, and the apache config file for interfacetable_v3t"
+	@echo ""
+	@echo "Enjoy."
+	@echo ""
+
+clean:
+	cd $(SRC_CGIBIN) && $(MAKE) $@
+	cd $(SRC_CONFIG) && $(MAKE) $@
+	cd $(SRC_CONFIG)/apache-conf.d && $(MAKE) $@
+	cd $(SRC_LIBEXEC) && $(MAKE) $@
+	cd $(SRC_LIBS) && $(MAKE) $@
+	cd $(SRC_SHARE) && $(MAKE) $@
+	cd $(SRC_SHARE)/css && $(MAKE) $@
+	cd $(SRC_SHARE)/js && $(MAKE) $@
+	cd $(SRC_SHARE)/img && $(MAKE) $@
+	-rm -f *.cfg core
+	-rm -f *~ *.*~ */*~ */*.*~
+	-rm -f config.log config.status config.cache
+
+install-apache-config:
+	cd $(SRC_CONFIG)/apache-conf.d && $(MAKE) $@
+	@echo ""
+	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
+	@echo ""
+
+install:
+	cd $(SRC_CGIBIN) && $(MAKE) $@
+	cd $(SRC_CONFIG) && $(MAKE) $@
+	cd $(SRC_LIBEXEC) && $(MAKE) $@
+	cd $(SRC_LIBS) && $(MAKE) $@
+	cd $(SRC_SHARE) && $(MAKE) $@
+	cd $(SRC_SHARE)/css && $(MAKE) $@
+	cd $(SRC_SHARE)/js && $(MAKE) $@
+	cd $(SRC_SHARE)/img && $(MAKE) $@
+	$(INSTALL) -m 644 $(INSTALL_OPTS) README  $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) AUTHORS $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) CHANGES $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) INSTALL $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) LICENSE $(DESTDIR)$(exec_prefix)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) UPDATE  $(DESTDIR)$(exec_prefix)
+	$(MAKE) install-basic
+
+install-basic:
+	@echo ""
+	@echo "*** Plugin, cgi files and html resources installed ***"
+	@echo ""
+	@echo "Please run 'make install-apache-config' to install the related apache configuration file"
+	@echo ""
+
+fullinstall: install install-apache-config
