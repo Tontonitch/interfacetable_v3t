@@ -1,0 +1,114 @@
+body {
+    font-family: verdana,arial;
+    font-size: 8pt;
+}
+h4, h5 {
+    margin: 3px;
+    padding: 3px;
+}
+h4.mainheader {
+    margin: 10px;
+}
+ul {
+    margin: 1px 1px 10px;
+}
+td, th {
+    border: 1px solid #BFBFBF;
+    padding: 1px 5px;
+    text-align: center;
+}
+li {
+    list-style: none outside none;
+}
+table.groupdata {
+    border-color: #AAAAAA;
+}
+select {
+    margin: 5px 0;
+}
+a {
+    color: #4D89F9;
+    text-decoration: none;
+}
+a img {
+    border: medium none;
+}
+tr.even {
+    background-color: #EFEFEF;
+}
+tr.odd {
+    background-color: #FFFFFF;
+}
+.Ok {
+    background-color: #B2FF5F;
+}
+.Warning {
+    background-color: #FEFF5F;
+}
+.Critical {
+    background-color: #FF795F;
+}
+.Unknown {
+    background-color: #FFC45F;
+}
+td.Ok, th.Ok, td.Warning, th.Warning, td.Critical, th.Critical, td.Unknown, th.Unknown {
+    width: 50px;
+}
+.error {
+    color: red;
+}
+td.group, th.group {
+    background-color: #DADADA;
+}
+.grouphide {
+}
+.grouphide:before {
+    content: url("images/expand1.png");
+    display: inline;
+    padding-right: 4px;
+}
+.groupexpand {
+}
+.groupexpand:before {
+    content: url("images/collapse.png");
+    display: inline;
+    padding-right: 4px;
+}
+#addgrouplink {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+h2.mainheader {
+    margin: 5px auto;
+    text-align: center;
+}
+#selectoutput {
+    border: 1px solid #AAAAAA;
+    padding: 10px;
+    width: 300px;
+}
+p.note {
+    color: #AAAAAA;
+    font-style: italic;
+}
+div.container {
+    margin: 0 auto;
+    width: 700px;
+}
+#outputform {
+}
+div.floatLeft {
+    float: left;
+    width: 400px;
+}
+div.floatRight {
+    float: left;
+    width: 300px;
+}
+#clearMembersLink {
+    margin-left: 110px;
+}
+img.tooltip {
+    vertical-align: text-bottom;
+}
