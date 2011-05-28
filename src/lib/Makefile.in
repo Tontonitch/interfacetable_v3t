@@ -1,0 +1,28 @@
+prefix=@prefix@
+DATAROOTDIR=@datarootdir@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+LIBDIR=@libdir@
+
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+
+CP=@CP@
+
+all html:
+
+clean:
+	-rm bsutils.pm
+	-rm settings.pm
+
+distclean: clean
+	-rm Makefile
+
+devclean: distclean
+
+install:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 664 $(INSTALL_OPTS) *.pm $(DESTDIR)$(LIBDIR)	

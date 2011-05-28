@@ -1,0 +1,28 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+LOGDIR=@localstatedir@
+CFGDIR=@sysconfdir@
+BINDIR=@bindir@
+CGIDIR=@sbindir@
+DATAROOTDIR=@datarootdir@
+LIBEXECDIR=@libexecdir@
+
+INSTALL=@INSTALL@
+INSTALL_OPTS=@INSTALL_OPTS@
+
+CP=@CP@
+
+all html:
+
+clean:
+	-rm check_interface_table_v3t.pl
+
+distclean: clean
+	-rm Makefile
+
+devclean: distclean
+
+install:
+	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(LIBEXECDIR)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) check_interface_table_v3t.pl $(LIBEXECDIR)
+

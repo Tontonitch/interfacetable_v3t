@@ -1,0 +1,25 @@
+ScriptAlias @cgiurl@ "@sbindir@"
+
+<Directory "@sbindir@">
+    Options ExecCGI
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+    AuthName "@apache_authname@"
+    AuthType Basic
+    AuthUserFile @nagetc@/htpasswd.users
+    Require valid-user
+</Directory>
+
+Alias @htmurl@ "@datarootdir@"
+
+<Directory "@datarootdir@">
+    Options None
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+    AuthName "@apache_authname@"
+    AuthType Basic
+    AuthUserFile @nagetc@/htpasswd.users
+    Require valid-user
+</Directory>
