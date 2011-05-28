@@ -1,0 +1,23 @@
+# Path settings, where to find files of Interfacetable_v3t
+NAGIOSBP_BIN=@bindir@
+NAGIOSBP_ETC=@sysconfdir@
+NAGIOSBP_LIBEXEC=@libexecdir@
+NAGIOSBP_LIB=@libdir@
+NAGIOSBP_SBIN=@sbindir@
+NAGIOSBP_SHARE=@datarootdir@
+NAGIOSBP_LANG=@datarootdir@/lang
+NAGIOSBP_VAR=@localstatedir@
+NAGIOSBP_HTML_URL=@htmurl@
+NAGIOSBP_CGI_URL=@cgiurl@
+
+# Path settings, where to find files of Nagios
+NAGIOS_ETC=@nagetc@
+
+# Base URL settings
+# if You do not call Your Nagios http://<host>/nagios/
+# than You have to change this setting
+# e. g. if You use http://<host>/monitoring/netsaint/
+# You should set
+# NAGIOS_BASE_URL=/monitoring/netsaint
+NAGIOS_BASE_URL=@naghtmurl@
+NAGIOS_CGI_URL=@nagcgiurl@
