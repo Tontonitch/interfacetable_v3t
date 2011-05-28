@@ -27,12 +27,61 @@ AC_PATH_PROG([STRIP],[strip],[true])
 AC_PATH_PROG(CP,cp)
 AC_PATH_PROG(TOUCH,touch)
 AC_PATH_PROG(PERL,perl)
+AC_PATH_PROG(SNMPGET,snmpget)
+if test -n "$SNMPGET"
+then
+	AC_DEFINE_UNQUOTED(SNMPGET,"$SNMPGET",[path to snmpget binary])
+else
+	AC_MSG_WARN([snmpget is required! Get it from http://net-snmp.sourceforge.net])
+fi
+AC_PATH_PROG(SNMPWALK,snmpwalk)
+if test -n "$SNMPWALK"
+then
+	AC_DEFINE_UNQUOTED(SNMPWALK,"$SNMPWALK",[path to snmpwalk binary])
+else
+	AC_MSG_WARN([snmpwalk is required! Get it from http://net-snmp.sourceforge.net])
+fi
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL # set INSTALL_PROGRAM and INSTALL_SCRIPT to ‘${INSTALL}’ and INSTALL_DATA to ‘${INSTALL} -m 644’
 AC_SUBST(INSTALL)
 
 ### Checks for libraries.
+dnl Checking Net::SNMP
+if ( $PERL -M"Net::SNMP" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_CHECKING(for Net::SNMP perl module)
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Net::SNMP perl module])
+fi
+
+dnl Checking Config::General
+if ( $PERL -M"Config::General" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_CHECKING(for Config::General perl module)
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Config::General perl module])
+fi
+
+dnl Checking Data::Dumper
+if ( $PERL -M"Data::Dumper" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_CHECKING(for Data::Dumper perl module)
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Data::Dumper perl module])
+fi
+
+dnl Checking Getopt
+if ( $PERL -M"Getopt" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_CHECKING(for Getopt perl module)
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Getopt perl module])
+fi
 
 ### Checks for header files.
 
