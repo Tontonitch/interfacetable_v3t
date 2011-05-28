@@ -629,8 +629,8 @@ sub WriteHtmlTable {
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
-    <link rel="stylesheet" type="text/css" href="css/' . $css_stylesheet . '">
-	<script type="text/javascript" src="js/functions.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/' . $css_stylesheet . '">
+	<script type="text/javascript" src="../js/functions.js"></script>
   </head>
 <body>
 ';
@@ -806,7 +806,7 @@ sub GenerateHtmlTable {
                             $CellContent .= '<a href="' . 
                                            $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                            '"><img src="' .
-                                           'img/chart.png' .
+                                           '../img/chart.png' .
                                            '" alt="Trends" /></a>&nbsp';
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher" or $ghOptions{'grapher'} eq  "netwaysgrapherv2") {
                             $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} = 
