@@ -41,6 +41,13 @@ then
 else
 	AC_MSG_WARN([snmpwalk is required! Get it from http://net-snmp.sourceforge.net])
 fi
+AC_PATH_PROG(SUDO,sudo)
+if test -n "$SUDO"
+then
+	AC_DEFINE_UNQUOTED(SUDO,"$SUDO",[path to sudo binary])
+else
+	AC_MSG_WARN([sudo is required! Get it from http://net-snmp.sourceforge.net])
+fi
 
 dnl Figure out how to invoke "install" and what install options to use.
 AC_PROG_INSTALL # set INSTALL_PROGRAM and INSTALL_SCRIPT to ‘${INSTALL}’ and INSTALL_DATA to ‘${INSTALL} -m 644’
@@ -49,38 +56,38 @@ AC_SUBST(INSTALL)
 ### Checks for libraries.
 dnl Checking Net::SNMP
 if ( $PERL -M"Net::SNMP" -e 'exit' 2>/dev/null  )
+AC_MSG_CHECKING(for Net::SNMP perl module)
 then
-	AC_MSG_CHECKING(for Net::SNMP perl module)
 	AC_MSG_RESULT([found])
 else
-	AC_MSG_WARN([not found - install Net::SNMP perl module])
+	AC_MSG_WARN([not found - install Net::SNMP perl module!])
 fi
 
 dnl Checking Config::General
 if ( $PERL -M"Config::General" -e 'exit' 2>/dev/null  )
+AC_MSG_CHECKING(for Config::General perl module)
 then
-	AC_MSG_CHECKING(for Config::General perl module)
 	AC_MSG_RESULT([found])
 else
-	AC_MSG_WARN([not found - install Config::General perl module])
+	AC_MSG_WARN([not found - install Config::General perl module!])
 fi
 
 dnl Checking Data::Dumper
 if ( $PERL -M"Data::Dumper" -e 'exit' 2>/dev/null  )
+AC_MSG_CHECKING(for Data::Dumper perl module)
 then
-	AC_MSG_CHECKING(for Data::Dumper perl module)
 	AC_MSG_RESULT([found])
 else
-	AC_MSG_WARN([not found - install Data::Dumper perl module])
+	AC_MSG_WARN([not found - install Data::Dumper perl module!])
 fi
 
-dnl Checking Getopt
-if ( $PERL -M"Getopt" -e 'exit' 2>/dev/null  )
+dnl Checking Getopt::Std
+if ( $PERL -M"Getopt::Std" -e 'exit' 2>/dev/null  )
+AC_MSG_CHECKING(for Getopt::Std perl module)
 then
-	AC_MSG_CHECKING(for Getopt perl module)
 	AC_MSG_RESULT([found])
 else
-	AC_MSG_WARN([not found - install Getopt perl module])
+	AC_MSG_WARN([not found - install Getopt::Std perl module!])
 fi
 
 ### Checks for header files.
@@ -98,7 +105,7 @@ AC_SUBST(nagios_user)
 AC_SUBST(nagios_grp)
 AC_DEFINE_UNQUOTED(DEFAULT_USER,"$nagios_user")
 AC_DEFINE_UNQUOTED(DEFAULT_GROUP,"$nagios_grp")
-INSTALL_OPTS="-o $nagiosbp_user -g $nagiosbp_grp"
+INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 AC_SUBST(INSTALL_OPTS)
 
 dnl Installation options
@@ -163,20 +170,20 @@ AC_SUBST(CFG_DIR)
 AC_CONFIG_FILES(
 	subst
 	Makefile 
-	sbin/Makefile
-	etc/Makefile 
-	etc/apache-conf.d/Makefile 
-	lib/Makefile 
-	libexec/Makefile)
+	src/sbin/Makefile
+	src/etc/Makefile 
+	src/etc/apache-conf.d/Makefile 
+	src/lib/Makefile 
+	src/libexec/Makefile)
 
 AC_OUTPUT
 
-$PERL subst sbin/InterfaceReset_v3t.cgi
-$PERL subst lib/bsutils.pm
-$PERL subst lib/settings.pm
-$PERL subst libexec/check_interface_table_v3t.pl
-$PERL subst etc/settings.cfg
-$PERL subst etc/apache-conf.d/interfacetable_v3t.conf
+$PERL subst src/sbin/InterfaceReset_v3t.cgi
+$PERL subst src/lib/bsutils.pm
+$PERL subst src/lib/settings.pm
+$PERL subst src/libexec/check_interface_table_v3t.pl
+$PERL subst src/etc/settings.cfg
+$PERL subst src/etc/apache-conf.d/interfacetable_v3t.conf
 
 dnl Review options
 echo ""
@@ -187,7 +194,7 @@ echo ""
 echo " General Options:"
 echo " -------------------------"
 
-AC_MSG_RESULT([       Install user/group:  $nagiosbp_user,$nagiosbp_grp])
+AC_MSG_RESULT([       Install user/group:  $nagios_user,$nagios_grp])
 AC_MSG_RESULT([        Install \${prefix}:  $prefix])
 AC_MSG_RESULT([   Install \${exec_prefix}:  $exec_prefix])
 AC_MSG_RESULT([                  LIB Dir:  $libdir])
