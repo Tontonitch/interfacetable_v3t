@@ -28,6 +28,7 @@ use warnings;
 
 use lib "/usr/local/nagios/libexec";
 use lib "/usr/local/icinga/libexec";
+use lib ('@libdir@');
 use Net::SNMP qw(oid_base_match);
 use Config::General;
 use Data::Dumper;
@@ -1014,59 +1015,7 @@ sub GetUptime {
         exit $ERRORS{"CRITICAL"};
     }
 }
-# ------------------------------------------------------------------------
-# Get Data with perl net-snmp module
-# ------------------------------------------------------------------------
-sub GetDataWithSnmp {
-    my $refaOID     = shift;    # ref to array of OIDs (numbers only)
-    my $CacheTimer  = shift;
 
-    my $Value = SnmpGetV1 ({
-        -hostname   => "$ghOptions{'hostquery'}",      # option -h
-        -community  => "$ghOptions{'community'}", # option -C
-        OID         => $refaOID,
-        CacheTimer  => int rand ($CacheTimer),  # random caching  
-    });
-
-    return ($Value);
-}
-
-# ------------------------------------------------------------------------
-# Get multiple Data with perl net-snmp module
-# ------------------------------------------------------------------------
-sub GetMultipleDataWithSnmp {
-
-    my $refaOID     = shift;    # ref to array of OIDs (numbers only)
-    my $CacheTimer  = shift;
-    unless ($CacheTimer) {$CacheTimer = 0;}
-    
-    my $refhSNMP = SnmpGetV1 ({
-        -hostname   => "$ghOptions{'hostquery'}",      # option -h
-        -community  => "$ghOptions{'community'}", # option -C
-        OID         => $refaOID,
-        CacheTimer  => int rand ($CacheTimer),  # random caching
-    });
-
-    return ($refhSNMP);
-}
-# ------------------------------------------------------------------------
-# Get Data with the unix snmpwalk command - this is faster than perls
-# snmp implementation
-# ------------------------------------------------------------------------
-sub GetDataWithUnixSnmpWalk {
-
-    my $OID         = shift;    # only one OID (number or name)
-    my $CacheTimer  = shift;
-    unless ($CacheTimer) {$CacheTimer = 0;}
-    
-    my ($refaLines) = ExecuteCommand ({
-        Command     => "snmpwalk -Oqn -c '$ghOptions{'community'}' -v 1 $ghOptions{'hostquery'} $OID",
-        Retry       =>  2,
-        CacheTimer  =>  int rand ($CacheTimer),
-    });
-
-    return $refaLines;
-}
 # ------------------------------------------------------------------------
 # get ifOperStatus, ifDescr and ifIndex
 # ------------------------------------------------------------------------
@@ -2059,130 +2008,6 @@ sub check_for_unused_interfaces {
 }
 
 # ------------------------------------------------------------------------
-# routine extracted from our communications library
-# ------------------------------------------------------------------------
-sub SnmpGetV1 {
-    my $refhStruct = shift;
-
-    #
-    # store variables and delete them from the hash
-    # this is necessary for the snmp session which takes the same
-    # hash ref and does not work with arguments other than starting
-    # with a dash
-    # see http://search.cpan.org/search?query=Net%3A%3ASnmp&mode=all
-    #
-    my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
-    my $GlobalCacheTimer    = $refhStruct->{CacheTimer}; # CacheTimer
-
-    delete $refhStruct->{OID};
-    delete $refhStruct->{CacheTimer};
-
-    my $refhSnmpValues; # hash returned to the caller
-    my $refoSession;    # SNMP session object
-    my $SessionError;   # SNMP session error
-
-    # example cache dir name
-    # /tmp/watchit/Cache/SnmpGetV1/cat-itd-01
-    my $CacheDir = "$ghOptions{'cachedir'}/SnmpGetV1";
-
-    # Create the directory if not existend
-    not -d $CacheDir and MyMkdir($CacheDir);
-
-    # create snmp V1 session
-    ($refoSession,$SessionError) = Net::SNMP->session (%$refhStruct);
-
-    my $OIDLine;    # one line of OIDs or OIDs and caching timers
-    my $SnmpValue;  # one snmp value
-
-    if (defined $refoSession) {
-
-        # OIDs come in an array (ref) - go through each
-        # example:
-        #    $refaOIDs = [
-        #              '.1.3.6.1.2.1.2.2.1.11.1',
-        #              '.1.3.6.1.2.1.2.2.1.12.1'
-        #            ];
-        for $OIDLine (@$refaOIDs) {
-
-            my  $CacheTimer=0;
-
-            $SnmpValue="";  # clear value
-
-            # OID could be .1.3.6.1.2.1.2.2.1.11.1,200
-            # <OID>,<CacheTimer> for this OID only
-            my ($OID,$OIDCacheTimer) = ("","");
-            ($OID,$OIDCacheTimer) = split ',',$OIDLine,2;
-
-            if (defined $OIDCacheTimer) {
-                # remove non digits
-                $OIDCacheTimer =~ s/\D//g;
-                if ("X$OIDCacheTimer" eq "X") { # is empty?
-                    $CacheTimer = $GlobalCacheTimer;
-                } else {
-                    $CacheTimer = $OIDCacheTimer;
-                }
-            } else {
-                $CacheTimer = $GlobalCacheTimer;
-            }
-
-            if ($CacheTimer > 0) {
-                if (-r "$CacheDir/$OID") {
-                    my @FileProperties=stat("$CacheDir/$OID");
-
-                    # $FileProperties[9] = LastModifyTime of file
-                    # only read the cache file if it is not too old
-                    if (time - $CacheTimer < $FileProperties[9]) {
-                        open (IN,"<$CacheDir/$OID");
-                            $SnmpValue = <IN>;
-                        close (IN);
-                    }
-                }
-            }
-            unless (defined $SnmpValue) {$SnmpValue = "";}
-            # snmp value not from cache - read it from the net
-            if ("X$SnmpValue" eq "X") {
-                # get the snmp value - we do not check errors
-                # here because of negative caching
-                my $refhValue = $refoSession->get_request(-varbindlist => ["$OID"]);
-                if (defined $refhValue->{"$OID"}) {
-                    $SnmpValue  =   $refhValue->{"$OID"};
-
-                    # remove non ascii chars incl. \r and \n
-                    $SnmpValue  =~  s/[\000-\037]|[\177-\377]//g;
-
-                    # replace ; with , - just to be sure
-                    $SnmpValue  =~  s/;/,/g;
-
-                    if ($CacheTimer > 0) {
-
-                        umask "$UMASK";
-                        open (OUT,">$CacheDir/$OID");
-                            print OUT $SnmpValue;
-                        close (OUT);
-                    }
-                }
-                logger(1, "SnmpGetV1 data from net (cache=$CacheTimer sec.) OID=$OID ");
-            } else {
-                logger(1, "SnmpGetV1 data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
-            }
-
-            logger(1, "SnmpValue: $SnmpValue");
-
-            # fill hash with data
-            $refhSnmpValues->{$OID}="$SnmpValue";
-        } # for my $OIDLine ...
-
-        # if we have only 1 OID -> return the Value instead the hash
-        if ($#$refaOIDs == 0) {
-            return $SnmpValue;
-        }
-    }
-    # return the complete hash with OIDs as keys or
-    # undef if the SNMP session fails
-    return $refhSnmpValues;
-} # sub
-
-# ------------------------------------------------------------------------
 # dir creator extracted from our FileOperations library
 # ------------------------------------------------------------------------
 sub MyMkdir {
@@ -2474,53 +2299,6 @@ sub HtmlLinks {
     $HTML.='</span>'."\n";
 
     return $HTML;
-}
-
-
-# ------------------------------------------------------------------------
-# for verbose output
-# ------------------------------------------------------------------------
-sub logger {
-    ################################
-    # SUB use: Log and display messages based on loglevel
-    # SUB specs: ###################
-    # Expected arguments:
-    # 0: The loglevel of the message (1-3)
-    # 1: The message to be logged
-    ################################
-
-    my $loglevel = 0;
-    my $msg      = undef;
-
-    $loglevel    = shift;
-    $msg         = shift;
-
-    unless($loglevel >= 1 and $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
-    unless($ghOptions{verbose} >= 0 and $ghOptions{verbose} <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
-
-    # define labels for different loglevels
-    my %level_labels = ( 1 => "INFO", 2 => "DEBUG", 3 => "TRACE" );
-
-    # fetch the name of the function which called logger()
-    my $caller = (caller(1))[3];
-    if($caller){
-        $caller="|".$caller."| ";
-    }else{
-        $caller="|main| ";
-    }
-
-    if($loglevel <= $ghOptions{verbose}){
-        my $space = "";
-        if(length($level_labels{$loglevel}) == 4){$space=" "}
-        # show the calling function, if loglevel is higher than 2
-        if($ghOptions{verbose} > 2){
-            print "[$level_labels{$loglevel}]$space $caller";
-        }else{
-            print "[$level_labels{$loglevel}]$space ";
-
-        }
-        print $msg,"\n";
-    }
 }
 
 # ------------------------------------------------------------------------

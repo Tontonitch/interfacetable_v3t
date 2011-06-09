@@ -1,0 +1,65 @@
+##############################################################################
+# "Settings" library
+# A collection of shared functions related to the application settings.
+#
+# Version 0.1
+# Written by Y. Charton, from extracts of settings.pm of nagiosbp
+#
+# Revision history:
+# 2011-06-09 v0.1   Y. Charton    First release
+#
+##############################################################################
+
+package Settings;
+use strict;
+use lib ('@libdir@');
+use Exporter;
+use GeneralUtils;
+
+##############################################################################
+### I N I T ##################################################################
+##############################################################################
+
+BEGIN {
+    use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
+    @ISA         = qw(Exporter);
+    @EXPORT      = qw(getSettings);
+    @EXPORT_OK   = qw();
+    $VERSION     = 0.1;
+    $AUTHOR      = "Y. Charton";
+    
+    use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
+    $SETTINGCONF = "@sysconfdir@/settings.cfg";
+}
+
+##############################################################################
+### S U B S ##################################################################
+##############################################################################
+
+sub getSettings()
+{
+	my ($in, %settings, $var, $value);
+    logger(5, "#==== Start of config ====#");
+	open(IN, "<$SETTINGCONF") or die "unable to read file $SETTINGCONF\n";
+		while ($in = <IN>)
+		{
+			if ($in !~ m/(^\s*$|^\s*#)/)
+			{
+				logger(5, "in: ".$in);
+				chomp($in);
+				($var, $value) = split(/=/, $in);
+				$var = cutOffSpaces($var);
+				$value = cutOffSpaces($value);
+				logger(5, "var: ".$var);
+				logger(5, "value: ".$value);
+				$settings{$var}=$value;
+			}
+		}
+	close(IN);
+	logger(5, "#==== End of config ====#");
+	return(\%settings);
+}
+
+1;
+
+__END__

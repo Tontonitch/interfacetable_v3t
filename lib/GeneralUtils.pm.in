@@ -1,0 +1,331 @@
+##############################################################################
+# "GeneralUtils" library
+# A collection of shared functions for general usage.
+#
+# Version 0.1
+# Written by Y. Charton, extracts some libraries of Nconf and NagiosBp
+#
+# Revision history:
+# 2011-06-08 v0.1   Y. Charton    First release
+#
+##############################################################################
+
+package GeneralUtils;
+use strict;
+use lib ('@libdir@');
+use Exporter;
+
+##############################################################################
+### I N I T ##################################################################
+##############################################################################
+
+BEGIN {
+    use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
+    @ISA         = qw(Exporter);
+    @EXPORT      = qw(logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl);
+    @EXPORT_OK   = qw();
+    $VERSION     = 0.1;
+    $AUTHOR      = "Y. Charton";
+}
+
+##############################################################################
+### S U B S ##################################################################
+##############################################################################
+
+sub logger {
+
+    ################################
+    # SUB use: Log and display messages based on loglevel
+    # SUB specs:
+    #  * arg 0: The loglevel of the message (1-3)
+    #  * arg 1: The message to be logged
+	#  * return: nothing (all is printed to STDOUT)
+    ################################
+
+    my $loglevel = 0;
+    my $msg      = undef;
+
+    $loglevel    = shift;
+    $msg         = shift;
+
+    unless($loglevel >= 1 and $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
+    unless($ghOptions{verbose} >= 0 and $ghOptions{verbose} <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
+
+    # define labels for different loglevels
+    my %level_labels = ( 1 => "INFO", 2 => "DEBUG", 3 => "TRACE" );
+
+    # fetch the name of the function which called logger()
+    my $caller = (caller(1))[3];
+    if($caller){
+        $caller="|".$caller."| ";
+    }else{
+        $caller="|main| ";
+    }
+
+    if($loglevel <= $ghOptions{verbose}){
+        my $space = "";
+        if(length($level_labels{$loglevel}) == 4){$space=" "}
+        # show the calling function, if loglevel is higher than 2
+        if($ghOptions{verbose} > 2){
+            print "[$level_labels{$loglevel}]$space $caller";
+        }else{
+            print "[$level_labels{$loglevel}]$space ";
+
+        }
+        print $msg,"\n";
+    }
+}
+
+
+=head1 NAME
+
+ GeneralUtils - Some functions quite often used
+
+=head1 SYNOPSIS
+
+	use GeneralUtils;
+
+	printArray(\@a);
+	printArray(\@a, "DEBUG: ");
+
+	printHash(\%h);
+	printHash(\%h, "    ");  # e. g. if you want to print intended
+	
+	print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
+	# prints out: aVeryLongStringWitho
+	
+	$c = "short";
+	$c = fixedLen($c, 20, undef, ".");
+	# $c is now: short...............
+
+	$string = cutOffSpaces("foo   ");
+	# $string = "foo"
+
+	$hostname = getHostnameFromUrl("http://www.example.com:80/foo/");
+	# $hostname = "www.example.com";
+	$hostname = getHostnameFromUrl("http://myworkstation.example.com", "s");
+	# $hostname = "myworkstation";
+
+	print getProtocolFromUrl("https://www.example.com/test/") ."\n";
+	# https
+	$p = getProtocolFromUrl("www.example.com");
+	# $p = "http";
+
+=head1 DESCRIPTION
+
+=head2 GeneralUtils::printArray 
+
+	GeneralUtils::printArray(\@array [, $prefix])
+	
+	prints out the content of an array in a structured way
+	
+	parameter 1: reference to an array
+	parameter 2: prefix for every line of output
+	returns:     nothing of value
+
+=cut
+
+sub printArray
+{
+	my $array = shift;
+	my $prefix = shift;
+	my ($i, $len);
+	
+	$len=length(@$array - 1);
+	#print "len: $len\n";
+	for ($i=0; $i<@$array; $i++)
+	{
+		$i = sprintf("%0${len}d", $i);
+		print "${prefix}[$i]: $array->[$i]\n";
+	}
+}
+
+=head2 GeneralUtils::printHash
+
+	GeneralUtils::printHash(\%hash [, $prefix])
+	
+	prints out the content of a hash in a structured way
+	
+	parameter 1: reference to a hash
+	parameter 2: prefix for every line of output
+	returns:     nothing of value
+
+=cut
+
+sub printHash
+{
+	my $hash = shift;
+	my $prefix = shift || "";
+	my ($key);
+	my $maxlen = 0;
+
+	foreach $key (keys %$hash)
+	{
+		if (length($key) > $maxlen)
+		{
+			$maxlen = length($key);
+		}
+	}
+	#print "max: $maxlen\n";
+
+	foreach $key (keys %$hash)
+	{
+		print "${prefix}" . fixedLen("[$key]", $maxlen+2, "left") . " => $hash->{$key}\n";
+		# print "${prefix}[$key] => $hash->{$key}\n";
+	}
+}
+
+# ------------------------------------------------------------------------
+
+sub fixedLen {
+
+    ################################
+    # SUB use: GeneralUtils::fixedLen($string [, $len [, "left"|"right" [, $fillchar]]])
+	#          brings a given string to a fixed length and returns the string afterwards
+	#          no matter if it is shorter or longer before
+    # SUB specs:
+    #  * arg 0: the string
+    #  * arg 1: the desired length (integer), defaults to 10 if omitted
+    #  * arg 2: "left" or "right": tells on which side blanks are appended or characters are cut off
+    #  * arg 3: fillcharacter: 1 character, which should be used to fill up short strings
+	#           defaults to blank " "
+	#  * return: the resulting string
+    ################################
+
+	my $string = shift;
+	my $len = shift || 10;
+	my $side = shift || "right";
+	my $fillchar = shift || " ";
+	my $fillstring;
+	
+	if (length($string) > $len)
+	{
+		if ($side eq "left")
+		{
+			$string = substr($string, $len*(-1));
+		}
+		else
+		{
+			$string = substr($string, 0, $len);
+		}
+	}
+	if (length($string) < $len)
+	{
+		$fillchar = substr($fillchar, 0, 1);
+		$fillstring = $fillchar x ($len-length($string));
+		if ($side eq "left")
+		{
+			$string = $fillstring . $string;
+		}
+		else
+		{
+			$string .= $fillstring;
+		}
+	}
+	
+	return $string;
+}
+
+# ------------------------------------------------------------------------
+
+sub cutOffSpaces {
+
+    ################################
+    # SUB use: cuts of leading and trailing whitespace characters of a given string
+    # SUB specs:
+    #  * arg 0: the string
+	#  * return: the resulting string
+    ################################
+
+	my $string = shift;
+	$string =~ s/^\s*//;
+	$string =~ s/\s*$//;
+	# does the same as the two lines above, but takes twice as long
+	#$string =~ s/^\s*(.*?)\s*$/$1/;
+    return ($string);
+}
+
+# ------------------------------------------------------------------------
+
+sub getHostnameFromUrl {
+
+    ################################
+    # SUB use: from a given URL, we extract the hostname
+	#          give "s" as second parameter to get the short hostname (everything before the first dot)
+	#          give "l" or leave empty, to get the full qualified hostname, if it is in the URL as full qualified name
+    # SUB specs:
+    #  * arg 0: the URL
+    #  * arg 1: the return modifier
+	#  * return: the hostname as string
+    ################################
+
+	my $url = shift;
+	my $switch = shift;
+
+	if ($switch eq "s")
+	{
+		# if an IP is used instead a hostname there is no sense in cutting after the first dot
+		if ($url =~ m/^(.+:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)
+		{
+			if (defined($2))
+			{
+				return($2);
+			}
+			else
+			{
+				return($1);
+			}
+		}
+
+		$url =~ m/^(.+:\/\/)?([^.:\/]+)/;
+		if (defined($2))
+		{
+			return($2);
+		}
+		else
+		{
+			return($1);
+		}
+	}
+	else
+	{
+		$url =~ m/^(.+:\/\/)?([^:\/]+)/;
+		if (defined($2))
+		{
+			return($2);
+		}
+		else
+		{
+			return($1);
+		}
+	}
+	return(undef);
+}
+
+# ------------------------------------------------------------------------
+
+sub getProtocolFromUrl {
+
+    ################################
+    # SUB use: From a given URL, we extract the protocol
+    # SUB specs:
+    #  * arg 0: the URL
+    #  * arg 1: The message to be logged
+	#  * return: the protocol as string
+    ################################
+
+	my $url = shift;
+	$url =~ m/^(.+):\/\//;
+	if (defined($1))
+	{
+		return($1);
+	}
+	else
+	{
+		return("http");
+	}
+}
+
+1;
+
+__END__

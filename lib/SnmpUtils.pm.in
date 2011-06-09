@@ -1,0 +1,245 @@
+##############################################################################
+# "SnmpUtils" library
+# A collection of shared functions related to snmp.
+#
+# Version 0.1
+# Written by Y. Charton, from extracts of check_interface_table release 1-3
+#
+# Revision history:
+# 2011-06-08 v0.1   Y. Charton    First release
+#
+##############################################################################
+
+package SnmpUtils;
+use strict;
+use lib ('@libdir@');
+use Exporter;
+use GeneralUtils;
+
+##############################################################################
+### I N I T ##################################################################
+##############################################################################
+
+BEGIN {
+    use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
+    @ISA         = qw(Exporter);
+    @EXPORT      = qw(GetDataWithSnmp GetMultipleDataWithSnmp GetDataWithUnixSnmpWalk);
+    @EXPORT_OK   = qw();
+    $VERSION     = 0.1;
+    $AUTHOR      = "Y. Charton";
+}
+
+##############################################################################
+### S U B S ##################################################################
+##############################################################################
+
+sub SnmpGetV1 {
+
+    ################################
+	# SUB use: 
+    # SUB specs: 
+    #  * arg 0:
+	#  * return:
+    ################################
+
+    my $refhStruct = shift;
+
+    #
+    # store variables and delete them from the hash
+    # this is necessary for the snmp session which takes the same
+    # hash ref and does not work with arguments other than starting
+    # with a dash
+    #
+
+    my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
+    my $GlobalCacheTimer    = $refhStruct->{CacheTimer}; # CacheTimer
+
+    delete $refhStruct->{OID};
+    delete $refhStruct->{CacheTimer};
+
+    my $refhSnmpValues; # hash returned to the caller
+    my $refoSession;    # SNMP session object
+    my $SessionError;   # SNMP session error
+
+    # example cache dir name
+    # /tmp/watchit/Cache/SnmpGetV1/cat-itd-01
+    my $CacheDir = "$ghOptions{'cachedir'}/SnmpGetV1";
+
+    # Create the directory if not existend
+    not -d $CacheDir and MyMkdir($CacheDir);
+
+    # create snmp V1 session
+    ($refoSession,$SessionError) = Net::SNMP->session (%$refhStruct);
+
+    my $OIDLine;    # one line of OIDs or OIDs and caching timers
+    my $SnmpValue;  # one snmp value
+
+    if (defined $refoSession) {
+
+        # OIDs come in an array (ref) - go through each
+        # example:
+        #    $refaOIDs = [
+        #              '.1.3.6.1.2.1.2.2.1.11.1',
+        #              '.1.3.6.1.2.1.2.2.1.12.1'
+        #            ];
+        for $OIDLine (@$refaOIDs) {
+
+            my  $CacheTimer=0;
+
+            $SnmpValue="";  # clear value
+
+            # OID could be .1.3.6.1.2.1.2.2.1.11.1,200
+            # <OID>,<CacheTimer> for this OID only
+            my ($OID,$OIDCacheTimer) = ("","");
+            ($OID,$OIDCacheTimer) = split ',',$OIDLine,2;
+
+            if (defined $OIDCacheTimer) {
+                # remove non digits
+                $OIDCacheTimer =~ s/\D//g;
+                if ("X$OIDCacheTimer" eq "X") { # is empty?
+                    $CacheTimer = $GlobalCacheTimer;
+                } else {
+                    $CacheTimer = $OIDCacheTimer;
+                }
+            } else {
+                $CacheTimer = $GlobalCacheTimer;
+            }
+
+            if ($CacheTimer > 0) {
+                if (-r "$CacheDir/$OID") {
+                    my @FileProperties=stat("$CacheDir/$OID");
+
+                    # $FileProperties[9] = LastModifyTime of file
+                    # only read the cache file if it is not too old
+                    if (time - $CacheTimer < $FileProperties[9]) {
+                        open (IN,"<$CacheDir/$OID");
+                            $SnmpValue = <IN>;
+                        close (IN);
+                    }
+                }
+            }
+            unless (defined $SnmpValue) {$SnmpValue = "";}
+            # snmp value not from cache - read it from the net
+            if ("X$SnmpValue" eq "X") {
+                # get the snmp value - we do not check errors
+                # here because of negative caching
+                my $refhValue = $refoSession->get_request(-varbindlist => ["$OID"]);
+                if (defined $refhValue->{"$OID"}) {
+                    $SnmpValue  =   $refhValue->{"$OID"};
+
+                    # remove non ascii chars incl. \r and \n
+                    $SnmpValue  =~  s/[\000-\037]|[\177-\377]//g;
+
+                    # replace ; with , - just to be sure
+                    $SnmpValue  =~  s/;/,/g;
+
+                    if ($CacheTimer > 0) {
+
+                        umask "$UMASK";
+                        open (OUT,">$CacheDir/$OID");
+                            print OUT $SnmpValue;
+                        close (OUT);
+                    }
+                }
+                logger(1, "SnmpGetV1 data from net (cache=$CacheTimer sec.) OID=$OID ");
+            } else {
+                logger(1, "SnmpGetV1 data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
+            }
+
+            logger(1, "SnmpValue: $SnmpValue");
+
+            # fill hash with data
+            $refhSnmpValues->{$OID}="$SnmpValue";
+        } # for my $OIDLine ...
+
+        # if we have only 1 OID -> return the Value instead the hash
+        if ($#$refaOIDs == 0) {
+            return $SnmpValue;
+        }
+    }
+    # return the complete hash with OIDs as keys or
+    # undef if the SNMP session fails
+    return $refhSnmpValues;
+}
+
+# ------------------------------------------------------------------------
+
+sub GetDataWithSnmp {
+
+    ################################
+	# SUB use: Get Data with perl net-snmp module
+    # SUB specs: 
+    #  * arg 0: 
+	#  * arg 1:
+	#  * return:
+    ################################
+
+    my $refaOID     = shift;    # ref to array of OIDs (numbers only)
+    my $CacheTimer  = shift;
+
+    my $Value = SnmpGetV1 ({
+        -hostname   => "$ghOptions{'hostquery'}",      # option -h
+        -community  => "$ghOptions{'community'}", # option -C
+        OID         => $refaOID,
+        CacheTimer  => int rand ($CacheTimer),  # random caching  
+    });
+
+    return ($Value);
+
+}
+
+# ------------------------------------------------------------------------
+
+sub GetMultipleDataWithSnmp {
+
+    ################################
+	# SUB use: Get multiple Data with perl net-snmp module
+    # SUB specs: 
+    #  * arg 0: 
+	#  * arg 1:
+	#  * return:
+    ################################
+
+    my $refaOID     = shift;    # ref to array of OIDs (numbers only)
+    my $CacheTimer  = shift;
+    unless ($CacheTimer) {$CacheTimer = 0;}
+    
+    my $refhSNMP = SnmpGetV1 ({
+        -hostname   => "$ghOptions{'hostquery'}",      # option -h
+        -community  => "$ghOptions{'community'}", # option -C
+        OID         => $refaOID,
+        CacheTimer  => int rand ($CacheTimer),  # random caching
+    });
+
+    return ($refhSNMP);
+}
+
+# ------------------------------------------------------------------------
+
+sub GetDataWithUnixSnmpWalk {
+
+    ################################
+	# SUB use: Get Data with the unix snmpwalk command - this is faster 
+	#          than perls snmp implementation
+    # SUB specs: 
+    #  * arg 0: 
+	#  * arg 1:
+	#  * return:
+    ################################
+
+    my $OID         = shift;    # only one OID (number or name)
+    my $CacheTimer  = shift;
+    unless ($CacheTimer) {$CacheTimer = 0;}
+    
+    my ($refaLines) = ExecuteCommand ({
+        Command     => "snmpwalk -Oqn -c '$ghOptions{'community'}' -v 1 $ghOptions{'hostquery'} $OID",
+        Retry       =>  2,
+        CacheTimer  =>  int rand ($CacheTimer),
+    });
+
+    return $refaLines;
+}
+
+1;
+
+__END__

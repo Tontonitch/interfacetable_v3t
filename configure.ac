@@ -4,18 +4,20 @@
 AC_PREREQ(2.61)
 AC_INIT(interfacetable_v3t, 0.03, tontonitch-pro@yahoo.fr)
 
-dnl For later filesystem permissions
-AC_DEFINE([DEFAULT_USER], [root], [Default User])
-AC_DEFINE([DEFAULT_GROUP], [root], [Default Group])
+### For later filesystem permissions
+AC_DEFINE([DEFAULT_USER], [nagios], [Default User])
+AC_DEFINE([DEFAULT_GROUP], [nagios], [Default Group])
 
 AC_PREFIX_DEFAULT(/usr/local/interfacetable_v3t)
 
-dnl Some information about the project
+### What OS are we running?
+AC_CANONICAL_HOST
+
+### Some information about the project
 PKG_NAME=interfacetable_v3t
 PKG_VERSION="0.03"
 PKG_HOME_URL="http://www.tontonitch.com"
 PKG_REL_DATE="XX-06-2011"
-
 AC_SUBST(PKG_NAME)
 AC_SUBST(PKG_VERSION)
 AC_SUBST(PKG_HOME_URL)
@@ -126,15 +128,15 @@ dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
 AC_ARG_WITH(httpd_conf,[  --with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory],HTTPD_CONF=$withval,HTTPD_CONF=no)
 if test x$HTTPD_CONF = xno; then
-if test -d /etc/httpd/conf.d; then
-	HTTPD_CONF="/etc/httpd/conf.d"
-elif test -d /etc/apache2/conf.d; then
-	HTTPD_CONF="/etc/apache2/conf.d"
-elif test -d /etc/apache/conf.d; then
-	HTTPD_CONF="/etc/apache/conf.d"
-else
-	HTTPD_CONF="$sysconfdir/apache-conf.d/"
-fi
+	if test -d /etc/httpd/conf.d; then
+		HTTPD_CONF="/etc/httpd/conf.d"
+	elif test -d /etc/apache2/conf.d; then
+		HTTPD_CONF="/etc/apache2/conf.d"
+	elif test -d /etc/apache/conf.d; then
+		HTTPD_CONF="/etc/apache/conf.d"
+	else
+		HTTPD_CONF="$sysconfdir/apache-conf.d/"
+	fi
 fi
 AC_SUBST(HTTPD_CONF)
 
@@ -184,23 +186,23 @@ AC_SUBST(LIB_DIR)
 AC_SUBST(CFG_DIR)
 
 AC_CONFIG_FILES(
-	Makefile 
-	src/Makefile
-	src/sbin/Makefile
-	src/etc/Makefile 
-	src/etc/apache-conf.d/Makefile 
-	src/lib/Makefile 
-	src/libexec/Makefile
-	src/share/Makefile)
+	subst
+    Makefile 
+	sbin/Makefile
+	etc/Makefile 
+	lib/Makefile 
+	libexec/Makefile
+	share/Makefile)
 
 AC_OUTPUT
 
-$PERL subst src/sbin/InterfaceReset_v3t.cgi
-$PERL subst src/lib/bsutils.pm
-$PERL subst src/lib/settings.pm
-$PERL subst src/libexec/check_interface_table_v3t.pl
-$PERL subst src/etc/settings.cfg
-$PERL subst src/etc/apache-conf.d/interfacetable_v3t.conf
+$PERL subst sbin/InterfaceReset_v3t.cgi
+$PERL subst lib/Settings.pm
+$PERL subst lib/GeneralUtils.pm
+$PERL subst lib/SnmpUtils.pm
+$PERL subst libexec/check_interface_table_v3t.pl
+$PERL subst etc/settings.cfg
+$PERL subst etc/apache-conf.d/interfacetable_v3t.conf
 
 dnl Review options
 echo ""
