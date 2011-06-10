@@ -1,26 +1,29 @@
+#===================================#
+# Makefile for interfacetable_v3t
+#===================================#
+
+# Source directories
+SRC_CGIBIN=@srcdir@/sbin
+SRC_CONFIG=@srcdir@/etc
+SRC_LIBEXEC=@srcdir@/libexec
+SRC_LIBS=@srcdir@/lib
+SRC_SHARE=@srcdir@/share
+
+# Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-CFGDIR=@sysconfdir@
-BINDIR=@bindir@
-CGIDIR=@sbindir@
-LIBEXECDIR=@libexecdir@
-
+LIBEXECDIR=@nagioslibexec@
+CGIDIR=@cgidir@
+HTMLDIR=@htmldir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
+DATAROOTDIR=@datarootdir@
 
+# Programs
 CP=@CP@
+GREP=@GREP@
+@SET_MAKE@
 
-all html:
-
-clean:
-	-rm InterfaceTableReset_v3t.cgi
-
-distclean: clean
-	-rm Makefile
-
-devclean: distclean
-
-install:
-	$(INSTALL) -m 775 $(INSTALL_OPTS) -d $(LIBEXECDIR)
-	$(INSTALL) -m 755 $(INSTALL_OPTS) InterfaceTableReset_v3t.cgi $(LIBEXECDIR)
-
+# Configuration variables
+APACHE_USER=@apache_user@
+SUDOERS=@SUDOERS@
