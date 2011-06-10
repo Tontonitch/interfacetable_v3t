@@ -1,16 +1,21 @@
 ### -*- Autoconf -*-
 ### Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
+AC_PREREQ(2.59)
 AC_INIT(interfacetable_v3t, 0.03, tontonitch-pro@yahoo.fr)
 
 ### For later filesystem permissions
 AC_DEFINE([DEFAULT_USER], [nagios], [Default User])
 AC_DEFINE([DEFAULT_GROUP], [nagios], [Default Group])
-
+AC_SUBST(DEFAULT_USER)
+AC_SUBST(DEFAULT_GROUP)
 AC_PREFIX_DEFAULT(/usr/local/interfacetable_v3t)
+# $prefix variable initialisation seems to be tricky
+if test "$prefix" = "NONE"; then
+   prefix=$ac_default_prefix
+fi
 
-### What OS are we running?
+### What OS are we running
 AC_CANONICAL_HOST
 
 ### Some information about the project
@@ -102,8 +107,8 @@ fi
 ### Checks for file permissions 
 
 dnl Installation user/group
-AC_ARG_WITH(nagios_user,[  --with-nagios-user=<user> sets the owner of installed files],nagios_user=$withval,nagios_user=nagios)
-AC_ARG_WITH(nagios_group,[  --with-nagios-group=<grp> sets group of installed files],nagios_grp=$withval,nagios_grp=nagios)
+AC_ARG_WITH(nagios_user,[  --with-nagios-user=<user>                      Sets the owner of installed files],nagios_user=$withval,nagios_user=nagios)
+AC_ARG_WITH(nagios_group,[  --with-nagios-group=<grp>                      Sets group of installed files],nagios_grp=$withval,nagios_grp=nagios)
 AC_SUBST(nagios_user)
 AC_SUBST(nagios_grp)
 AC_DEFINE_UNQUOTED(DEFAULT_USER,"$nagios_user")
@@ -112,37 +117,42 @@ INSTALL_OPTS="-o $nagios_user -g $nagios_grp"
 AC_SUBST(INSTALL_OPTS)
 
 dnl Installation options
-AC_ARG_WITH(cgiurl,[  --with-cgiurl=<local-url> sets URL for cgi programs],cgiurl=$withval,cgiurl=/nagios/cgi-bin)
-AC_ARG_WITH(htmurl,[  --with-htmurl=<local-url> sets URL for public html],htmurl=$withval,htmurl=/nagios)
-AC_ARG_WITH(nagetc,[  --with-nagetc=/path/to/nagios/etc sets path to nagios etc directory],nagetc=$withval,nagetc=/usr/local/nagios/etc)
-AC_ARG_WITH(naghtmurl,[  --with-naghtmurl=<local-url> sets URL for Nagios HTM URL],naghtmurl=$withval,naghtmurl=/nagios)
-AC_ARG_WITH(nagcgiurl,[  --with-nagcgiurl=<local-url> sets URL for Nagios cgi programs],nagcgiurl=$withval,nagcgiurl=/nagios/cgi-bin)
-AC_SUBST(htmurl)
+AC_ARG_WITH(nagios_base,   [  --with-nagios-base=/path/to/nagios/dir         Sets the nagios base directory],nagios_base=$withval,nagios_base=/usr/local/nagios)
+AC_ARG_WITH(nagios_libexec,[  --with-nagios-libexec=/path/to/nagios/dir      Sets the nagios libexec directory, if not standard],nagios_libexec=$withval,nagios_libexec=${nagios_base}/libexec)
+AC_ARG_WITH(cachedir,     [  --with-cachedir=/path/to/cache/dir             Sets the directory where snmp responses are cached],cachedir=$withval,cachedir=/tmp/.ifCache)
+AC_ARG_WITH(statedir,     [  --with-statedir=/path/to/cache/dir             Sets the directory where the interface states are stored],statedir=$withval,statedir=/tmp/.ifState)
+AC_ARG_WITH(htmldir,      [  --with-htmldir=/path/to/html/dir               Sets software HTML directory],htmldir=$withval,htmldir=${prefix}/share)
+AC_ARG_WITH(htmlurl,      [  --with-htmlurl=<local-url>                     Sets interface table URL location],htmlurl=$withval,htmlurl=/interfacetable_v3t)
+AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets software cgi programs directory],cgidir=$withval,cgidir=${prefix}/sbin)
+AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
+AC_SUBST(nagios_base)
+AC_SUBST(nagios_libexec)
+AC_SUBST(cachedir)
+AC_SUBST(statedir)
+AC_SUBST(htmldir)
+AC_SUBST(htmlurl)
+AC_SUBST(cgidir)
 AC_SUBST(cgiurl)
-AC_SUBST(nagetc)
-AC_SUBST(naghtmurl)
-AC_SUBST(nagcgiurl)
-
 
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
-AC_ARG_WITH(httpd_conf,[  --with-httpd-conf=<path_to_conf> sets path to Apache conf.d directory],HTTPD_CONF=$withval,HTTPD_CONF=no)
-if test x$HTTPD_CONF = xno; then
+AC_ARG_WITH(httpd_conf,[  --with-httpd-conf=<path_to_conf>               Sets path to Apache conf.d directory],httpd_conf=$withval,httpd_conf=no)
+if test x$httpd_conf = xno; then
 	if test -d /etc/httpd/conf.d; then
-		HTTPD_CONF="/etc/httpd/conf.d"
+		httpd_conf="/etc/httpd/conf.d"
 	elif test -d /etc/apache2/conf.d; then
-		HTTPD_CONF="/etc/apache2/conf.d"
+		httpd_conf="/etc/apache2/conf.d"
 	elif test -d /etc/apache/conf.d; then
-		HTTPD_CONF="/etc/apache/conf.d"
+		httpd_conf="/etc/apache/conf.d"
 	else
-		HTTPD_CONF="$sysconfdir/apache-conf.d/"
+		httpd_conf="$sysconfdir/apache-conf.d/"
 	fi
 fi
-AC_SUBST(HTTPD_CONF)
+AC_SUBST(httpd_conf)
 
 dnl Check for Apache user
 apache_user=no
-AC_ARG_WITH(apache_user,[  --with-apache-user=<user> sets path Apache runs with],apache_user=$withval,apache_user=no)
+AC_ARG_WITH(apache_user,[  --with-apache-user=<user>                      Sets path Apache runs with],apache_user=$withval,apache_user=no)
 if test x$apache_user = xno; then
 if grep -e "^apache:" /etc/passwd >/dev/null ; then
 	# RedHat, Fedora, CentOS
@@ -161,29 +171,25 @@ AC_SUBST(apache_user)
 
 dnl AuthName directive in apache config
 apache_authname="Nagios Access"
-AC_ARG_WITH(apache_authname,[  --with-apache-authname=<authname> sets value of AuthName directive in Apache config],apache_authname=$withval,apache_authname="Nagios Access")
-if test $(echo $naghtmurl | grep -i icinga | wc -l) -gt 0 -a "x$apache_authname" = "xNagios Access"; then
+AC_ARG_WITH(apache_authname,[  --with-apache-authname=<authname>              Sets value of AuthName directive in Apache config],apache_authname=$withval,apache_authname="Nagios Access")
+if test $(echo $nagios_base | grep -i icinga | wc -l) -gt 0 -a "x$apache_authname" = "xNagios Access"; then
 	apache_authname="Icinga Access"
 fi
 AC_SUBST(apache_authname)
 
 dnl Check for location of sudoers file
-SUDOERS=no
-AC_ARG_WITH(sudoers,[  --with-sudoers=<path_to_sudoers> sets path to sudoers file],SUDOERS=$withval,SUDOERS=no)
-if test x$SUDOERS = xno; then
+sudoers=no
+AC_ARG_WITH(sudoers,[  --with-sudoers=<path_to_sudoers>               Sets path to sudoers file],sudoers=$withval,sudoers=no)
+if test x$sudoers = xno; then
 if test -e /etc/sudoers; then
 	# Redhat, Debian, Ubuntu, derivates of them
-	SUDOERS="/etc/sudoers"
+	sudoers="/etc/sudoers"
 elif test -e /opt/sfw/etc/sudoers; then
 	# Solaris
-	SUDOERS="/opt/sfw/etc/sudoers"
+	sudoers="/opt/sfw/etc/sudoers"
 fi
 fi
-AC_SUBST(SUDOERS)
-
-
-AC_SUBST(LIB_DIR)
-AC_SUBST(CFG_DIR)
+AC_SUBST(sudoers)
 
 AC_CONFIG_FILES(
 	subst
@@ -196,13 +202,13 @@ AC_CONFIG_FILES(
 
 AC_OUTPUT
 
-$PERL subst sbin/InterfaceReset_v3t.cgi
+$PERL subst sbin/InterfaceTableReset_v3t.cgi
 $PERL subst lib/Settings.pm
 $PERL subst lib/GeneralUtils.pm
 $PERL subst lib/SnmpUtils.pm
 $PERL subst libexec/check_interface_table_v3t.pl
 $PERL subst etc/settings.cfg
-$PERL subst etc/apache-conf.d/interfacetable_v3t.conf
+$PERL subst etc/interfacetable_v3t.conf.httpd
 
 dnl Review options
 echo ""
@@ -213,21 +219,21 @@ echo ""
 echo " General Options:"
 echo " -------------------------"
 
-AC_MSG_RESULT([       Install user/group:  $nagios_user,$nagios_grp])
-AC_MSG_RESULT([        Install \${prefix}:  $prefix])
-AC_MSG_RESULT([   Install \${exec_prefix}:  $exec_prefix])
-AC_MSG_RESULT([                  LIB Dir:  $libdir])
-AC_MSG_RESULT([               Config Dir:  $sysconfdir])
-AC_MSG_RESULT([                 Data Dir:  $datadir])
-AC_MSG_RESULT([                  HTM URL:  $htmurl])
-AC_MSG_RESULT([                  CGI URL:  $cgiurl])
-AC_MSG_RESULT([        Nagios Config Dir:  $nagetc])
-AC_MSG_RESULT([           Nagios HTM URL:  $naghtmurl])
-AC_MSG_RESULT([           Nagios CGI URL:  $nagcgiurl])
-AC_MSG_RESULT([        Apache conf.d Dir:  $HTTPD_CONF])
-AC_MSG_RESULT([              Apache User:  $apache_user])
-AC_MSG_RESULT([          Apache AuthName:  $apache_authname])
-AC_MSG_RESULT([             Sudoers file:  $SUDOERS])
+AC_MSG_RESULT([                  Install user/group:  $nagios_user,$nagios_grp])
+AC_MSG_RESULT([                   Install \${prefix}:  ${prefix}])
+AC_MSG_RESULT([              Install \${exec_prefix}:  $exec_prefix])
+AC_MSG_RESULT([                     Nagios base dir:  $nagios_base])
+AC_MSG_RESULT([                  Nagios libexec dir:  $nagios_libexec])
+AC_MSG_RESULT([                     Cache files dir:  $cachedir])
+AC_MSG_RESULT([                     State files dir:  $statedir])
+AC_MSG_RESULT([   InterfaceTable_v3t addon HTML dir:  $htmldir])
+AC_MSG_RESULT([   InterfaceTable_v3t addon HTML url:  $htmlurl])
+AC_MSG_RESULT([    InterfaceTable_v3t addon CGI dir:  $cgidir])
+AC_MSG_RESULT([    InterfaceTable_v3t addon CGI url:  $cgiurl])
+AC_MSG_RESULT([                   Apache conf.d Dir:  $httpd_conf])
+AC_MSG_RESULT([                         Apache User:  $apache_user])
+AC_MSG_RESULT([                     Apache AuthName:  $apache_authname])
+AC_MSG_RESULT([                        Sudoers file:  $sudoers])
 echo ""
 echo ""
 echo "Review the options above for accuracy.  If they look okay,"
