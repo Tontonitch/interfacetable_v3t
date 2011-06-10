@@ -504,7 +504,7 @@ if ($gIfLoadCritCounter > 0 ) {
 # Append html table link to text
 $gText = AppendLinkToText({
           Text        => $gText,
-          HtmlUrl     => $ghOptions{'htmlurl'},
+          HtmlUrl     => $ghOptions{'htmltableurl'},
           File        => "$gFile.html"
         });
 
@@ -516,8 +516,8 @@ if ($ghOptions{'cisco'} and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent-
 WriteHtmlTable ({
     Header      => $gInfoTable,
     Body        => $gInterfaceTable,
-    Dir         => $ghOptions{'htmldir'},
-    FileName    => "$ghOptions{'htmldir'}/$gFile".'.html'
+    Dir         => $ghOptions{'htmltabledir'},
+    FileName    => "$ghOptions{'htmltabledir'}/$gFile".'.html'
 });
 
 # Print Text and exit with the correct exitcode
@@ -2321,8 +2321,8 @@ sub print_usage () {
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
         [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
         [--cachedir <caching directory>] [--statedir <state files directory>] [--vlan] [--cisco]
-        [--accessmethod <method>] [--htmldir <system path to html interface tables>] 
-        [--htmlurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
+        [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
+        [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--ifloadgradient] 
         [--human] [--snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
         [-E <interface perfdata exclusion list>] [-I <interface perfdata inclusion list>]
@@ -2404,9 +2404,9 @@ sub print_usage () {
     --accessmethod (optional)
         Access method for the link to the host in the HTML page.
         Can be ssh or telnet.
-    --htmldir (optional)
+    --htmltabledir (optional)
         Specifies the directory in the file system where HTML interface table are stored.
-    --htmlurl (optional)
+    --htmltableurl (optional)
         Specifies the URL by which the interface table are accessible.
     --delta | -d (optional)
         Set the delta used for interface throuput calculation. In seconds.
@@ -2496,8 +2496,8 @@ sub check_options () {
 		'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
         'accessmethod=s',                       # access method for the link to the host in the HTML page
-        'htmldir=s',                            # interface table HTML directory
-        'htmlurl=s',                            # interface table URL location
+        'htmltabledir=s',                            # interface table HTML directory
+        'htmltableurl=s',                            # interface table URL location
         'enableportperf|f',                     # enable port performance data, default is port perfdata disabled
         'excludeportperf|E=s@',                 # list of port for which performance data are NOT generated
         'includeportperf|I=s@',                 # list of port for which performance data are generated
@@ -2534,11 +2534,11 @@ sub check_options () {
 		'showdefaults'      => 0,
         'hostquery'         => '',
         'hostdisplay'       => '',
-        'cachedir'          => "$TMPDIR/.ifCache",
-        'statedir'          => "$TMPDIR/.ifState",
+        'cachedir'          => "@cachedir@",
+        'statedir'          => "@statedir@",
         'accessmethod'      => "ssh",
-        'htmldir'           => "/usr/local/nagios/share/addons/interfacetables",
-        'htmlurl'           => "http://monitor/nagios/addons/interfacetables",
+        'htmltabledir'      => "@htmldir@/tables",
+        'htmltableurl'      => "@htmlurl@/tables",
         'enableportperf'    => 0,
         'excludeportperf'   => undef,
         'includeportperf'   => undef,
@@ -2547,7 +2547,7 @@ sub check_options () {
         'delta'             => 600,
         'ifs'               => ',',
         'cache'             => 3600,
-        'reseturl'          => "/nagios/cgi-bin",
+        'reseturl'          => "@cgiurl@",
         'vlan'              => 0,
         'cisco'             => 0,
         'ifloadgradient'    => 1,
@@ -2660,11 +2660,11 @@ sub check_options () {
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
     }
-    if (exists $commandline{htmldir}) {
-        $ghOptions{'htmldir'} = "$commandline{htmldir}";
+    if (exists $commandline{htmltabledir}) {
+        $ghOptions{'htmltabledir'} = "$commandline{htmltabledir}";
     }
-    if (exists $commandline{htmlurl}) {
-        $ghOptions{'htmlurl'} = "$commandline{htmlurl}";
+    if (exists $commandline{htmltableurl}) {
+        $ghOptions{'htmltableurl'} = "$commandline{htmltableurl}";
     }
     if (exists $commandline{community}) {
         $ghOptions{'community'} = "$commandline{community}";
@@ -3069,10 +3069,10 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  Access method for the link to the host in the HTML page.
  Can be ssh or telnet.
 
-=head3 --htmldir (optional)
+=head3 --htmltabledir (optional)
 
  Specifies the directory in the file system where HTML interface table are stored.
-=head3 --htmlurl (optional)
+=head3 --htmltableurl (optional)
 
  Specifies the URL by which the interface table are accessible.
 =head3 --delta | -d (optional)
