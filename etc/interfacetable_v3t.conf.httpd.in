@@ -1,25 +1,25 @@
-ScriptAlias @cgiurl@ "@sbindir@"
+ScriptAlias @cgiurl@ "@cgidir@"
 
-<Directory "@sbindir@">
+<Directory "@cgidir@">
     Options ExecCGI
     AllowOverride None
     Order allow,deny
     Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
-    AuthUserFile @nagetc@/htpasswd.users
+    AuthUserFile @nagios_etc@/htpasswd.users
     Require valid-user
 </Directory>
 
-Alias @htmurl@ "@datarootdir@"
+Alias @htmlurl@ "@sharedir@"
 
-<Directory "@datarootdir@">
+<Directory "@sharedir@">
     Options None
     AllowOverride None
     Order allow,deny
     Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
-    AuthUserFile @nagetc@/htpasswd.users
+    AuthUserFile @nagios_etc@/htpasswd.users
     Require valid-user
 </Directory>

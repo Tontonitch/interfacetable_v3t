@@ -23,7 +23,7 @@ use GeneralUtils;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(GetDataWithSnmp GetMultipleDataWithSnmp GetDataWithUnixSnmpWalk);
+    @EXPORT      = qw(SnmpGetV1 GetDataWithSnmp GetMultipleDataWithSnmp GetDataWithUnixSnmpWalk ExecuteCommand);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
@@ -52,9 +52,11 @@ sub SnmpGetV1 {
     #
 
     my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
-    my $GlobalCacheTimer    = $refhStruct->{CacheTimer}; # CacheTimer
+    my $GlobalCacheDir      = $refhStruct->{CacheDir};
+    my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
 
     delete $refhStruct->{OID};
+    delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
 
     my $refhSnmpValues; # hash returned to the caller
@@ -63,7 +65,7 @@ sub SnmpGetV1 {
 
     # example cache dir name
     # /tmp/watchit/Cache/SnmpGetV1/cat-itd-01
-    my $CacheDir = "$ghOptions{'cachedir'}/SnmpGetV1";
+    my $CacheDir = "$GlobalCacheDir/SnmpGetV1";
 
     # Create the directory if not existend
     not -d $CacheDir and MyMkdir($CacheDir);
@@ -135,7 +137,7 @@ sub SnmpGetV1 {
 
                     if ($CacheTimer > 0) {
 
-                        umask "$UMASK";
+                        umask "0000";
                         open (OUT,">$CacheDir/$OID");
                             print OUT $SnmpValue;
                         close (OUT);
@@ -169,18 +171,25 @@ sub GetDataWithSnmp {
     ################################
 	# SUB use: Get Data with perl net-snmp module
     # SUB specs: 
-    #  * arg 0: 
-	#  * arg 1:
-	#  * return:
+    #  * arg 0: host
+	#  * arg 1: community
+    #  * arg 2: OID
+    #  * arg 3: CacheTimer
+	#  * return: value(s) retrieved by snmp
     ################################
 
+    my $host        = shift;
+    my $community   = shift;
     my $refaOID     = shift;    # ref to array of OIDs (numbers only)
+    my $CacheDir    = shift;
     my $CacheTimer  = shift;
+    unless ($CacheTimer) {$CacheTimer = 0;}
 
     my $Value = SnmpGetV1 ({
-        -hostname   => "$ghOptions{'hostquery'}",      # option -h
-        -community  => "$ghOptions{'community'}", # option -C
+        -hostname   => "$host",
+        -community  => "$community",
         OID         => $refaOID,
+        CacheDir    => "$CacheDir",
         CacheTimer  => int rand ($CacheTimer),  # random caching  
     });
 
@@ -200,14 +209,18 @@ sub GetMultipleDataWithSnmp {
 	#  * return:
     ################################
 
+    my $host        = shift;
+    my $community   = shift;
     my $refaOID     = shift;    # ref to array of OIDs (numbers only)
+    my $CacheDir    = shift;
     my $CacheTimer  = shift;
     unless ($CacheTimer) {$CacheTimer = 0;}
     
     my $refhSNMP = SnmpGetV1 ({
-        -hostname   => "$ghOptions{'hostquery'}",      # option -h
-        -community  => "$ghOptions{'community'}", # option -C
+        -hostname   => "$host",
+        -community  => "$community",
         OID         => $refaOID,
+        CacheDir    => "$CacheDir",
         CacheTimer  => int rand ($CacheTimer),  # random caching
     });
 
@@ -227,17 +240,83 @@ sub GetDataWithUnixSnmpWalk {
 	#  * return:
     ################################
 
+    my $host        = shift;
+    my $community   = shift;
     my $OID         = shift;    # only one OID (number or name)
+    my $CacheDir    = shift;
     my $CacheTimer  = shift;
     unless ($CacheTimer) {$CacheTimer = 0;}
     
     my ($refaLines) = ExecuteCommand ({
-        Command     => "snmpwalk -Oqn -c '$ghOptions{'community'}' -v 1 $ghOptions{'hostquery'} $OID",
-        Retry       =>  2,
-        CacheTimer  =>  int rand ($CacheTimer),
+        Command     => "snmpwalk -Oqn -c $community -v 1 $host $OID",
+        Retry       => 2,
+        CacheDir    => $CacheDir,
+        CacheTimer  => int rand ($CacheTimer),
     });
 
     return $refaLines;
+}
+
+# ------------------------------------------------------------------------
+# ExecuteCommand Routine. Enhanced with our cache algorith...
+
+sub ExecuteCommand {
+    my $refhStruct=shift;
+    my $Command         = $refhStruct->{Command};
+    my $GlobalCacheDir  = $refhStruct->{CacheDir};
+
+    my $refaLines=[];   # Pointer to Array of strings (output)
+
+    my $CacheFile;      # Filename storing cached data
+    my $ExitCode;       # exit code of the unix command
+
+    my $Now=time();     # current time in seconds since epoch
+
+    my $CacheDir="$GlobalCacheDir/ExecuteCommand/"; # cache dir
+
+    # Create Cachedir if not existend
+    not -d $CacheDir and MyMkdir($CacheDir);
+
+    # If caching for this command is enabled
+    if ($refhStruct->{CacheTimer} > 0) {
+
+        $CacheFile = $CacheDir . normalize ("$Command");
+
+        if (-r "$CacheFile") {
+            my @FileProperties=stat($CacheFile);
+
+            # $FileProperties[9] = LastModifyTime of file
+            # only read the cache file if it is not too old
+            if ($Now-$refhStruct->{CacheTimer} < $FileProperties[9]) {
+                open (IN,"<$CacheFile");
+                    @$refaLines=<IN>;
+                close (IN);
+                # leave this subroutine with cached data found
+                logger(2, "ExecuteCommand (1) got data from cache $CacheFile");
+                return ($refaLines,0);
+            }
+        }
+    }
+
+    # execute the unix command
+    open(UNIX,"$Command |") or last;
+        while (<UNIX>) {
+            push @$refaLines,$_;
+        }
+    close(UNIX);
+    $ExitCode=$? >> 8; # calculate the exit code
+
+    logger(2, "ExecuteCommand (2) executed \"$Command\" and got ExitCode \"$ExitCode\"");
+
+    # write a cache file if the cache timer > 0
+    if ($refhStruct->{CacheTimer} > 0) {
+        logger(2, "ExecuteCommand (3) Write cache file CacheTimer=$refhStruct->{CacheTimer}");
+        umask "0000"; # change to rw-rw-rw maybe changed later because of security
+        open (OUT,">$CacheFile") or return ($refaLines,$ExitCode);
+            print OUT @$refaLines;
+        close (OUT);
+    }
+    return ($refaLines,$ExitCode);
 }
 
 1;

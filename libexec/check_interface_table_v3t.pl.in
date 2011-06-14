@@ -26,8 +26,7 @@
 use strict;
 use warnings;
 
-use lib "/usr/local/nagios/libexec";
-use lib "/usr/local/icinga/libexec";
+use lib ('@nagios_libexec@');
 use lib ('@libdir@');
 use Net::SNMP qw(oid_base_match);
 use Config::General;
@@ -35,6 +34,9 @@ use Data::Dumper;
   $Data::Dumper::Sortkeys = 1;
 use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
 use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
+use GeneralUtils;
+use Settings;
+use SnmpUtils;
 
 # ========================================================================
 # VARIABLES
@@ -43,10 +45,11 @@ use utils qw(%ERRORS $TIMEOUT); # gather variables from utils.pm
 # ------------------------------------------------------------------------
 # global variable definitions
 # ------------------------------------------------------------------------
-use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
+use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT $LOGLEVEL);
 $PROGNAME       = $0;
 $REVISION       = '0.03';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
+$LOGLEVEL       = 0;
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
@@ -225,20 +228,19 @@ logger(3, "grefhFile:".Dumper ($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 if ($ghOptions{'cisco'}) { 
-    $grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$gLongCacheTimer);
+    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{sysDescr}     = "$grefhSNMP->{$oid_sysDescr}";
     $grefhCurrent->{MD}->{sysName}      = "$grefhSNMP->{$oid_sysName}";
     $grefhCurrent->{MD}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
     $grefhCurrent->{MD}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_serial}";
 } else {
-    $grefhSNMP = GetMultipleDataWithSnmp ([ "$oid_sysDescr","$oid_sysName" ],$gLongCacheTimer);
+    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
     $grefhCurrent->{MD}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
 }    
 
 # get lines with interface oper status - no caching !
-$grefaOperStatusLines = GetDataWithUnixSnmpWalk ($oid_ifOperStatus,0);
-
+$grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 if ($#$grefaOperStatusLines < 0 ) {
     print "$0: Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
@@ -248,42 +250,42 @@ if ($#$grefaOperStatusLines < 0 ) {
 # Get lines with interface octet counters - no caching !
 
 # -> Octets in
-$grefaOctetInLines = GetDataWithUnixSnmpWalk ($oid_in_octet_table,0);
+$grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetInLines < 0 ) {
     print "$0: Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Octets out
-$grefaOctetOutLines = GetDataWithUnixSnmpWalk ($oid_out_octet_table,0);
+$grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetOutLines < 0 ) {
     print "$0: Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors in
-$grefaInErrorsLines = GetDataWithUnixSnmpWalk ($oid_in_error_table,0);
+$grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInErrorsLines < 0 ) {
     print "$0: Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors out
-$grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($oid_out_error_table,0);
+$grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutErrorsLines < 0 ) {
     print "$0: Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards in
-$grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($oid_in_discard_table,0);
+$grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInDiscardsLines < 0 ) {
     print "$0: Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards out
-$grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($oid_out_discard_table,0);
+$grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutDiscardLines < 0 ) {
     print "$0: Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
@@ -298,7 +300,7 @@ Get_IfDiscardInOut ($grefaOutDiscardLines, "PktsOutDiscard");
 
 
 # get lines with ip addresses - no caching !
-$grefaIPLines = GetDataWithUnixSnmpWalk ($oid_ipAdEntIfIndex,0);
+$grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
 
 # extract ifIndex and ifOperStatus out of the lines and get the
 # ifDescription from the net or from cache
@@ -1000,6 +1002,7 @@ sub GetUptime {
         -community  => "$ghOptions{'community'}",
         -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
         OID         => $refaOID,
+        CacheDir    => "$ghOptions{'cachedir'}",
         CacheTimer  => int rand ($CacheTimer),
     });
 
@@ -1033,13 +1036,13 @@ sub Get_OperStatus_Description_Index {
 
         logger(1, "Index = $Index $gLongCacheTimer");
         # read the interface description with the index extracted above
-        my $Desc = GetDataWithSnmp ([ "$oid_ifDescr.$Index" ],$gLongCacheTimer);
+        my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 
         # check an empty interface description and add a new description
         # this occurs on some devices (e.g. HP procurve switches)
         if ("$Desc" eq "") {
             # read the MAC address of the interface - independend if it has one or not
-            my $MacAddress = GetDataWithSnmp ([ "$oid_ifPhysAddress.$Index" ],$gShortCacheTimer);
+            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
             $Desc = "($MacAddress)";
             logger(1, "Interface with index $Index has no description.\nSet it to $Desc");
         }
@@ -1055,8 +1058,7 @@ sub Get_OperStatus_Description_Index {
             my $Text; # dummy text for uniq if description
 
             # read the MAC address of the interface
-            my $MacAddress = GetDataWithSnmp ([ "$oid_ifPhysAddress.$Index" ],
-                $gShortCacheTimer);
+            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
 
             # check if we got back a MAC Address - otherwise take the interface
             # index - this could only lead to problems where index is changed
@@ -1468,9 +1470,9 @@ sub Get_IpAddress_SubnetMask {
     # read the subnet masks with caching 0 only if the ip addresses
     # have changed
     if (defined $grefhFile->{MD}->{SnmpIpInfo} and $grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
-        $refaNetMask = GetDataWithUnixSnmpWalk ($oid_ipAdEntNetMask,$gLongCacheTimer);
+        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
     } else {
-        $refaNetMask = GetDataWithUnixSnmpWalk ($oid_ipAdEntNetMask,0);
+        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
     }
 
     # Example lines:
@@ -1631,7 +1633,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
         # get next interface properties with caching to avoid network load
         my $refhSNMP = GetMultipleDataWithSnmp (
-            [ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index","$oid_ifAlias.$Index" ],$CacheTimer);
+            $ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index","$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
 
         # store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
@@ -1655,9 +1657,9 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
     if ($ghOptions{vlan}) { # show VLANs per port
 
-        my $VlanNames = GetDataWithUnixSnmpWalk ($oid_ifVlanName,0);
-        my $VlanPortHP = GetDataWithUnixSnmpWalk ($oid_ifVlanPortHP,0);
-        my $VlanPortCisco = GetDataWithUnixSnmpWalk ($oid_ifVlanPortCisco,0);
+        my $VlanNames = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanName,$ghOptions{'cachedir'},0);
+        my $VlanPortHP = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
+        my $VlanPortCisco = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
 
         # store Vlan names in a hash
         my %vlanname;
@@ -1880,41 +1882,6 @@ sub TimeDiff {
 }
 
 # ------------------------------------------------------------------------
-# normalize and denormalize subroutines extracted from our Common library
-# - used to get rid of special characters
-# ------------------------------------------------------------------------
-sub normalize {
-    my $Text=shift;
-    $Text=~s/Q/Q51/g;                                                                                   # Q normalisieren
-    $Text=~s/[\000-\017]/sprintf ("Q0%X",ord($&))/ge;                   # einstellige HEX Zahlen mit 0 davor konvertieren
-    $Text=~s/[\W_]/sprintf ("Q%X",ord($&))/ge;                                  # alle anderen Zeichen durch Q + HEX code ersetzen
-    return $Text;                                                                                               # fertig
-}
-
-# ------------------------------------------------------------------------
-# normalize and denormalize subroutines extracted from our Common library
-# - used to get rid of special characters
-# ------------------------------------------------------------------------
-
-sub denormalize {
-    my $Text=shift;
-    $Text=~s/Q../pack "H2",substr($&,1,3)/ge;
-    return $Text;
-}
-
-# ------------------------------------------------------------------------
-# trim function to remove whitespace from the start and end of the string
-# ------------------------------------------------------------------------
-sub trim {
-    my @out = @_;
-    for (@out) {
-        s/^\s+//;
-        s/\s+$//;
-    }
-    return wantarray ? @out : $out[0];
-}
-
-# ------------------------------------------------------------------------
 # colorcode function to give a html color code between green and red for a given percent value
 # ------------------------------------------------------------------------
 sub colorcode {
@@ -2005,107 +1972,6 @@ sub check_for_unused_interfaces {
         } 
     }
     logger(1, "ifDescr: $oid_ifDescr\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk");
-}
-
-# ------------------------------------------------------------------------
-# dir creator extracted from our FileOperations library
-# ------------------------------------------------------------------------
-sub MyMkdir {
-
-    my  $Directory = shift;
-
-    $Directory  =~  s/\s//g;    # remove invisible characters
-    $Directory  =~  s/\\/\//g;  # replace \ with /
-    $Directory  =~  s/\/+/\//g; # replace duplicate or more slashes with one /
-
-    # split directory into pieces
-    my @Dirs    =   split /\//,$Directory;
-
-    # growing directory structure
-    my $Snake = "";
-
-    # walk through each directory and create it
-    for my $Dir (@Dirs) {
-        $Snake .= $Dir.'/';
-        if (not -d "$Snake") {
-                        umask "$UMASK";
-            my $Success = mkdir $Snake;
-            if ("$Success" ne "1") {
-                undef $Snake;
-                last;
-            }
-        }
-    }
-
-    # remove last / and return the directory back to the caller
-    if ($Snake) {
-	    if ("$Snake" =~ /\/$/) {
-            chop ($Snake);
-        }
-	}
-    return $Snake;
-}
-
-# ------------------------------------------------------------------------
-# ExecuteCommand Routine. Enhanced with our cache algorith...
-# ------------------------------------------------------------------------
-sub ExecuteCommand {
-    my $refhStruct=shift;
-
-    my $Command = $refhStruct->{Command};
-
-    my $refaLines=[];   # Pointer to Array of strings (output)
-
-    my $CacheFile;      # Filename storing cached data
-    my $ExitCode;       # exit code of the unix command
-
-    my $Now=time();     # current time in seconds since epoch
-
-    my $CacheDir="$ghOptions{'cachedir'}/ExecuteCommand/"; # cache dir
-
-    # Create Cachedir if not existend
-    not -d $CacheDir and MyMkdir($CacheDir);
-
-    # If caching for this command is enabled
-    if ($refhStruct->{CacheTimer} > 0) {
-
-        $CacheFile = $CacheDir . normalize ("$Command");
-
-        if (-r "$CacheFile") {
-            my @FileProperties=stat($CacheFile);
-
-            # $FileProperties[9] = LastModifyTime of file
-            # only read the cache file if it is not too old
-            if ($Now-$refhStruct->{CacheTimer} < $FileProperties[9]) {
-                open (IN,"<$CacheFile");
-                    @$refaLines=<IN>;
-                close (IN);
-                # leave this subroutine with cached data found
-                logger(2, "ExecuteCommand (1) got data from cache $CacheFile");
-                return ($refaLines,0);
-            }
-        }
-    }
-
-    # execute the unix command
-    open(UNIX,"$Command |") or last;
-        while (<UNIX>) {
-            push @$refaLines,$_;
-        }
-    close(UNIX);
-    $ExitCode=$? >> 8; # calculate the exit code
-
-    logger(2, "ExecuteCommand (2) executed \"$Command\" and got ExitCode \"$ExitCode\"");
-
-    # write a cache file if the cache timer > 0
-    if ($refhStruct->{CacheTimer} > 0) {
-        logger(2, "ExecuteCommand (3) Write cache file CacheTimer=$refhStruct->{CacheTimer}");
-        umask "$UMASK"; # change to rw-rw-rw maybe changed later because of security
-        open (OUT,">$CacheFile") or return ($refaLines,$ExitCode);
-            print OUT @$refaLines;
-        close (OUT);
-    }
-    return ($refaLines,$ExitCode);
 }
 
 # ------------------------------------------------------------------------------
@@ -2583,6 +2449,7 @@ sub check_options () {
     # applying commandline options
     if (exists $commandline{verbose}) {
         $ghOptions{'verbose'} = $commandline{verbose};
+        $LOGLEVEL = $commandline{verbose};
     }
     if (exists $commandline{version}) {
         print_revision($PROGNAME, $REVISION);

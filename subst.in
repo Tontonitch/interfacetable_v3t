@@ -7,8 +7,8 @@
 ###Generalities
 my ${prefix}="@prefix@";
 my ${exec_prefix}="@exec_prefix@";
-my ${datarootdir}="@datarootdir@";
-my ${datadir}="@datadir@";
+#my ${datarootdir}="@datarootdir@";
+#my ${datadir}="@datadir@";
 my $host_os="@host_os@";
 ###Package info
 my $PKG_NAME="@PKG_NAME@";
@@ -39,20 +39,24 @@ my $INSTALL_OPTS="@INSTALL_OPTS@";
 #my $INSTALL_SCRIPT="@INSTALL_SCRIPT@";
 #my $INSTALL_DATA="@INSTALL_DATA@";
 #Http server
-my $httpd_conf="@httpd_conf@";
-my $apache_user="@apache_user@";
-my $apache_authname="@apache_authname@";
+my ${httpd_conf}="@httpd_conf@";
+my ${apache_user}="@apache_user@";
+my ${apache_authname}="@apache_authname@";
 #Sudo specific
-my $sudoers="@sudoers@";
+my ${sudoers}="@sudoers@";
 #Software configuration
-my $nagios_base="@nagios_base@";
-my $nagios_libexec="@nagios_libexec@";
-my $cachedir="@cachedir@";
-my $statedir="@statedir@";
-my $htmldir="@htmldir@";
-my $htmlurl="@htmlurl@";
-my $cgidir="@cgidir@";
-my $cgiurl="@cgiurl@";
+my ${nagios_base}="@nagios_base@";
+my ${nagios_etc}="@nagios_base@/etc";
+my ${nagios_libexec}="@nagios_libexec@";
+my ${cachedir}="@cachedir@";
+my ${statedir}="@statedir@";
+my ${htmldir}="@htmldir@";
+my ${htmlurl}="@htmlurl@";
+my ${cgidir}="@cgidir@";
+my ${cgiurl}="@cgiurl@";
+my ${libdir}="@prefix@/lib";
+my ${etcdir}="@prefix@/etc";
+my ${sharedir}="@prefix@/share";
 
 #================================#
 # Variable substitution
@@ -75,8 +79,8 @@ while ($f = shift @ARGV) {
 	while (<IN>) {
         s|\@{prefix}\@|$prefix|g;
         s|\@{exec_prefix}\@|$exec_prefix|g;
-        s|\@{datarootdir}\@|$datarootdir|g;
-        s|\@{datadir}\@|$datadir|g;
+#        s|\@{datarootdir}\@|$datarootdir|g;
+#        s|\@{datadir}\@|$datadir|g;
         s|\@host_os\@|$host_os|g;
         s|\@PKG_NAME\@|$PKG_NAME|g;
         s|\@PKG_VERSION\@|$PKG_VERSION|g;
@@ -103,11 +107,17 @@ while ($f = shift @ARGV) {
         s|\@apache_user\@|$apache_user|g;
         s|\@apache_authname\@|$apache_authname|g;
         s|\@sudoers\@|$sudoers|g;
+        s|\@nagios_base\@|$nagios_base|g;
+        s|\@nagios_etc\@|$nagios_etc|g;
+        s|\@nagios_libexec\@|$nagios_libexec|g;
         s|\@cachedir\@|$cachedir|g;
         s|\@statedir\@|$statedir|g;
         s|\@htmldir\@|$htmldir|g;
         s|\@htmlurl\@|$htmlurl|g;
         s|\@cgiurl\@|$cgiurl|g;
+        s|\@libdir\@|$libdir|g;
+        s|\@etcdir\@|$etcdir|g;
+        s|\@sharedir\@|$sharedir|g;        
 		print OUT $_;
 	}
 

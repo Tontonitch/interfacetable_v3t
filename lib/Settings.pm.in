@@ -28,8 +28,8 @@ BEGIN {
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
     
-    use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
-    $SETTINGCONF = "@sysconfdir@/settings.cfg";
+    use vars qw($SETTINGCONF);
+    $SETTINGCONF = "@etcdir@/settings.cfg";
 }
 
 ##############################################################################

@@ -22,10 +22,12 @@ use Exporter;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl);
+    @EXPORT      = qw(logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
+    
+    use vars qw($LOGLEVEL);
 }
 
 ##############################################################################
@@ -49,7 +51,7 @@ sub logger {
     $msg         = shift;
 
     unless($loglevel >= 1 and $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
-    unless($ghOptions{verbose} >= 0 and $ghOptions{verbose} <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
+    unless($LOGLEVEL >= 0 and $LOGLEVEL <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
 
     # define labels for different loglevels
     my %level_labels = ( 1 => "INFO", 2 => "DEBUG", 3 => "TRACE" );
@@ -62,11 +64,11 @@ sub logger {
         $caller="|main| ";
     }
 
-    if($loglevel <= $ghOptions{verbose}){
+    if($loglevel <= $LOGLEVEL){
         my $space = "";
         if(length($level_labels{$loglevel}) == 4){$space=" "}
         # show the calling function, if loglevel is higher than 2
-        if($ghOptions{verbose} > 2){
+        if($LOGLEVEL > 2){
             print "[$level_labels{$loglevel}]$space $caller";
         }else{
             print "[$level_labels{$loglevel}]$space ";
@@ -324,6 +326,79 @@ sub getProtocolFromUrl {
 	{
 		return("http");
 	}
+}
+
+# ------------------------------------------------------------------------
+# dir creator extracted from our FileOperations library
+
+sub MyMkdir {
+
+    my  $Directory = shift;
+
+    $Directory  =~  s/\s//g;    # remove invisible characters
+    $Directory  =~  s/\\/\//g;  # replace \ with /
+    $Directory  =~  s/\/+/\//g; # replace duplicate or more slashes with one /
+
+    # split directory into pieces
+    my @Dirs    =   split /\//,$Directory;
+
+    # growing directory structure
+    my $Snake = "";
+
+    # walk through each directory and create it
+    for my $Dir (@Dirs) {
+        $Snake .= $Dir.'/';
+        if (not -d "$Snake") {
+            umask "0000";
+            my $Success = mkdir $Snake;
+            if ("$Success" ne "1") {
+                undef $Snake;
+                last;
+            }
+        }
+    }
+
+    # remove last / and return the directory back to the caller
+    if ($Snake) {
+            if ("$Snake" =~ /\/$/) {
+            chop ($Snake);
+        }
+        }
+    return $Snake;
+}
+
+# ------------------------------------------------------------------------
+# normalize and denormalize subroutines extracted from our Common library
+# - used to get rid of special characters
+
+sub normalize {
+    my $Text=shift;
+    $Text=~s/Q/Q51/g;                                                                                   # Q normalisieren
+    $Text=~s/[\000-\017]/sprintf ("Q0%X",ord($&))/ge;                   # einstellige HEX Zahlen mit 0 davor konvertieren
+    $Text=~s/[\W_]/sprintf ("Q%X",ord($&))/ge;                                  # alle anderen Zeichen durch Q + HEX code ersetzen
+    return $Text;                                                                                               # fertig
+}
+
+# ------------------------------------------------------------------------
+# normalize and denormalize subroutines extracted from our Common library
+# - used to get rid of special characters
+
+sub denormalize {
+    my $Text=shift;
+    $Text=~s/Q../pack "H2",substr($&,1,3)/ge;
+    return $Text;
+}
+
+# ------------------------------------------------------------------------
+# trim function to remove whitespace from the start and end of the string
+
+sub trim {
+    my @out = @_;
+    for (@out) {
+        s/^\s+//;
+        s/\s+$//;
+    }
+    return wantarray ? @out : $out[0];
 }
 
 1;
