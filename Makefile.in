@@ -3,45 +3,46 @@
 #===================================#
 
 # Source directories
-SRC_CGIBIN=@srcdir@/sbin
-SRC_CONFIG=@srcdir@/etc
+SRC_SBIN=@srcdir@/sbin
+SRC_ETC=@srcdir@/etc
 SRC_LIBEXEC=@srcdir@/libexec
-SRC_LIBS=@srcdir@/lib
+SRC_LIB=@srcdir@/lib
 SRC_SHARE=@srcdir@/share
 
 # Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-LIBEXECDIR=@nagioslibexec@
-CGIDIR=@cgidir@
-HTMLDIR=@htmldir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
-DATAROOTDIR=@datarootdir@
 
 # Programs
 CP=@CP@
 GREP=@GREP@
 @SET_MAKE@
 
-# Configuration variables
-APACHE_USER=@apache_user@
-SUDOERS=@SUDOERS@
+#Http server
+httpd_conf=@httpd_conf@
+apache_user=@apache_user@
+apache_authname=@apache_authname@
+#Sudo specific
+sudoers=@sudoers@
+#Software configuration
+nagios_base=@nagios_base@
+nagios_libexec=@nagios_libexec@
+cachedir=@cachedir@
+statedir=@statedir@
+htmldir=@htmldir@
+htmlurl=@htmlurl@
+cgidir=@cgidir@
+cgiurl=@cgiurl@
 
 # Usages
 none:
 	@echo "Please supply a command line argument (i.e. 'make all').  Available targets are:"
-	@echo "   clean"
-	@echo "   all"
+	@echo "   clean distclean"
 	@echo "   install install-apache-config install-sudo-config fullinstall"
-
-all:
-	cd $(SRC_CGIBIN) && $(MAKE) $@
-	cd $(SRC_LIBEXEC) && $(MAKE) $@
-	cd $(SRC_LIBS) && $(MAKE) $@
-
 	@echo ""
-	@echo "*** Compile finished ***"
+	@echo "Usages:"
 	@echo ""
 	@echo "  make install"
 	@echo "     - This installs the plugin, cgi files, and html resources"
@@ -49,88 +50,42 @@ all:
 	@echo "  make install-apache-config"
 	@echo "     - This installs the apache config file for interfacetable_v3t"
 	@echo ""
+	@echo "  make install-sudo-config"
+	@echo "     - This installs the sudo config for interfacetable_v3t"
+	@echo ""
 	@echo "  make fullinstall"
 	@echo "     - This installs the plugin, cgi files, html resources, and the apache config file for interfacetable_v3t"
 	@echo ""
-	@echo "Enjoy."
-	@echo ""
 
 clean:
-	cd $(SRC_CGIBIN) && $(MAKE) $@
-	cd $(SRC_CONFIG) && $(MAKE) $@
-	cd $(SRC_CONFIG)/apache-conf.d && $(MAKE) $@
+	cd $(SRC_SBIN) && $(MAKE) $@
+	cd $(SRC_ETC) && $(MAKE) $@
 	cd $(SRC_LIBEXEC) && $(MAKE) $@
-	cd $(SRC_LIBS) && $(MAKE) $@
+	cd $(SRC_LIB) && $(MAKE) $@
 	cd $(SRC_SHARE) && $(MAKE) $@
-	cd $(SRC_SHARE)/css && $(MAKE) $@
-	cd $(SRC_SHARE)/js && $(MAKE) $@
-	cd $(SRC_SHARE)/img && $(MAKE) $@
 	-rm -f *.cfg core
 	-rm -f *~ *.*~ */*~ */*.*~
 	-rm -f config.log config.status config.cache
 
+distclean: clean
+	cd $(SRC_SBIN) && $(MAKE) $@
+	cd $(SRC_ETC) && $(MAKE) $@
+	cd $(SRC_LIBEXEC) && $(MAKE) $@
+	cd $(SRC_LIB) && $(MAKE) $@
+	cd $(SRC_SHARE) && $(MAKE) $@
+	-rm -f Makefile
+    
+install:
+	cd $(SRC_SBIN) && $(MAKE) $@
+	cd $(SRC_ETC) && $(MAKE) $@
+	cd $(SRC_LIBEXEC) && $(MAKE) $@
+	cd $(SRC_LIB) && $(MAKE) $@
+	cd $(SRC_SHARE) && $(MAKE) $@
+
 install-apache-config:
-	cd $(SRC_CONFIG)/apache-conf.d && $(MAKE) $@
-	@echo ""
-	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
-	@echo ""
+	cd $(SRC_ETC) && $(MAKE) $@
 
 install-sudo-config:
-	#TODO sudoers.d 
-	SUDOERS_OK=0
-	if [ "$(SUDOERS)" != "no" ] ; then \
-		chmod 0640 $(SUDOERS); \
-		if test -w $(SUDOERS); then \
-			if [ `$(GREP) -c "InterfaceReset" $(SUDOERS)` -eq 0 ] ; then \
-				echo "$(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi" >> $(SUDOERS); \
-				SUDOERS_OK=1; \
-				echo ""; \
-				echo "*** Sudo configuration updated. ***"; \
-				echo ""; \
-			else \
-				echo ""; \
-				echo "NOTICE: A rule concerning InterfaceTableReset_v3t.cgi is already configured."; \
-				echo "        Assuming that sudo configuration is already done."; \
-				echo ""; \
-			fi; \
-		else \
-			echo ""; \
-			echo "WARNING: The file $SUDOERS cannot be found, or is not writable"; \
-			echo "         You need to add the following rule manually:"; \
-			echo "         $(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi"; \
-			echo ""; \
-		fi; \
-		chmod 0440 $(SUDOERS); \
-	else \
-		echo ""; \
-		echo "NOTICE: The sudoers file was neither automatically found nor manually specified."; \
-		echo "        You need to add the following rule manually:"; \
-		echo "        $(APACHE_USER) ALL=(ALL) NOPASSWD: $(CFGDIR)/InterfaceTableReset_v3t.cgi"; \
-		echo ""; \
-	fi
-	
-install:
-	cd $(SRC_CGIBIN) && $(MAKE) $@
-	cd $(SRC_CONFIG) && $(MAKE) $@
-	cd $(SRC_LIBEXEC) && $(MAKE) $@
-	cd $(SRC_LIBS) && $(MAKE) $@
-	cd $(SRC_SHARE) && $(MAKE) $@
-	cd $(SRC_SHARE)/css && $(MAKE) $@
-	cd $(SRC_SHARE)/js && $(MAKE) $@
-	cd $(SRC_SHARE)/img && $(MAKE) $@
-	$(INSTALL) -m 644 $(INSTALL_OPTS) README  $(DESTDIR)$(exec_prefix)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) AUTHORS $(DESTDIR)$(exec_prefix)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) CHANGES $(DESTDIR)$(exec_prefix)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) INSTALL $(DESTDIR)$(exec_prefix)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) LICENSE $(DESTDIR)$(exec_prefix)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) UPDATE  $(DESTDIR)$(exec_prefix)
-	$(MAKE) install-basic
-
-install-basic:
-	@echo ""
-	@echo "*** Plugin, cgi files and html resources installed ***"
-	@echo ""
-	@echo "Please run 'make install-apache-config' to install the related apache configuration file"
-	@echo ""
+	cd $(SRC_ETC) && $(MAKE) $@
 
 fullinstall: install install-apache-config install-sudo-config

@@ -3,27 +3,55 @@
 #===================================#
 
 # Source directories
-SRC_CGIBIN=@srcdir@/sbin
-SRC_CONFIG=@srcdir@/etc
+SRC_SBIN=@srcdir@/sbin
+SRC_ETC=@srcdir@/etc
 SRC_LIBEXEC=@srcdir@/libexec
-SRC_LIBS=@srcdir@/lib
+SRC_LIB=@srcdir@/lib
 SRC_SHARE=@srcdir@/share
 
 # Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-LIBEXECDIR=@nagioslibexec@
-CGIDIR=@cgidir@
-HTMLDIR=@htmldir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
-DATAROOTDIR=@datarootdir@
 
 # Programs
 CP=@CP@
 GREP=@GREP@
 @SET_MAKE@
 
-# Configuration variables
-APACHE_USER=@apache_user@
-SUDOERS=@SUDOERS@
+#Http server
+httpd_conf=@httpd_conf@
+apache_user=@apache_user@
+apache_authname=@apache_authname@
+#Sudo specific
+sudoers=@sudoers@
+#Software configuration
+nagios_base=@nagios_base@
+nagios_libexec=@nagios_libexec@
+cachedir=@cachedir@
+statedir=@statedir@
+htmldir=@htmldir@
+htmlurl=@htmlurl@
+cgidir=@cgidir@
+cgiurl=@cgiurl@
+
+clean:
+	-rm -f InterfaceTableReset_v3t.cgi
+
+distclean: clean
+	-rm -f Makefile
+
+install:
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/sbin
+	$(INSTALL) -m 755 $(INSTALL_OPTS) InterfaceTableReset_v3t.cgi $(cgidir)/InterfaceTableReset_v3t.cgi
+
+install-apache-config:
+    
+install-sudo-config:
+
+fullinstall: install install-apache-config install-sudo-config
+    
+    
+    

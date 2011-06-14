@@ -3,27 +3,99 @@
 #===================================#
 
 # Source directories
-SRC_CGIBIN=@srcdir@/sbin
-SRC_CONFIG=@srcdir@/etc
+SRC_SBIN=@srcdir@/sbin
+SRC_ETC=@srcdir@/etc
 SRC_LIBEXEC=@srcdir@/libexec
-SRC_LIBS=@srcdir@/lib
+SRC_LIB=@srcdir@/lib
 SRC_SHARE=@srcdir@/share
 
 # Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-LIBEXECDIR=@nagioslibexec@
-CGIDIR=@cgidir@
-HTMLDIR=@htmldir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
-DATAROOTDIR=@datarootdir@
 
 # Programs
 CP=@CP@
 GREP=@GREP@
 @SET_MAKE@
 
-# Configuration variables
-APACHE_USER=@apache_user@
-SUDOERS=@SUDOERS@
+# Software specific
+#Http server
+httpd_conf=@httpd_conf@
+apache_user=@apache_user@
+apache_authname=@apache_authname@
+#Sudo specific
+sudoers=@sudoers@
+#Software configuration
+cgidir=@cgidir@
+
+clean:
+	-rm -f interfacetable_v3t.conf.httpd
+	-rm -f settings.cfg
+
+distclean: clean
+	-rm -f Makefile
+
+install:
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/etc
+	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(prefix)/settings.cfg
+
+install-apache-config:
+	$(INSTALL) -m 644 interfacetable_v3t.conf.httpd $(httpd_conf)/interfacetable_v3t.conf
+	@echo ""
+	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
+	@echo ""
+    
+install-sudo-config:
+	#TODO sudoers.d 
+	SUDOERS_OK=0
+	if [ "$(sudoers)" != "no" ] ; then \
+		chmod 0640 $(sudoers); \
+		if test -w $(sudoers); then \
+			if [ `$(GREP) -c "InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
+				echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(sudoers); \
+				SUDOERS_OK=1; \
+				echo ""; \
+				echo "***************************"; \
+				echo ""; \
+				echo "Sudo configuration updated."; \
+				echo ""; \
+				echo "***************************"; \
+				echo ""; \
+			else \
+				echo ""; \
+				echo "****************************************************************************"; \
+				echo ""; \
+				echo "NOTICE: A rule concerning InterfaceTableReset_v3t.cgi is already configured."; \
+				echo "        Assuming that sudo configuration have been already done."; \
+				echo ""; \
+				echo "****************************************************************************"; \
+				echo ""; \
+			fi; \
+		else \
+			echo ""; \
+			echo "*********************************************************************************"; \
+			echo ""; \
+			echo "WARNING: The file $sudoers cannot be found, or is not writable"; \
+			echo "         You need to add the following rule manually:"; \
+			echo '         $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
+			echo ""; \
+			echo "*********************************************************************************"; \
+			echo ""; \
+		fi; \
+		chmod 0440 $(sudoers); \
+	else \
+		echo ""; \
+		echo "********************************************************************************"; \
+		echo ""; \
+		echo "NOTICE: The sudoers file was neither automatically found nor manually specified."; \
+		echo "        You need to add the following rule manually:"; \
+		echo '        $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
+		echo ""; \
+		echo "********************************************************************************"; \
+		echo ""; \
+	fi
+    
+fullinstall: install install-apache-config install-sudo-config
