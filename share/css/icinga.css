@@ -23,13 +23,13 @@ th {
 	background-color: #707677; 
 	color: #fff; 
 	border: 0;
-	padding: 0px 5px 0px 5px;
+	padding: 2px 5px 2px 5px;
 }
 
 td {
 	border: 0 none;
     font-size: 8pt;
-	padding: 0px 5px 0px 5px;
+	padding: 2px 5px 2px 5px;
 }
 
 /* Information table */ 

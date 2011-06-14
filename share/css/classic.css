@@ -25,13 +25,13 @@ th {
 	background-color: #D2D2D2;
 	border-width: 1px;
 	border-style: inset;
-	padding: 0px 5px 0px 5px;
+	padding: 2px 5px 2px 5px;
 }
 
 td {
 	border-width: 1px;
 	border-style: inset;
-	padding: 0px 5px 0px 5px;
+	padding: 2px 5px 2px 5px;
 }
 
 /* Information table */ 
