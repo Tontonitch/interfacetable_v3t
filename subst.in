@@ -114,6 +114,7 @@ while ($f = shift @ARGV) {
         s|\@statedir\@|$statedir|g;
         s|\@htmldir\@|$htmldir|g;
         s|\@htmlurl\@|$htmlurl|g;
+        s|\@cgidir\@|$cgidir|g;
         s|\@cgiurl\@|$cgiurl|g;
         s|\@libdir\@|$libdir|g;
         s|\@etcdir\@|$etcdir|g;
