@@ -360,7 +360,7 @@ if (defined $basetime) {
 # ------------------------------------------------------------------------------
 # write perfdata stdout and files
 # ------------------------------------------------------------------------------
-if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun) {
+if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and $enableperfdata) {
     perfdataout();
 }
 
@@ -417,7 +417,7 @@ if ( $gNumberOfFreeUpInterfaces > 0 ) {
     $gText .= ", $gNumberOfFreeUpInterfaces AdminUp and free";
 }
 
-if ( $gNumberOfPerfdataInterfaces > 0 and $ghOptions{'enableportperf'}) {
+if ( $gNumberOfPerfdataInterfaces > 0 and $ghOptions{'enableperfdata'}) {
     $gText .= ", $gNumberOfPerfdataInterfaces graphed";         # thd
 }
 
@@ -469,15 +469,15 @@ if ( $gInitialRun ) {
 } else {
     logger(1, " (Debug) Differences: $gDifferenceCounter");
     if ($gDifferenceCounter > 0) { 
-        if ($ghOptions{'long'}) { 
+        if ($ghOptions{'outputshort'}) { 
+            $gText .= ", $gDifferenceCounter change(s)";
+        } else {
             $gText .= ", $gDifferenceCounter change(s):";
             for my $field ( keys %{$grefhListOfChanges} ) {
                 if (not $field =~ /^load/i) {
                     $gText .= " $field - @{$grefhListOfChanges->{$field}}";
                 }
             }
-        } else {
-            $gText .= ", $gDifferenceCounter change(s)";
         }
     }
 }
@@ -506,19 +506,19 @@ my $ExitCode = mcompare ({
 
 if ($gIfLoadWarnCounter > 0 ) {
     $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
-    if ($ghOptions{'long'}) {
-        $gText .= ", $gIfLoadWarnCounter warning load(s) (>$ghOptions{ifloadwarn}%): @{$grefhListOfChanges->{loadwarning}}";
-    } else {
+    if ($ghOptions{'outputshort'}) {
         $gText .= ", load warning (>$ghOptions{ifloadwarn}%): $gIfLoadWarnCounter";
+    } else {
+        $gText .= ", $gIfLoadWarnCounter warning load(s) (>$ghOptions{ifloadwarn}%): @{$grefhListOfChanges->{loadwarning}}";
     }
 }
 
 if ($gIfLoadCritCounter > 0 ) {
     $ExitCode = $ERRORS{'CRITICAL'};
-    if ($ghOptions{'long'}) {
-        $gText .= ", $gIfLoadCritCounter critical load(s) (>$ghOptions{ifloadcrit}%): @{$grefhListOfChanges->{loadcritical}}";
-    } else {
+    if ($ghOptions{'outputshort'}) {
         $gText .= ", load critical (>$ghOptions{ifloadcrit}%): $gIfLoadCritCounter";
+    } else {
+        $gText .= ", $gIfLoadCritCounter critical load(s) (>$ghOptions{ifloadcrit}%): @{$grefhListOfChanges->{loadcritical}}";
     }
 }
 
@@ -571,8 +571,8 @@ sub perfdataout {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
-
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
+            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
             my $port = sprintf("%03d", $InterfaceIndex);
             #my $servicename = "Port$port";
             my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
@@ -612,7 +612,7 @@ sub perfdataout {
                 print OUT "\t$STARTTIME\n";                   # unix timestamp
                         }
 
-            if($ghOptions{'enableportperf'}){$gPerfdata .= " $perfdata"; }      # thd collect performancedata
+            if($ghOptions{'enableperfdata'}){$gPerfdata .= " $perfdata"; }      # thd collect performancedata
         }
     } # for $InterfaceIndex
     if (defined $ghOptions{perfdatadir}) { # perfdata to file
@@ -668,8 +668,6 @@ sub WriteHtmlTable {
 }
 
 # ------------------------------------------------------------------------
-# Source:
-#   extracted from or our base library - but shortand
 # Purpose:
 #   calc exit code
 # ------------------------------------------------------------------------
@@ -818,7 +816,7 @@ sub GenerateHtmlTable {
                 # Graphing solution link - one link per line/interface/port
                 if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
                     and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
-                    and $ghOptions{'enableportperf'}) {
+                    and $ghOptions{'enableperfdata'}) {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($oid_ifDescr));
                         $servicename =~ s/#/%23/g;
@@ -2055,7 +2053,7 @@ sub Csv2Html {
                 #my $SpecialTextFormatFoot  = "";
 
                 if ( defined $Cell->{InterfaceGraphURL} ) {
-                    if($ghOptions{'enableportperf'}){         # thd
+                    if($ghOptions{'enableperfdata'}){         # thd
                         $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
                     }
                     $trTagclose = '';
@@ -2153,7 +2151,8 @@ sub ExitPlugin {
 
     print $refhStruct->{Text};
     print "|";
-    ($basetime) and print "Interface_global::check_interface_table_global::" .
+    if ($enableperfdata and $basetime) {
+        print "Interface_global::check_interface_table_global::" .
                 "time=${TimeDiff}s;;;; " .
                 "uptime=$grefhCurrent->{MD}->{sysUpTime}s;;;; " .
                 "watched=${gNumberOfPerfdataInterfaces};;;; " .
@@ -2161,7 +2160,10 @@ sub ExitPlugin {
                 "ports=${gNumberOfInterfacesWithoutTrunk};;;; " .
                 "freeports=${gNumberOfFreeInterfaces};;;; " .
                 "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
-    print "$gPerfdata\n";
+        unless ($perfdatashort) {
+            print "$gPerfdata\n";
+        }
+    }
 
     exit $refhStruct->{ExitCode};
 }
@@ -2208,18 +2210,18 @@ sub print_usage () {
       $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
+        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
 
 	* advanced usage:
       $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
+        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
         [--cachedir <caching directory>] [--statedir <state files directory>] [--vlan] [--cisco]
         [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
-        [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--ifloadgradient] 
-        [--human] [--snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
+        [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
+        [--(no)human] [--(no)snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
         [-E <interface perfdata exclusion list>] [-I <interface perfdata inclusion list>]
 
 	* other usages:
@@ -2273,19 +2275,20 @@ sub print_usage () {
         Interface traffic load percentage leading to a warning alert 
     --ifloadcrit | -C (optional)
         Interface traffic load percentage leading to a critical alert 
-    --enableportperf | -f (optional)
+    --enableperfdata | -f (optional)
         Enable port performance data, default is port perfdata disabled
     --grapher (optional)
         Specify the used graphing solution. 
         Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
-    --short, --long (optional)
-        Define the verbosity of the plugin output.
-         * short    : the plugin only returns general counts (nb ports, nb changes,...)
-                      This is close to the way the previous versions of the plugin was 
-                      working.
-         * long     : the plugin returns general counts (nb ports, nb changes,...) 
-                      + what changes has been detected 
-                      + what interface(s) suffer(s) from high load.
+    --outputshort (optional)
+        Reduce the verbosity of the plugin output. If used, the plugin only returns 
+        general counts (nb ports, nb changes,...). This is close to the way the 
+        previous versions of the plugin was working.
+        
+        In this version of the plugin, by default the plugin returns 
+        + general counts (nb ports, nb changes,...) 
+        + what changes has been detected 
+        + what interface(s) suffer(s) from high load.
     
   Advanced options:
     --cachedir (optional)
@@ -2312,20 +2315,20 @@ sub print_usage () {
         Define the retention time of the cached data. In seconds.
     --reseturl (optional)
         Specifies the URL to the tablereset program.
-    --ifloadgradient (optional)
+    --(no)ifloadgradient (optional)
         Enable color gradient from green over yellow to red for the load percentage 
-        representation.
-    --human (optional)
-        Translate bandwidth usage in human readable format (G/M/K bps).
-    --snapshot (optional)
+        representation. Default is enabled.
+    --(no)human (optional)
+        Translate bandwidth usage in human readable format (G/M/K bps). Default is enabled.
+    --(no)snapshot (optional)
         Force the plugin to run like if it was the first launch. Cached data will be 
-        ignored.
+        ignored. Default is enabled.
     --timeout (optional)
         Define the timeout limit of the plugin.
-    --excludeportperf | -E (optional)
-        Comma separated list of interfaces for which performance data are NOT generated. 
-    --includeportperf | -I (optional)
-        Comma separated list of interfaces for which performance data are generated. 
+    --excludepropertytrack | -E (optional)
+        Comma separated list of interfaces excluded from the property tracking. 
+    --includepropertytrack | -I (optional)
+        Comma separated list of interfaces included in the property tracking. 
         By default, all the interfaces that are tracked are included. But there are some 
         case where you need to include an interface which is part of a group of previously 
         excluded interfaces.
@@ -2391,12 +2394,10 @@ sub check_options () {
 		'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
         'accessmethod=s',                       # access method for the link to the host in the HTML page
-        'htmltabledir=s',                            # interface table HTML directory
-        'htmltableurl=s',                            # interface table URL location
-        'enableportperf|f',                     # enable port performance data, default is port perfdata disabled
-        'excludeportperf|E=s@',                 # list of port for which performance data are NOT generated
-        'includeportperf|I=s@',                 # list of port for which performance data are generated
-        'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+        'htmltabledir=s',                       # interface table HTML directory
+        'htmltableurl=s',                       # interface table URL location
+        'excludeloadtrack|e=s@',                # list of interfaces excluded from the load tracking
+        'includeloadtrack|i=s@',                # list of interfaces included in the load tracking
         'community|C=s',                        # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
@@ -2404,63 +2405,68 @@ sub check_options () {
         'reseturl=s',                           # URL to tablereset program
         'vlan',                                 # Add vlan attribution info for each interface
         'cisco',                                # Add cisco specific info in the info table
-        'ifloadgradient',                       # color gradient from green over yellow to red representing the load percentage
-        'human',                                # translate bandwidth usage in human readable format (G/M/K bps)
+        'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
+        'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
         'track|t=s@',                           # list of exclued properties
-        'snapshot',
+        'excludepropertytrack|E=s@',            # list of interfaces excluded from the property tracking
+        'includepropertytrack|I=s@',            # list of interfaces included in the property tracking
+        'snapshot!',
         'version|V',
-        'exclude|e=s@',
-        'include|i=s@',
         'regexp|r',
         'timeout=i',
         'warning|w=i',
         'critical|c=i',
         'ifloadwarn|W=i',
         'ifloadcrit|C=i',
-        'short',                                # the plugin only returns general counts (nb ports, nb changes,...)
-        'long',                                 # the plugin returns general counts (nb ports, nb changes,...) + what changes has been detected
+        'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...). 
+                                                # By default, the plugin returns general counts (nb ports, nb changes,...) 
+                                                # + what changes has been detected
+        'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
+        'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+        'perfdatashort',                        # restrict the performance data to the global statistics. Statistics specific 
+                                                # to each interfaces will be not returned.
         'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl'                            # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         );
     # Default option values
     %ghOptions = (
-        'help'              => 0,
-        'verbose'           => 0,
-		'showdefaults'      => 0,
-        'hostquery'         => '',
-        'hostdisplay'       => '',
-        'cachedir'          => "@cachedir@",
-        'statedir'          => "@statedir@",
-        'accessmethod'      => "ssh",
-        'htmltabledir'      => "@htmldir@/tables",
-        'htmltableurl'      => "@htmlurl@/tables",
-        'enableportperf'    => 0,
-        'excludeportperf'   => undef,
-        'includeportperf'   => undef,
-        'portperfunit'      => "bit",
-        'community'         => "public",
-        'delta'             => 600,
-        'ifs'               => ',',
-        'cache'             => 3600,
-        'reseturl'          => "@cgiurl@",
-        'vlan'              => 0,
-        'cisco'             => 0,
-        'ifloadgradient'    => 1,
-        'human'             => 1,
-        'snapshot'          => 0,
-        'track'             => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
-        'exclude'           => undef,
-        'include'           => undef,
-        'regexp'            => 0,
-        'timeout'           => $TIMEOUT,
-        'warning'           => 0,
-        'critical'          => 0,
-        'ifloadwarn'        => 101,
-        'ifloadcrit'        => 101,
-        'short'             => 1,
-        'long'              => 0,
-        'grapher'           => "pnp4nagios",
-        'grapherurl'        => ""
+        'help'                      => 0,
+        'verbose'                   => 0,
+		'showdefaults'              => 0,
+        'hostquery'                 => '',
+        'hostdisplay'               => '',
+        'cachedir'                  => "@cachedir@",
+        'statedir'                  => "@statedir@",
+        'accessmethod'              => "ssh",
+        'htmltabledir'              => "@htmldir@/tables",
+        'htmltableurl'              => "@htmlurl@/tables",
+        'excludeloadtrack'          => undef,
+        'includeloadtrack'          => undef,
+        'community'                 => "public",
+        'delta'                     => 600,
+        'ifs'                       => ',',
+        'cache'                     => 3600,
+        'reseturl'                  => "@cgiurl@",
+        'vlan'                      => 0,
+        'cisco'                     => 0,
+        'ifloadgradient'            => 1,
+        'human'                     => 1,
+        'snapshot'                  => 0,
+        'track'                     => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
+        'excludepropertytrack'      => undef,
+        'includepropertytrack'      => undef,
+        'regexp'                    => 0,
+        'timeout'                   => $TIMEOUT,
+        'warning'                   => 0,
+        'critical'                  => 0,
+        'ifloadwarn'                => 101,
+        'ifloadcrit'                => 101,
+        'outputshort'               => 0,
+        'enableperfdata'            => 0,
+        'portperfunit'              => "bit",
+        'perfdatashort',            => 0,
+        'grapher'                   => "pnp4nagios",
+        'grapherurl'                => ""
     );
     # set the default grapher url depending to the selected grapher
     my %defaultgrapherurl = (
@@ -2524,8 +2530,8 @@ sub check_options () {
     if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
     }
-	if (exists $commandline{enableportperf}) {
-        $ghOptions{'enableportperf'} = 1;
+	if (exists $commandline{enableperfdata}) {
+        $ghOptions{'enableperfdata'} = 1;
     }
     if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
         $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
@@ -2601,13 +2607,8 @@ sub check_options () {
     if (exists $commandline{ifloadcrit}) {
         $ghOptions{ifloadcrit} = "$commandline{ifloadcrit}";
     }
-    if (exists $commandline{short}) {
-        $ghOptions{'short'} = 1;
-        $ghOptions{'long'} = 0;
-    }
-    if (exists $commandline{long}) {
-        $ghOptions{'long'} = 1;
-        $ghOptions{'short'} = 0;
+    if (exists $commandline{outputshort}) {
+        $ghOptions{'outputshort'} = 1;
     }
     if (exists $commandline{grapher}) {
         if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$/i) {
@@ -2636,7 +2637,7 @@ __END__
   check_interface_table_v3t.pl -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--short|--long]
+        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
 
 =head1 DESCRIPTION
 
@@ -2925,24 +2926,25 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
  Interface traffic load percentage leading to a critical alert 
 
-=head3 --enableportperf | -f (optional)
+=head3 --enableperfdata | -f (optional)
 
- Enable port performance data, default is port perfdata disabled
+ Enable performance data, default is port perfdata disabled
 
 =head3 --grapher (optional)
 
  Specify the used graphing solution. 
  Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
 
-=head3 --short, --long (optional)
+=head3 --outputshort (optional)
 
- Define the verbosity of the plugin output.
-  * short    : the plugin only returns general counts (nb ports, nb changes,...)
-               This is close to the way the previous versions of the plugin was 
-               working.
-  * long     : the plugin returns general counts (nb ports, nb changes,...) 
-               + what changes has been detected 
-               + what interface(s) suffer(s) from high load.
+ Reduce the verbosity of the plugin output. If used, the plugin only returns 
+ general counts (nb ports, nb changes,...). This is close to the way the 
+ previous versions of the plugin was working.
+ 
+ In this version of the plugin, by default the plugin returns 
+   + general counts (nb ports, nb changes,...) 
+   + what changes has been detected 
+   + what interface(s) suffer(s) from high load.
     
 =head2 Advanced options
 
@@ -2989,16 +2991,16 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
  Specifies the URL to the tablereset program.
 
-=head3 --ifloadgradient (optional)
+=head3 --(no)ifloadgradient (optional)
 
  Enable color gradient from green over yellow to red for the load percentage 
  representation.
 
-=head3 --human (optional)
+=head3 --(no)human (optional)
 
  Translate bandwidth usage in human readable format (G/M/K bps).
 
-=head3 --snapshot (optional)
+=head3 --(no)snapshot (optional)
 
  Force the plugin to run like if it was the first launch. Cached data will be 
  ignored.
