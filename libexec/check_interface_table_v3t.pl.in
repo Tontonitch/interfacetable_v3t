@@ -319,8 +319,27 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 # ------------------------------------------------------------------------------
 
 # Save include/exclude information of each interface in the metadata
-$grefhCurrent = EvaluateInterfaces ($ghOptions{excludeloadtrack}, $ghOptions{includeloadtrack}, $ghOptions{excludepropertytrack}, $ghOptions{includepropertytrack});
-logger(3, " Include / Exclude interfaces -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
+# This includes:
+#  * include/exclude interface from load tracking. Load tracking consists in a 
+#    check of the bandwidth usage of the interface. By default, all the interfaces 
+#    are included in this tracking. Excluding an interface from that tracking is 
+#    usually done for interfaces that we don't want any tracking (e.g. loopback 
+#    interfaces)
+#  * include/exclude interface from property tracking. Property tracking consists
+#    in the check of any changes in the properties of an interface, properties 
+#    listed via the --track option. By default, only the "operstatus" property is 
+#    tracked. You have the ability to exclude/include some interfaces from that check.
+#    This would be done for exemple for ports on which printers are connected (indeed, 
+#    some printers going in standby mode has also their network interface going done, 
+#    generating a false alert)
+
+$grefhCurrent = EvaluateInterfaces (
+    $ghOptions{excludeloadtrack}, 
+    $ghOptions{includeloadtrack}, 
+    $ghOptions{excludepropertytrack}, 
+    $ghOptions{includepropertytrack}
+    );
+logger(3, " Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
 
 # ------------------------------------------------------------------------------
 # Create interface information table data
@@ -545,7 +564,7 @@ sub perfdataout {
         my $filename = $ghOptions{perfdatadir} . "/service-perfdata.$STARTTIME";
         umask "$UMASK";
         open (OUT,">>$filename") or die "cannot open $filename $!";
-        flock (OUT, 2) or die "cannot flock $filename $!"; # get exclusive lock;
+        flock (OUT, 2) or die "cannot flock $filename ($!)"; # get exclusive lock;
         }
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $InterfaceIndex (@$grefaAllIndizes) {
@@ -855,20 +874,27 @@ sub GenerateHtmlTable {
 }
 
 # ------------------------------------------------------------------------
-# This function includes or excludes interfaces from change comparison
-# if there are exclude or include lists defined on the commandline.
+# This function includes or excludes interfaces from:
+#  * interface traffic load tracking
+#  * interface property(ies) change tracking
 #
-# All interfaces which are excluded will be excluded from
-# traffic measurement and change counter count.
+# Interface traffic load tracking:
+# All interfaces which are excluded using -e or --excludeloadtrack will be 
+# excluded from traffic measurement (main check). Property(ies) tracking is
+# implicitely disabled on such an interface.
+#
+# Interface property(ies) change tracking
+# All the interfaces which are included in the traffic load tracking are 
+# automatically added to the interface properti(es) tracking list.
 #
 #   Indicated must be the interface name (ifDescr)
-#   -Exclude "3COM Etherlink PCI"
+#   -e "3COM Etherlink PCI"
 #
 #   It is possible to exclude all interfaces
-#   -Exclude "ALL"
+#   -e "ALL"
 #
 #   It is possible to exclude all interfaces but include one
-#   -Exclude "ALL" -Include "3COM Etherlink PCI"
+#   -e "ALL" -i "3COM Etherlink PCI"
 #
 # It isnt neccessary to include ALL. By default, all the interfaces are 
 # included.
@@ -878,8 +904,9 @@ sub GenerateHtmlTable {
 # <MD>
 #    <If>
 #        <3COMQ20EtherlinkQ20PCI>
-#            CacheTimer   3600
-#            Excluded     true
+#            CacheTimer               3600
+#            ExcludedLoadTrack        false
+#            ExcludedPropertyTrack    true
 #            ifOperStatusChangeTime   1151586678
 #        </3COMQ20EtherlinkQ20PCI>
 #    </If>
@@ -901,7 +928,7 @@ sub EvaluateInterfaces {
     # Loop through all interfaces
     for my $oid_ifDescr (keys %{$grefhCurrent->{MD}->{If}}) {
 
-        #----- Includes or excludes interfaces from traffic load traffic load tracking -----#
+        #----- Includes or excludes interfaces from traffic load tracking -----#
         
         # Denormalize interface name
         my $oid_ifDescrReadable = denormalize ($oid_ifDescr);
@@ -945,7 +972,9 @@ sub EvaluateInterfaces {
             $gNumberOfPerfdataInterfaces++;
         }
         
-        # For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
+        #----- Includes or excludes interfaces from property change tracking -----#
+        
+		# For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
             
             # By default, track the properties of the interface
@@ -2495,34 +2524,34 @@ sub check_options () {
     if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
     }
-    if (exists $commandline{enableportperf}) {
+	if (exists $commandline{enableportperf}) {
         $ghOptions{'enableportperf'} = 1;
-    }
-    # organizing excluded/included interfaces for performance data
-    if (exists $commandline{excludeportperf}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludeportperf}}));
-        $ghOptions{'excludepropertytrack'} = \@tmparray;
-    } 
-    if (exists $commandline{includeportperf}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includeportperf}}));
-        $ghOptions{'includepropertytrack'} = \@tmparray;
     }
     if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
         $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
     }
-    # organizing not tracked fields
+    # organizing excluded/included interfaces for load tracking
+    if (exists $commandline{excludeloadtrack}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludeloadtrack}}));
+        $ghOptions{'excludeloadtrack'} = \@tmparray;
+    } 
+    if (exists $commandline{includeloadtrack}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includeloadtrack}}));
+        $ghOptions{'includeloadtrack'} = \@tmparray;
+    }
+    # organizing tracked fields
     if (exists $commandline{track}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{track}}));
         $ghOptions{'track'} = \@tmparray;
     }
-    # organizing excluded/included interfaces
-    if (exists $commandline{exclude}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{exclude}}));
-        $ghOptions{'excludeloadtrack'} = \@tmparray;
+    # organizing excluded/included interfaces for property(ies) tracking
+    if (exists $commandline{excludepropertytrack}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludepropertytrack}}));
+        $ghOptions{'excludepropertytrack'} = \@tmparray;
     } 
-    if (exists $commandline{include}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{include}}));
-        $ghOptions{'includeloadtrack'} = \@tmparray;
+    if (exists $commandline{includepropertytrack}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includepropertytrack}}));
+        $ghOptions{'includepropertytrack'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
@@ -2829,9 +2858,10 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  Specifies the snmp v1 community string. Other snmp versions are not
  implemented yet.
 
-=head3 --exclude | -e (optional)
+=head3 --excludeloadtrack | -e (optional)
 
- Comma separated list of interfaces excluded from tracking. Can be used to exclude:
+ Comma separated list of interfaces excluded from load tracking (main check). Can 
+ be used to exclude:
   * virtual or loopback interfaces
   * flapping interfaces
  
@@ -2840,11 +2870,12 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  
  Note: if --regexp is not used, the interface descriptions must match exactly!
 
-=head3 --include | -i (optional)
+=head3 --includeloadtrack | -i (optional)
 
- Comma separated list of interfaces included for tracking. By default, all the 
- interfaces are included. But there are some case where you need to include an 
- interface which is part of a group of previously excluded interfaces.
+ Comma separated list of interfaces included in load tracking (main check). By 
+ default, all the interfaces are included. But there are some case where you 
+ need to include an interface which is part of a group of previously excluded 
+ interfaces.
  
  Example:
     ... -H router -C public -i FastEthernet0,FastEthernet1
@@ -2976,16 +3007,18 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
  Define the timeout limit of the plugin.
 
-=head3 --excludeportperf | -E (optional)
+=head3 --excludepropertytrack | -E (optional)
 
- Comma separated list of interfaces for which performance data are NOT generated. 
+ Comma separated list of interfaces excluded from the property tracking.
+ 
+=head3 --includepropertytrack | -I (optional)
 
-=head3 --includeportperf | -I (optional)
-
- Comma separated list of interfaces for which performance data are generated. 
- By default, all the interfaces that are tracked are included. But there are some 
- case where you need to include an interface which is part of a group of previously 
- excluded interfaces.
+ Comma separated list of interfaces included in the property tracking. 
+ By default, all the interfaces that are included in the load tracking (-i option) are
+ also included in the property tracking.
+ Also, there are some case where you need to include an interface which is part of a 
+ group of previously excluded interfaces. In this case, you need to proviously exclude 
+ all/part the interfaces using -E, then includes some of them back using -I.
 
 =head3 --portperfunit (optional)
 
