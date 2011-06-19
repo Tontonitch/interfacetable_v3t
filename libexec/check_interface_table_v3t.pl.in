@@ -45,11 +45,10 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 # global variable definitions
 # ------------------------------------------------------------------------
-use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT $LOGLEVEL);
+use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
 $REVISION       = '0.03';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
-$LOGLEVEL       = 0;
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
@@ -360,7 +359,7 @@ if (defined $basetime) {
 # ------------------------------------------------------------------------------
 # write perfdata stdout and files
 # ------------------------------------------------------------------------------
-if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and $enableperfdata) {
+if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and $ghOptions{'enableperfdata'}) {
     perfdataout();
 }
 
@@ -2151,7 +2150,7 @@ sub ExitPlugin {
 
     print $refhStruct->{Text};
     print "|";
-    if ($enableperfdata and $basetime) {
+    if ($ghOptions{'enableperfdata'} and $basetime) {
         print "Interface_global::check_interface_table_global::" .
                 "time=${TimeDiff}s;;;; " .
                 "uptime=$grefhCurrent->{MD}->{sysUpTime}s;;;; " .
@@ -2160,7 +2159,7 @@ sub ExitPlugin {
                 "ports=${gNumberOfInterfacesWithoutTrunk};;;; " .
                 "freeports=${gNumberOfFreeInterfaces};;;; " .
                 "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
-        unless ($perfdatashort) {
+        unless ($ghOptions{'perfdatashort'}) {
             print "$gPerfdata\n";
         }
     }
@@ -2212,7 +2211,7 @@ sub print_usage () {
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
         [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
 
-	* advanced usage:
+    * advanced usage:
       $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
         [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
@@ -2224,10 +2223,10 @@ sub print_usage () {
         [--(no)human] [--(no)snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
         [-E <interface perfdata exclusion list>] [-I <interface perfdata inclusion list>]
 
-	* other usages:
+    * other usages:
       $PROGNAME [--help | -?]
       $PROGNAME [--version | -V]
-	  $PROGNAME [--showdefaults | -D]
+      $PROGNAME [--showdefaults | -D]
 
   Common options:
     --help | -?
@@ -2391,7 +2390,7 @@ sub check_options () {
         'help|?',
         'verbose|v+',
         'showdefaults|D',						# print all option default values
-		'cachedir=s',                           # caching directory
+        'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
@@ -2432,7 +2431,7 @@ sub check_options () {
     %ghOptions = (
         'help'                      => 0,
         'verbose'                   => 0,
-		'showdefaults'              => 0,
+        'showdefaults'              => 0,
         'hostquery'                 => '',
         'hostdisplay'               => '',
         'cachedir'                  => "@cachedir@",
@@ -2484,7 +2483,7 @@ sub check_options () {
     # applying commandline options
     if (exists $commandline{verbose}) {
         $ghOptions{'verbose'} = $commandline{verbose};
-        $LOGLEVEL = $commandline{verbose};
+        setLoglevel($commandline{verbose});
     }
     if (exists $commandline{version}) {
         print_revision($PROGNAME, $REVISION);
