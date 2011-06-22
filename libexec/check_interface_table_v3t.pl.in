@@ -74,7 +74,6 @@ my $oid_ifSpeed         = ".1.3.6.1.2.1.2.2.1.5";   # + ".<index>"
 my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";   # + ".<index>"
 my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";   # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";   # + ".<index>"
-my %gh_operstatus       = ('up'=>1,'down'=>2,'testing'=>3,'unknown'=>4,'dormant'=>5);
 my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>"
 
 # RFC1213 - Extracts about in/out stats
@@ -559,6 +558,7 @@ exit $ERRORS{"UNKNOWN"};
 # perfdataout ();
 # ------------------------------------------------------------------------
 sub perfdataout {
+    my %gh_operstatus = ('up'=>1,'down'=>2,'testing'=>3,'unknown'=>4,'dormant'=>5);
     if ($ghOptions{perfdatadir}) { # perfdata to file
         my $filename = $ghOptions{perfdatadir} . "/service-perfdata.$STARTTIME";
         umask "$UMASK";
@@ -1059,7 +1059,8 @@ sub Get_OperStatus_Description_Index {
         my ($Index,$OperStatusNow) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
-
+        $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow"); 
+        
         logger(1, "Index = $Index $gLongCacheTimer");
         # read the interface description with the index extracted above
         my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
@@ -1102,7 +1103,7 @@ sub Get_OperStatus_Description_Index {
         }
 
         # Store the oper status as property of the current interface
-        $grefhCurrent->{If}->{"$Desc"}->{ifOperStatus}    = "$OperStatusNow";
+        $grefhCurrent->{If}->{"$Desc"}->{ifOperStatus} = "$OperStatusNow";
         $grefhCurrent->{MD}->{IfIndexTable}->{"OperStatus"}->{"$Index"} = "$OperStatusNow";
 
         #
@@ -1663,7 +1664,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
         # store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
-            ConvertAdminStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
+            ConvertIfStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
 
         # store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeed} =
@@ -1772,7 +1773,7 @@ sub ConvertSpeedToReadable {
     return $Speed;
 }
 # ------------------------------------------------------------------------
-# get the interface administrative status as integer or string and convert
+# get the interface administrative/operational status as integer or string and convert
 # it to a readable format - return a string
 #
 # http://www.faqs.org/rfcs/rfc2863.html
@@ -1781,21 +1782,20 @@ sub ConvertSpeedToReadable {
 #        SYNTAX  INTEGER {
 #                    up(1),       -- ready to pass packets
 #                    down(2),
-#                    testing(3)   -- in some test mode
-#                }
+#                    testing(3),  -- in some test mode
+#                    unknown(4),
+#                    dormant(5)
+#        }
 # ------------------------------------------------------------------------
-sub ConvertAdminStatusToReadable {
-    my $AdminStatus = shift;
-    if ($AdminStatus =~ /1/) {
-        $AdminStatus = "up";
-    } elsif ($AdminStatus =~ /2/) {
-        $AdminStatus = "down";
-    } elsif ($AdminStatus =~ /3/) {
-        $AdminStatus = "testing";
+sub ConvertIfStatusToReadable {
+    my $status = shift;
+    my %status_conversion = ( 1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant');
+    if ($status =~ /^(1|2|3|4|5)$/) {
+        $status = $status_conversion{$status};
     } else {
         # we do nothing and leave the original status
     }
-    return $AdminStatus;
+    return $status;
 }
 
 # ------------------------------------------------------------------------
@@ -2397,7 +2397,7 @@ sub check_options () {
         'htmltableurl=s',                       # interface table URL location
         'excludeloadtrack|e=s@',                # list of interfaces excluded from the load tracking
         'includeloadtrack|i=s@',                # list of interfaces included in the load tracking
-        'community|C=s',                        # community string
+        'community=s',                          # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
         'cache=s',                              # cache timer
