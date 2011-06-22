@@ -1964,8 +1964,8 @@ sub check_for_unused_interfaces {
         
         if ($oid_ifDescr =~ /Ethernet(\d+)Q2F(\d+)Q2F(\d+)/) {
             # we look for ethernet ports (and decide if it is a stacked switch), x/x/x format
-            if (not defined $gInterfacesWithoutTrunk->{"$1/$2/$4"}) {
-                $gInterfacesWithoutTrunk->{"$1/$2/$4"} = $free;
+            if (not defined $gInterfacesWithoutTrunk->{"$1/$2/$3"}) {
+                $gInterfacesWithoutTrunk->{"$1/$2/$3"} = $free;
                 $gNumberOfInterfacesWithoutTrunk++;
                 # look for free ports with admin status up
                 if ($free and $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAdminStatus} eq 'up') {
