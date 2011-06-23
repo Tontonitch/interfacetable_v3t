@@ -3,6 +3,44 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
+# * 0.03 (in progess)
+#   ----------------------------------------------------------------------
+#    - all styles are now handled in an external css stylesheet. 
+#      2 stylesheets currently available: 
+#       * classic.css : follow the style of previous versions of the plugin
+#       * icinga.css : follow the style of the icinga classic ui
+#    - moved javascript to external file & reviewed to not generate conflicts 
+#      with styles defined in css stylesheets
+#    - new interface inclusion/exclusion system distinguing properties and 
+#      traffic load:
+#       * include/exclude interface from load tracking. Load tracking consists 
+#         in a check of the bandwidth usage of the interface. By default, all 
+#         the interfaces are included in this tracking. Excluding an interface 
+#         from that tracking is usually done for interfaces that we don't want 
+#         any tracking (e.g. loopback interfaces)
+#       * include/exclude interface from property tracking. Property tracking 
+#         consists in the check of any changes in the properties of an interface, 
+#         properties listed via the --track option. By default, only the 
+#         "operstatus" property is tracked. You have the ability to exclude/include 
+#         some interfaces from that check. This would be done for exemple for 
+#         ports on which printers are connected (indeed, some printers going in 
+#         standby mode has also their network interface going done, generating 
+#         an non-wanted alert)
+#    - new "Action" column, which currently contains a graph icon link, replacement 
+#      of the "link on row" in previous versions of the plugin. This field allows 
+#      other actions to be added in future.
+#    - installer (./configure; make; makeinstall...) for an easier install. It 
+#      includes:
+#       * the check of all required softwares / perl libraries.
+#       * automatic sudo and apache/httpd configuration
+#    - extracted snmp related and more general functions from the scripts and 
+#      created libraries of functions, for better maintenance and to be used in 
+#      other future plugins
+#    - commonly used options are now default.
+#    - detailed output and performance data (if enabled) are now default (use 
+#      of outputshort/perfdatashort options to reduce them).
+# 
+#   ----------------------------------------------------------------------
 # * 0.02
 #   ----------------------------------------------------------------------
 #    - enhancement: cleaner and step-by-step output when resetting stats
