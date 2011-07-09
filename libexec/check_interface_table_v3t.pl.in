@@ -80,15 +80,15 @@ my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>"
 # ------------------------------------------------------------------------
 # in_octet:     The total number of octets received on the interface, including framing characters.
 # in_error:     The number of inbound packets that contained errors preventing them from being deliverable to a
-#                               higher-layer protocol.
+#               higher-layer protocol.
 # in_discard:   The number of inbound packets which were chosen to be discarded even though no errors had been
-#                               detected to prevent their being deliverable to a higher-layer protocol. One possible reason for
-#                               discarding such a packet could be to free up buffer space.
+#               detected to prevent their being deliverable to a higher-layer protocol. One possible reason for
+#               discarding such a packet could be to free up buffer space.
 # out_octet:    The total number of octets transmitted out of the interface, including framing characters.
 # out_error:    The number of outbound packets that could not be transmitted because of errors.
 # out_discard:  The number of outbound packets which were chosen to be discarded even though no errors had been
-#                               detected to prevent their being transmitted. One possible reason for discarding such a packet could
-#                               be to free up buffer space.
+#               detected to prevent their being transmitted. One possible reason for discarding such a packet could
+#               be to free up buffer space.
 # ------------------------------------------------------------------------
 my $oid_in_octet_table          = '1.3.6.1.2.1.2.2.1.10';    # + ".<index>"
 my $oid_in_error_table          = '1.3.6.1.2.1.2.2.1.14';    # + ".<index>"
@@ -153,17 +153,18 @@ my $grefaInfoTableData;                              # Contents of the Info tabl
 my $gInterfaceTable;                                 # Html code of the interface table
 my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
     'Index','Description','Alias','AdminStatus','OperStatus','Speed',
-    'Load In','Load Out','IP','bpsIn','bpsOut','Last traffic','Actions'
+    'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
     ];
 my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
     'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable',
-    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','ifLastTraffic','actions'
+    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','pktErrDiscard','ifLastTraffic','actions'
     ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
     splice(@$grefaInterfaceTableHeader,6,0,'VLANs');
     splice(@$grefaInterfaceTableFields,6,0,'ifVlanNames');
 }
+
 my $grefaInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
 
 my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
@@ -172,8 +173,12 @@ my $gUsedDelta                       = 0;            # time delta for bandwidth 
 my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
 my $gNoHistory                       = 0;            # Flag that will be set in case there's no valid historical dataset
 my $gDifferenceCounter               = 0;            # Number of changes. This variable is used in the exitcode algorithm
-my $gIfLoadWarnCounter               = 0;            # counter for interfaces with load warning. This variable is used in the exitcode algorithm
+my $gIfLoadWarnCounter               = 0;            # counter for interfaces with warning load. This variable is used in the exitcode algorithm
 my $gIfLoadCritCounter               = 0;            # counter for interfaces with critical load. This variable is used in the exitcode algorithm
+my $gPktErrWarnCounter               = 0;
+my $gPktErrCritCounter               = 0;
+my $gPktDiscardWarnCounter           = 0;
+my $gPktDiscardCritCounter           = 0;
 my $gNumberOfInterfaces              = 0;            # Total number of interfaces including vlans ...
 my $gNumberOfFreeInterfaces          = 0;            # in "check_for_unused_interfaces" counted number of free interfaces
 my $gNumberOfFreeUpInterfaces        = 0;            # in "check_for_unused_interfaces" counted number of free interfaces with status AdminUp
@@ -332,10 +337,10 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 #    generating a false alert)
 
 $grefhCurrent = EvaluateInterfaces (
-    $ghOptions{excludeloadtrack}, 
-    $ghOptions{includeloadtrack}, 
-    $ghOptions{excludepropertytrack}, 
-    $ghOptions{includepropertytrack}
+    $ghOptions{'exclude-traffic'},
+    $ghOptions{'include-traffic'},
+    $ghOptions{'exclude-property'},
+    $ghOptions{'include-property'}
     );
 logger(3, " Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
 
@@ -351,6 +356,7 @@ logger(3, " Interface information table data -> generated array\ngrefaAllIndizes
 my $basetime = CleanAndSelectHistoricalDataset();
 if (defined $basetime) {
     CalculateBps($basetime);
+    EvaluatePackets($basetime);
 } else {
     $gNoHistory = 1;
 }
@@ -472,7 +478,7 @@ if ( $gInitialRun ) {
         } else {
             $gText .= ", $gDifferenceCounter change(s):";
             for my $field ( keys %{$grefhListOfChanges} ) {
-                if (not $field =~ /^load/i) {
+                if (not $field =~ /^load|^warning-pkterr$|^critical-pkterr$|^warning-pktdiscard$|^critical-pktdiscard$/i) {
                     $gText .= " $field - @{$grefhListOfChanges->{$field}}";
                 }
             }
@@ -494,29 +500,67 @@ $gInterfaceTable   = Csv2Html ($grefaInterfaceTableHeader,$grefaInterfaceTableDa
 # were made in the interface configurations
 my $ExitCode = mcompare ({
     Value       => $gDifferenceCounter,
-    Warning     => $ghOptions{warning},
-    Critical    => $ghOptions{critical}
+    Warning     => $ghOptions{'warning-property'},
+    Critical    => $ghOptions{'critical-property'}
 });
 
 #if ($gNumberOfFreeUpInterfaces > 0) {
 #    $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
 #}
 
+# Load
 if ($gIfLoadWarnCounter > 0 ) {
     $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
     if ($ghOptions{'outputshort'}) {
-        $gText .= ", load warning (>$ghOptions{ifloadwarn}%): $gIfLoadWarnCounter";
+        $gText .= ", load warning (>$ghOptions{'warning-load'}%): $gIfLoadWarnCounter";
     } else {
-        $gText .= ", $gIfLoadWarnCounter warning load(s) (>$ghOptions{ifloadwarn}%): @{$grefhListOfChanges->{loadwarning}}";
+        $gText .= ", $gIfLoadWarnCounter warning load(s) (>$ghOptions{'warning-load'}%): @{$grefhListOfChanges->{loadwarning}}";
     }
 }
-
 if ($gIfLoadCritCounter > 0 ) {
     $ExitCode = $ERRORS{'CRITICAL'};
     if ($ghOptions{'outputshort'}) {
-        $gText .= ", load critical (>$ghOptions{ifloadcrit}%): $gIfLoadCritCounter";
+        $gText .= ", load critical (>$ghOptions{'critical-load'}%): $gIfLoadCritCounter";
     } else {
-        $gText .= ", $gIfLoadCritCounter critical load(s) (>$ghOptions{ifloadcrit}%): @{$grefhListOfChanges->{loadcritical}}";
+        $gText .= ", $gIfLoadCritCounter critical load(s) (>$ghOptions{'critical-load'}%): @{$grefhListOfChanges->{loadcritical}}";
+    }
+}
+
+# Packet errors
+if ($gPktErrWarnCounter > 0 ) {
+    $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
+    if ($ghOptions{'outputshort'}) {
+        $gText .= ", error pkts/s warning (>$ghOptions{'warning-pkterr'}): $gPktErrWarnCounter";
+    } else {
+        $gText .= ", $gPktErrWarnCounter warning error pkts/s (>$ghOptions{'warning-pkterr'}): @{$grefhListOfChanges->{'warning-pkterr'}}";
+    }
+}
+
+if ($gPktErrCritCounter > 0 ) {
+    $ExitCode = $ERRORS{'CRITICAL'};
+    if ($ghOptions{'outputshort'}) {
+        $gText .= ", error pkts/s critical (>$ghOptions{'critical-pkterr'}): $gPktErrCritCounter";
+    } else {
+        $gText .= ", $gPktErrCritCounter critical error pkts/s (>$ghOptions{'critical-pkterr'}): @{$grefhListOfChanges->{'critical-pkterr'}}";
+    }
+}
+
+# Packet discards
+if ($gPktDiscardWarnCounter > 0 ) {
+    $ExitCode = $ERRORS{'WARNING'} if ($ExitCode ne $ERRORS{'CRITICAL'});
+    if ($ghOptions{'outputshort'}) {
+        $gText .= ", discard pkts/s warning (>$ghOptions{'warning-pktdiscard'}): $gPktDiscardWarnCounter";
+    } else {
+        $gText .= ", $gPktDiscardWarnCounter discard pkts/s (>$ghOptions{'warning-pktdiscard'}): @{$grefhListOfChanges->{'warning-pktdiscard'}}";
+    }
+}
+
+if ($gPktDiscardCritCounter > 0 ) {
+    $ExitCode = $ERRORS{'CRITICAL'};
+    if ($ghOptions{'outputshort'}) {
+        $gText .= ", discard pkts/s critical (>$ghOptions{'critical-pktdiscard'}): $gPktDiscardCritCounter";
+    } else {
+        $gText .= ", $gPktDiscardCritCounter discard pkts/s (>$ghOptions{'critical-pktdiscard'}): @{$grefhListOfChanges->{'critical-pktdiscard'}}";
     }
 }
 
@@ -876,7 +920,7 @@ sub GenerateHtmlTable {
 #  * interface property(ies) change tracking
 #
 # Interface traffic load tracking:
-# All interfaces which are excluded using -e or --excludeloadtrack will be 
+# All interfaces which are excluded using -e or --exclude-traffic will be
 # excluded from traffic measurement (main check). Property(ies) tracking is
 # implicitely disabled on such an interface.
 #
@@ -1350,19 +1394,18 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn}  = sprintf("%.2f", $ifLoadIn);
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
             # check interface utilization in percent
-            if ($ifLoadIn > 0) {
+
+            if ($ifLoadIn > 0 or $ifLoadOut > 0) {
                 # just traffic light color codes for the lame
-                if ($ifLoadIn > $ghOptions{ifloadcrit}) {
+                if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
                     push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($oid_ifDescr));
                     $gIfLoadCritCounter++;
-                } elsif ($ifLoadIn > $ghOptions{ifloadwarn}) {
+                } elsif ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'}) {
                     push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($oid_ifDescr));
                     $gIfLoadWarnCounter++;
                 } 
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn);
-            }
-            if ($ifLoadOut > 0) {
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOutOutOfRange} = colorcode($ifLoadOut);
+                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
+                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOutOutOfRange} = colorcode($ifLoadOut, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
             }
         } else {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn} = 0;
@@ -1464,6 +1507,105 @@ sub CalculateBps {
     #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent->{If}));
     #logger(3, "grefhFile: " . Dumper ($grefhFile->{If}));
 
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# evaluate packets within a specified period
+# ------------------------------------------------------------------------
+sub EvaluatePackets {
+    my $firsttime = shift;
+    # check if the counter is back to 0 after 2^32 / 2^64.
+    # First set the modulus depending on highperf counters or not
+    #my $overfl_mod = defined ($o_highperf) ? 18446744073709551616 : 4294967296;
+    my $overfl_mod = 4294967296;
+    
+    # $grefaAllIndizes is a indexed and sorteted list of all interfaces
+    for my $Index (@$grefaAllIndizes) {
+
+        my $overfl              = 0;
+        my $ppsErrIn            = 0;
+        my $ppsErrOut           = 0;
+        my $ppsDiscardIn        = 0;
+        my $ppsDiscardOut       = 0;
+        
+        # be sure that history exist
+        # then check if the counter is back to 0 after 2^32 / 2^64.
+        if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsInErr}->{"$Index"} 
+            and defined $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"}){ 
+                $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInErr}->{"$Index"} >=
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"} ) ? 0 : $overfl_mod;
+                $ppsErrIn = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInErr}->{"$Index"} -
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+        }
+        if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} 
+            and defined $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"}){ 
+                $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} >=
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"} ) ? 0 : $overfl_mod;
+                $ppsErrOut = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} -
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+        }
+        if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} 
+            and defined $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"}){ 
+                $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} >=
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"} ) ? 0 : $overfl_mod;
+                $ppsDiscardIn = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} -
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+        }
+        if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} 
+            and defined $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"}){ 
+                $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} >=
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} ) ? 0 : $overfl_mod;
+                $ppsDiscardOut = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} -
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+        }
+        
+        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
+
+        # compare against thresholds
+        my $pwarn = 0; 
+        my $pcrit = 0;
+        $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrIn}  = sprintf("%.2f", $ppsErrIn);
+        $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrOut} = sprintf("%.2f", $ppsErrOut);
+        if ($ppsErrIn > 0 or $ppsErrOut > 0) {
+            # just traffic light color codes for the lame
+            if ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'}) {
+                push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($oid_ifDescr));
+                $gPktErrCritCounter++;
+                $pcrit++;
+            } elsif ($ppsErrIn > $ghOptions{'warning-pkterr'} or $ppsErrOut > $ghOptions{'warning-pkterr'}) {
+                push @{$grefhListOfChanges->{'warning-pkterr'}}, trim(denormalize($oid_ifDescr));
+                $gPktErrWarnCounter++;
+                $pwarn++;
+            } 
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrInOutOfRange} = colorcode($ppsErrIn, $ghOptions{'warning-pkterr'}, $ghOptions{'critical-pkterr'});
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrOutOutOfRange} = colorcode($ppsErrOut, $ghOptions{'warning-pkterr'}, $ghOptions{'critical-pkterr'});
+        }
+        $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardIn}  = sprintf("%.2f", $ppsDiscardIn);
+        $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardOut} = sprintf("%.2f", $ppsDiscardOut);
+        if ($ppsDiscardIn > 0 or $ppsDiscardOut > 0) {
+            # just traffic light color codes for the lame
+            if ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'}) {
+                push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($oid_ifDescr));
+                $gPktDiscardCritCounter++;
+                $pcrit++;
+            } elsif ($ppsDiscardIn > $ghOptions{'warning-pktdiscard'} or $ppsDiscardOut > $ghOptions{'warning-pktdiscard'}) {
+                push @{$grefhListOfChanges->{'warning-pktdiscard'}}, trim(denormalize($oid_ifDescr));
+                $gPktDiscardWarnCounter++;
+                $pwarn++;
+            } 
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardInOutOfRange} = colorcode($ppsDiscardIn, $ghOptions{'warning-pktdiscard'}, $ghOptions{'critical-pktdiscard'});
+            $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardOutOutOfRange} = colorcode($ppsDiscardOut, $ghOptions{'warning-pktdiscard'}, $ghOptions{'critical-pktdiscard'});
+        }
+        # totals field
+        $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscard} = sprintf("%.0f/%.0f/%.0f/%.0f", $ppsErrIn, $ppsErrOut, $ppsDiscardIn, $ppsDiscardOut);
+        if ($pcrit > 0) {
+            $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscardOutOfRange} = 'red';
+        } elsif ($pwarn > 0) {
+            $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscardOutOfRange} = 'yellow';
+        }
+    }   
+    
     return 0;
 }
 
@@ -1911,13 +2053,15 @@ sub TimeDiff {
 # colorcode function to give a html color code between green and red for a given percent value
 # ------------------------------------------------------------------------
 sub colorcode {
-    my $ifLoad = $_[0];
+    my $current = shift;
+    my $warning = shift;
+    my $critical = shift;
     my $colorcode;
 
     # just traffic light color codes for the lame
-    if ($ifLoad < $ghOptions{ifloadwarn}) {            # green / ok
+    if ($current < $warning) {            # green / ok
         $colorcode = 'green';
-    } elsif ($ifLoad < $ghOptions{ifloadcrit}) {       # yellow / warn
+    } elsif ($current < $critical) {       # yellow / warn
         $colorcode = 'yellow';
     } else {                          # red / crit
         $colorcode = 'red';
@@ -1931,19 +2075,21 @@ sub colorcode {
         #   #FF0000 (red) at $crit % and over
 
         # first adjust the percent value according to the given warning and critical levels
-        if ($ifLoad <= $ghOptions{ifloadwarn}) {
-            $ifLoad = $ifLoad * 50 / $ghOptions{ifloadwarn};
-        } elsif ($ifLoad <= $ghOptions{ifloadcrit}) {
-            $ifLoad = $ifLoad * 100 / $ghOptions{ifloadcrit};
+        if ($current > 0) {
+            if ($current <= $warning) {
+                $current = $current * 50 / $warning;
+            } elsif ($current <= $critical) {
+                $current = $current * 100 / $critical;
+            }
         }
-        my $color = 5.12 * $ifLoad;      # (256+256) * $ifLoad / 100
+        my $color = 5.12 * $current;      # (256+256) * $current / 100
         if ($color > 512) { $color = 512 }
         my $red   = ($color > 255) ? 255 : $color;
         my $green = ($color < 255) ? 255 : -1 - (-1 * (512 - $color));
         $colorcode = sprintf "%2.2x%2.2x%2.2x", $red, $green, 0;
-        logger(2, " (Debug) colorcode: $colorcode, ifLoad: $ifLoad, color: $color, red: $red, green: $green");
-                # (Debug) colorcode: ff5f00, ifLoad: 81.1764679663113, color: 415.623515987514, red: 255, green: 95.3764840124863
-                # (Debug) colorcode: b8ff00, ifLoad: 36.0897789918691, color: 184.77966843837, red: 184.77966843837, green: 255
+        logger(2, " (Debug) colorcode: $colorcode, current: $current, color: $color, red: $red, green: $green");
+                # (Debug) colorcode: ff5f00, current: 81.1764679663113, color: 415.623515987514, red: 255, green: 95.3764840124863
+                # (Debug) colorcode: b8ff00, current: 36.0897789918691, color: 184.77966843837, red: 184.77966843837, green: 255
     }
     return $colorcode;
 }
@@ -2206,16 +2352,16 @@ sub print_usage () {
   Usage:
 
     * basic usage:
-      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
+      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
-        [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
+        [-w <warning change counter>] [-c <critical change counter>] [-W <warning load prct>] 
+        [-C <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
 
     * advanced usage:
-      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
+      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
         [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
-        [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
+        [-w <warning change counter>] [-c <critical change counter>] [-W <warning load prct>] 
+        [-C <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
         [--cachedir <caching directory>] [--statedir <state files directory>] [--vlan] [--cisco]
         [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
@@ -2242,7 +2388,7 @@ sub print_usage () {
     --hostdisplay | -h (optional)
         Specifies the remote host to display in the HTML link.
         If omitted, it defaults to the host with -H
-    --community | -C (required)
+    --community (required)
         Specifies the snmp v1 community string. Other snmp versions are not
         implemented yet.
     --exclude | -e (optional)
@@ -2270,9 +2416,9 @@ sub print_usage () {
         Number of property changes before leading to a warning alert
     --critical | -c (optional)
         Number of property changes before leading to a critical alert
-    --ifloadwarn | -W (optional)
+    --warning-load | -W (optional)
         Interface traffic load percentage leading to a warning alert 
-    --ifloadcrit | -C (optional)
+    --critical-load | -C (optional)
         Interface traffic load percentage leading to a critical alert 
     --enableperfdata | -f (optional)
         Enable port performance data, default is port perfdata disabled
@@ -2324,9 +2470,9 @@ sub print_usage () {
         ignored. Default is enabled.
     --timeout (optional)
         Define the timeout limit of the plugin.
-    --excludepropertytrack | -E (optional)
+    --exclude-property | -E (optional)
         Comma separated list of interfaces excluded from the property tracking. 
-    --includepropertytrack | -I (optional)
+    --include-property | -I (optional)
         Comma separated list of interfaces included in the property tracking. 
         By default, all the interfaces that are tracked are included. But there are some 
         case where you need to include an interface which is part of a group of previously 
@@ -2395,8 +2541,10 @@ sub check_options () {
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'excludeloadtrack|e=s@',                # list of interfaces excluded from the load tracking
-        'includeloadtrack|i=s@',                # list of interfaces included in the load tracking
+        'exclude-traffic|et=s@',                       # list of interfaces excluded from the load tracking
+        'include-traffic|it=s@',                       # list of interfaces included in the load tracking
+        'warning|wt=s',
+        'critical|ct=s',
         'community=s',                          # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
@@ -2406,17 +2554,14 @@ sub check_options () {
         'cisco',                                # Add cisco specific info in the info table
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
-        'track|t=s@',                           # list of exclued properties
-        'excludepropertytrack|E=s@',            # list of interfaces excluded from the property tracking
-        'includepropertytrack|I=s@',            # list of interfaces included in the property tracking
+        'trackprop|tp=s@',                      # list of tracked properties
+        'exclude-property|ep=s@',                       # list of interfaces excluded from the property tracking
+        'include-property|ip=s@',                       # list of interfaces included in the property tracking
+        'warning-property|wp=i',
+        'critical-property|cp=i',
         'snapshot!',
         'version|V',
         'regexp|r',
-        'timeout=i',
-        'warning|w=i',
-        'critical|c=i',
-        'ifloadwarn|W=i',
-        'ifloadcrit|C=i',
         'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...). 
                                                 # By default, the plugin returns general counts (nb ports, nb changes,...) 
                                                 # + what changes has been detected
@@ -2425,7 +2570,16 @@ sub check_options () {
         'perfdatashort',                        # restrict the performance data to the global statistics. Statistics specific 
                                                 # to each interfaces will be not returned.
         'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
-        'grapherurl'                            # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
+        'grapherurl',                           # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
+        # SNMP related
+        'port|p=i',
+        'community|C=s',
+        'v2c|2',
+        'snmp-login|l=s',
+        'passwd|x=s',
+        'privpass|X=s',
+        'protocols|L=s',
+        'timeout|t=i'
         );
     # Default option values
     %ghOptions = (
@@ -2439,8 +2593,10 @@ sub check_options () {
         'accessmethod'              => "ssh",
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
-        'excludeloadtrack'          => undef,
-        'includeloadtrack'          => undef,
+        'exclude-traffic'           => undef,
+        'include-traffic'           => undef,
+        'warning'                   => "101,0,0",
+        'critical'                  => "101,0,0",
         'community'                 => "public",
         'delta'                     => 600,
         'ifs'                       => ',',
@@ -2452,14 +2608,12 @@ sub check_options () {
         'human'                     => 1,
         'snapshot'                  => 0,
         'track'                     => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
-        'excludepropertytrack'      => undef,
-        'includepropertytrack'      => undef,
+        'exclude-property'          => undef,
+        'include-property'          => undef,
+        'warning-property'          => 0,
+        'critical-property'         => 0,
         'regexp'                    => 0,
         'timeout'                   => $TIMEOUT,
-        'warning'                   => 0,
-        'critical'                  => 0,
-        'ifloadwarn'                => 101,
-        'ifloadcrit'                => 101,
         'outputshort'               => 0,
         'enableperfdata'            => 0,
         'portperfunit'              => "bit",
@@ -2536,13 +2690,13 @@ sub check_options () {
         $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
     }
     # organizing excluded/included interfaces for load tracking
-    if (exists $commandline{excludeloadtrack}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludeloadtrack}}));
-        $ghOptions{'excludeloadtrack'} = \@tmparray;
+    if (exists $commandline{'exclude-traffic'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-traffic'}}));
+        $ghOptions{'exclude-traffic'} = \@tmparray;
     } 
-    if (exists $commandline{includeloadtrack}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includeloadtrack}}));
-        $ghOptions{'includeloadtrack'} = \@tmparray;
+    if (exists $commandline{'include-traffic'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-traffic'}}));
+        $ghOptions{'include-traffic'} = \@tmparray;
     }
     # organizing tracked fields
     if (exists $commandline{track}) {
@@ -2550,13 +2704,13 @@ sub check_options () {
         $ghOptions{'track'} = \@tmparray;
     }
     # organizing excluded/included interfaces for property(ies) tracking
-    if (exists $commandline{excludepropertytrack}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{excludepropertytrack}}));
-        $ghOptions{'excludepropertytrack'} = \@tmparray;
+    if (exists $commandline{'exclude-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-property'}}));
+        $ghOptions{'exclude-property'} = \@tmparray;
     } 
-    if (exists $commandline{includepropertytrack}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{includepropertytrack}}));
-        $ghOptions{'includepropertytrack'} = \@tmparray;
+    if (exists $commandline{'include-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-property'}}));
+        $ghOptions{'include-property'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
@@ -2597,15 +2751,25 @@ sub check_options () {
     if (exists $commandline{warning}) {
         $ghOptions{'warning'} = "$commandline{warning}";
     }
+    my @tmparray2=split(/,/,$ghOptions{'warning'});
+    if ($#tmparray2 != 2) {
+        print "3 warning levels needed! (i.e. --warning 101,0,0)";
+        exit $ERRORS{"UNKNOWN"};
+    }
+    $ghOptions{'warning-load'} = $tmparray2[0];
+    $ghOptions{'warning-pkterr'} = $tmparray2[1];
+    $ghOptions{'warning-pktdiscard'} = $tmparray2[2];
     if (exists $commandline{critical}) {
         $ghOptions{'critical'} = "$commandline{critical}";
     }
-    if (exists $commandline{ifloadwarn}) {
-        $ghOptions{ifloadwarn} = "$commandline{ifloadwarn}";
+    my @tmparray3=split(/,/,$ghOptions{'critical'});
+    if ($#tmparray3 != 2) {
+        print "3 critical levels needed! (i.e. --critical 101,0,0)";
+        exit $ERRORS{"UNKNOWN"};
     }
-    if (exists $commandline{ifloadcrit}) {
-        $ghOptions{ifloadcrit} = "$commandline{ifloadcrit}";
-    }
+    $ghOptions{'critical-load'} = $tmparray3[0];
+    $ghOptions{'critical-pkterr'} = $tmparray3[1];
+    $ghOptions{'critical-pktdiscard'} = $tmparray3[2];
     if (exists $commandline{outputshort}) {
         $ghOptions{'outputshort'} = 1;
     }
@@ -2852,13 +3016,13 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  This option is maybe useful when you want to poll a host with -H and display
  another link for it.
  
-=head3 --community | -C (required)
+=head3 --community (required)
 
  Default = public
  Specifies the snmp v1 community string. Other snmp versions are not
  implemented yet.
 
-=head3 --excludeloadtrack | -e (optional)
+=head3 --exclude-traffic | -e (optional)
 
  Comma separated list of interfaces excluded from load tracking (main check). Can 
  be used to exclude:
@@ -2870,7 +3034,7 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  
  Note: if --regexp is not used, the interface descriptions must match exactly!
 
-=head3 --includeloadtrack | -i (optional)
+=head3 --include-traffic | -i (optional)
 
  Comma separated list of interfaces included in load tracking (main check). By 
  default, all the interfaces are included. But there are some case where you 
@@ -2917,11 +3081,11 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  Leads to CRITICAL (exit code 2) when one or more interface properties were
  changed.
 
-=head3 --ifloadwarn | -W (optional)
+=head3 --warning-load | -W (optional)
 
  Interface traffic load percentage leading to a warning alert 
 
-=head3 --ifloadcrit | -C (optional)
+=head3 --critical-load | -C (optional)
 
  Interface traffic load percentage leading to a critical alert 
 
@@ -3008,11 +3172,11 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
  Define the timeout limit of the plugin.
 
-=head3 --excludepropertytrack | -E (optional)
+=head3 --exclude-property | -E (optional)
 
  Comma separated list of interfaces excluded from the property tracking.
  
-=head3 --includepropertytrack | -I (optional)
+=head3 --include-property | -I (optional)
 
  Comma separated list of interfaces included in the property tracking. 
  By default, all the interfaces that are included in the load tracking (-i option) are
