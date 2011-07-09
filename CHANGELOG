@@ -39,6 +39,22 @@
 #    - change: commonly used options are now default.
 #    - change: detailed output and performance data (if enabled) are now default (use 
 #      of outputshort/perfdatashort options to reduce them).
+#    - feature: error/discard packets:
+#      * checked against thresholds (rates)
+#      * presented via a specific column in the interface table. Cell background color changes in case of warning/critical state
+#    - change: new format for warning & critical commandline options: --warning/--critical <load%>,<pkterr/s>,<pktdiscard/s>
+#      for more simplicity, 
+#       1. unique threshold for in/out statistics (ex: loadin/loadout)
+#       2. one option for all traffic checks (load, pkt errors, pkt discards) to avoid too many options
+#      ex: --warning 50,0,0 --critical 80,100,100
+#    - enhancement: colorcode function standardized for other use (not only for load statistics)
+#    - change: some options renamed, but will certainly change again
+#
+#   ----------------------------------------------------------------------
+# * 0.02-2 (bugfix release)
+#   ----------------------------------------------------------------------
+#    - bugfix: fixed problem with the grapher options
+#    - bugfix: the "exclude/includeportperf" options now work
 #
 #   ----------------------------------------------------------------------
 # * 0.02-1 (bugfix release)

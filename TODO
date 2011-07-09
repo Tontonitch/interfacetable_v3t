@@ -19,9 +19,11 @@
 #           an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
 # IN PROG - info table (first table) building way review for more flexibility
 # IN PROG - review general structure of the plugin
-#         - see if the short (old) plugin output is really relevant or can be 
+# DONE    - see if the short (old) plugin output is really relevant or can be 
 #           simply replaced by the long output
-#         - add check and threshold options for packet errors/discards
+#           -> long output is now default, unique --outputshort and --perfdatashort
+               options are now in place to switch to less detailed outputs
+# DONE    - add check and threshold options for packet errors/discards
 #         - check and remove the % character if any in the commandline arguments
 # DONE    - dissociate load calculation/checking from port perfdata selection
 #           -> to allow to select particular interface for properties tracking,
