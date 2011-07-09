@@ -2757,6 +2757,7 @@ sub check_options () {
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'warning-load'} = $tmparray2[0];
+    $ghOptions{'warning-load'} =~ s/%$//;
     $ghOptions{'warning-pkterr'} = $tmparray2[1];
     $ghOptions{'warning-pktdiscard'} = $tmparray2[2];
     if (exists $commandline{critical}) {
@@ -2768,6 +2769,7 @@ sub check_options () {
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'critical-load'} = $tmparray3[0];
+    $ghOptions{'critical-load'} =~ s/%$//;
     $ghOptions{'critical-pkterr'} = $tmparray3[1];
     $ghOptions{'critical-pktdiscard'} = $tmparray3[2];
     if (exists $commandline{outputshort}) {

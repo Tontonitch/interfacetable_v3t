@@ -49,6 +49,7 @@
 #      ex: --warning 50,0,0 --critical 80,100,100
 #    - enhancement: colorcode function standardized for other use (not only for load statistics)
 #    - change: some options renamed, but will certainly change again
+#    - enhancement: check and remove the % character if any in some commandline arguments
 #
 #   ----------------------------------------------------------------------
 # * 0.02-2 (bugfix release)

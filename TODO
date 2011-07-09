@@ -24,7 +24,7 @@
 #           -> long output is now default, unique --outputshort and --perfdatashort
                options are now in place to switch to less detailed outputs
 # DONE    - add check and threshold options for packet errors/discards
-#         - check and remove the % character if any in the commandline arguments
+# DONE    - check and remove the % character if any in some commandline arguments
 # DONE    - dissociate load calculation/checking from port perfdata selection
 #           -> to allow to select particular interface for properties tracking,
 #              while the other interfaces are still checked for traffic load and
