@@ -39,7 +39,12 @@
 #    - change: commonly used options are now default.
 #    - change: detailed output and performance data (if enabled) are now default (use 
 #      of outputshort/perfdatashort options to reduce them).
-#    - bugfix: fixed redondant short option, forcing conversion of oper/admin status from integer to string
+#
+#   ----------------------------------------------------------------------
+# * 0.02-1 (bugfix release)
+#   ----------------------------------------------------------------------
+#    - bugfix: fixed redondant short options
+#    - bugfix: forcing conversion of oper/admin status from integer to string
 #    - bugfix: fixed a variable substitution in interface evaluation
 # 
 #   ----------------------------------------------------------------------

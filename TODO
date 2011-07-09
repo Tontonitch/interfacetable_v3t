@@ -13,7 +13,8 @@
 #           against the use of unix snmpwalk
 # IN PROG - rewrite the way the fields in the info table are selected for more 
 #           flexibility
-#         - snmp v2c / v3 support
+#         - snmp v2c & v3 support
+#         - think about the use 64 bits counters
 #         - extend the debug with new debug levels. Might be in the model of 
 #           an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
 # IN PROG - info table (first table) building way review for more flexibility
@@ -34,5 +35,7 @@
 #           stylesheet. To allow easier customisation of the generated html page.
 #         - config file
 #         - nagiosxi css
+#         - add STP info
+#         - add Cisco specific port info
 # 
 # ========================================================================
