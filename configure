@@ -274,7 +274,7 @@ PACKAGE_STRING='interfacetable_v3t 0.03'
 PACKAGE_BUGREPORT='tontonitch-pro@yahoo.fr'
 
 ac_default_prefix=/usr/local/interfacetable_v3t
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS DEFAULT_USER DEFAULT_GROUP build build_cpu build_vendor build_os host host_cpu host_vendor host_os PKG_NAME PKG_VERSION PKG_HOME_URL PKG_REL_DATE SET_MAKE STRIP CP TOUCH GREP PERL SNMPGET SNMPWALK SUDO INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL nagios_user nagios_grp INSTALL_OPTS nagios_base nagios_libexec cachedir statedir htmldir htmlurl cgidir cgiurl httpd_conf apache_user apache_authname sudoers LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS DEFAULT_USER DEFAULT_GROUP build build_cpu build_vendor build_os host host_cpu host_vendor host_os PKG_NAME PKG_VERSION PKG_HOME_URL PKG_REL_DATE SET_MAKE STRIP CP TOUCH GREP PERL SNMPGET SNMPWALK SUDO INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA INSTALL nagios_user nagios_grp INSTALL_OPTS nagios_base nagios_libexec cachedir statedir htmldir htmlurl cgidir cgiurl grapher grapher_url httpd_conf apache_user apache_authname sudoers LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -801,6 +801,8 @@ Optional Packages:
   --with-htmlurl=<local-url>                     Sets interface table URL location
   --with-cgidir=/path/to/cgi/dir                 Sets software cgi programs directory
   --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs
+  --with-grapher=<solution name>                      Sets the graphing solution which will be in charge of processing the performance data
+  --with-grapher-url=<grapher-url>                      Sets URL to the graphing solution web interface
   --with-httpd-conf=<path_to_conf>               Sets path to Apache conf.d directory
   --with-apache-user=<user>                      Sets path Apache runs with
   --with-apache-authname=<authname>              Sets value of AuthName directive in Apache config
@@ -1357,7 +1359,7 @@ host_os=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 PKG_NAME=interfacetable_v3t
 PKG_VERSION="0.03"
 PKG_HOME_URL="http://www.tontonitch.com"
-PKG_REL_DATE="XX-06-2011"
+PKG_REL_DATE="XX-XX-2011"
 
 
 
@@ -1968,12 +1970,40 @@ else
   cgiurl=/interfacetable_v3t/cgi-bin
 fi;
 
+# Check whether --with-grapher or --without-grapher was given.
+if test "${with_grapher+set}" = set; then
+  withval="$with_grapher"
+  grapher=$withval
+else
+  grapher=pnp4nagios
+fi;
+
+# Check whether --with-grapher_url or --without-grapher_url was given.
+if test "${with_grapher_url+set}" = set; then
+  withval="$with_grapher_url"
+  grapher_url=$withval
+else
+  grapher_url=none
+fi;
 
 
 
 
 
 
+
+
+
+
+if test x$grapher_url = xnone; then
+	if test x$grapher = xpnp4nagios; then
+		grapher_url="/pnp4nagios"
+	elif test x$grapher = xnagiosgrapher; then
+		grapher_url="/nagios/cgi-bin"
+	elif test x$grapher = xnetwaysgrapherv2; then
+		grapher_url="/nagios/cgi-bin"
+	fi
+fi
 
 
 HTTP_CONF=no
@@ -2739,6 +2769,8 @@ s,@htmldir@,$htmldir,;t t
 s,@htmlurl@,$htmlurl,;t t
 s,@cgidir@,$cgidir,;t t
 s,@cgiurl@,$cgiurl,;t t
+s,@grapher@,$grapher,;t t
+s,@grapher_url@,$grapher_url,;t t
 s,@httpd_conf@,$httpd_conf,;t t
 s,@apache_user@,$apache_user,;t t
 s,@apache_authname@,$apache_authname,;t t
@@ -3061,6 +3093,16 @@ echo "$as_me:$LINENO: result:                      Apache AuthName:  $apache_aut
 echo "${ECHO_T}                     Apache AuthName:  $apache_authname" >&6
 echo "$as_me:$LINENO: result:                         Sudoers file:  $sudoers" >&5
 echo "${ECHO_T}                        Sudoers file:  $sudoers" >&6
+
+echo ""
+echo " Graphing Options:"
+echo " -------------------------"
+
+echo "$as_me:$LINENO: result:               Graphing solution name:  $grapher" >&5
+echo "${ECHO_T}              Graphing solution name:  $grapher" >&6
+echo "$as_me:$LINENO: result:                Graphing solution url:  $grapher_url" >&5
+echo "${ECHO_T}               Graphing solution url:  $grapher_url" >&6
+
 echo ""
 echo ""
 echo "Review the options above for accuracy.  If they look okay,"

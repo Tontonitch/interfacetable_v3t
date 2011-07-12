@@ -57,6 +57,8 @@ my ${cgiurl}="@cgiurl@";
 my ${libdir}="@prefix@/lib";
 my ${etcdir}="@prefix@/etc";
 my ${sharedir}="@prefix@/share";
+my ${grapher}="@grapher@";
+my ${grapher_url}="@grapher_url@";
 
 #================================#
 # Variable substitution
@@ -119,7 +121,9 @@ while ($f = shift @ARGV) {
         s|\@libdir\@|$libdir|g;
         s|\@etcdir\@|$etcdir|g;
         s|\@sharedir\@|$sharedir|g;        
-		print OUT $_;
+		s|\@grapher\@|$grapher|g;
+        s|\@grapher_url\@|$grapher_url|g;
+        print OUT $_;
 	}
 
 	close IN;

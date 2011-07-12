@@ -124,6 +124,7 @@ my $oid_ipAdEntNetMask          = ".1.3.6.1.2.1.4.20.1.3";
 # Other global variables
 # ------------------------------------------------------------------------
 my %ghOptions = ();
+my %ghSNMPOptions = ();
 
 # ========================================================================
 # FUNCTION DECLARATIONS
@@ -214,7 +215,7 @@ my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";
 
 # If -snapshot is set or DisableTrackingChanges is disabled on all interfaces
 # we dont track changes
-if (($ghOptions{'track'} and ($ghOptions{'track'}[0] eq "NONE")) or $ghOptions{'snapshot'}) {
+if (($ghOptions{'track-property'} and ($ghOptions{'track-property'}[0] eq "NONE")) or $ghOptions{'snapshot'}) {
     $gInitialRun = 1;
 }
 
@@ -231,19 +232,19 @@ logger(3, "grefhFile:".Dumper ($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 if ($ghOptions{'cisco'}) { 
-    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName","$oid_cisco_type","$oid_cisco_serial" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{sysDescr}     = "$grefhSNMP->{$oid_sysDescr}";
     $grefhCurrent->{MD}->{sysName}      = "$grefhSNMP->{$oid_sysName}";
     $grefhCurrent->{MD}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
     $grefhCurrent->{MD}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_serial}";
 } else {
-    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
     $grefhCurrent->{MD}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
 }    
 
 # get lines with interface oper status - no caching !
-$grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifOperStatus,$ghOptions{'cachedir'},0);
+$grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 if ($#$grefaOperStatusLines < 0 ) {
     print "$0: Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
@@ -253,42 +254,42 @@ if ($#$grefaOperStatusLines < 0 ) {
 # Get lines with interface octet counters - no caching !
 
 # -> Octets in
-$grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_octet_table,$ghOptions{'cachedir'},0);
+$grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetInLines < 0 ) {
     print "$0: Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Octets out
-$grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_octet_table,$ghOptions{'cachedir'},0);
+$grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetOutLines < 0 ) {
     print "$0: Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors in
-$grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_error_table,$ghOptions{'cachedir'},0);
+$grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInErrorsLines < 0 ) {
     print "$0: Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors out
-$grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_error_table,$ghOptions{'cachedir'},0);
+$grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutErrorsLines < 0 ) {
     print "$0: Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards in
-$grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_in_discard_table,$ghOptions{'cachedir'},0);
+$grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInDiscardsLines < 0 ) {
     print "$0: Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards out
-$grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_out_discard_table,$ghOptions{'cachedir'},0);
+$grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutDiscardLines < 0 ) {
     print "$0: Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
     exit $ERRORS{"UNKNOWN"};
@@ -303,7 +304,7 @@ Get_IfDiscardInOut ($grefaOutDiscardLines, "PktsOutDiscard");
 
 
 # get lines with ip addresses - no caching !
-$grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
+$grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
 
 # extract ifIndex and ifOperStatus out of the lines and get the
 # ifDescription from the net or from cache
@@ -337,8 +338,8 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 #    generating a false alert)
 
 $grefhCurrent = EvaluateInterfaces (
-    $ghOptions{'exclude-traffic'},
-    $ghOptions{'include-traffic'},
+    $ghOptions{'exclude'},
+    $ghOptions{'include'},
     $ghOptions{'exclude-property'},
     $ghOptions{'include-property'}
     );
@@ -451,7 +452,7 @@ if ($ghOptions{'cisco'}) {
 # do not compare ifDescr and ifIndex because they can change during reboot
 # Field list: index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic
 #
-$grefaInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{track});
+$grefaInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{'track-property'});
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -920,7 +921,7 @@ sub GenerateHtmlTable {
 #  * interface property(ies) change tracking
 #
 # Interface traffic load tracking:
-# All interfaces which are excluded using -e or --exclude-traffic will be
+# All interfaces which are excluded using -e or --exclude will be
 # excluded from traffic measurement (main check). Property(ies) tracking is
 # implicitely disabled on such an interface.
 #
@@ -1069,7 +1070,7 @@ sub GetUptime {
 
     my $Value = SnmpGetV1 ({
         -hostname   => "$ghOptions{'hostquery'}",
-        -community  => "$ghOptions{'community'}",
+        -community  => "$ghSNMPOptions{'community'}",
         -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
         OID         => $refaOID,
         CacheDir    => "$ghOptions{'cachedir'}",
@@ -1107,13 +1108,13 @@ sub Get_OperStatus_Description_Index {
         
         logger(1, "Index = $Index $gLongCacheTimer");
         # read the interface description with the index extracted above
-        my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+        my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 
         # check an empty interface description and add a new description
         # this occurs on some devices (e.g. HP procurve switches)
         if ("$Desc" eq "") {
             # read the MAC address of the interface - independend if it has one or not
-            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
+            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
             $Desc = "($MacAddress)";
             logger(1, "Interface with index $Index has no description.\nSet it to $Desc");
         }
@@ -1129,7 +1130,7 @@ sub Get_OperStatus_Description_Index {
             my $Text; # dummy text for uniq if description
 
             # read the MAC address of the interface
-            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
+            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
 
             # check if we got back a MAC Address - otherwise take the interface
             # index - this could only lead to problems where index is changed
@@ -1639,9 +1640,9 @@ sub Get_IpAddress_SubnetMask {
     # read the subnet masks with caching 0 only if the ip addresses
     # have changed
     if (defined $grefhFile->{MD}->{SnmpIpInfo} and $grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
-        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
+        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
     } else {
-        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
+        $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
     }
 
     # Example lines:
@@ -1802,7 +1803,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
         # get next interface properties with caching to avoid network load
         my $refhSNMP = GetMultipleDataWithSnmp (
-            $ghOptions{'hostquery'},$ghOptions{'community'},[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index","$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+            $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index","$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
 
         # store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
@@ -1826,9 +1827,9 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
     if ($ghOptions{vlan}) { # show VLANs per port
 
-        my $VlanNames = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanName,$ghOptions{'cachedir'},0);
-        my $VlanPortHP = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
-        my $VlanPortCisco = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},$ghOptions{'community'},$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
+        my $VlanNames = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
+        my $VlanPortHP = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
+        my $VlanPortCisco = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
 
         # store Vlan names in a hash
         my %vlanname;
@@ -2531,18 +2532,20 @@ sub support () {
 sub check_options () {
     my %commandline = ();
     my @params = (
-        'hostdisplay|h=s',
-        'hostquery|H=s',
+        #------- general options --------#
         'help|?',
         'verbose|v+',
         'showdefaults|D',						# print all option default values
+        #--- plugin specific options ----#
+        'hostquery|H=s',
+        'hostdisplay|h=s',
         'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'exclude-traffic|et=s@',                       # list of interfaces excluded from the load tracking
-        'include-traffic|it=s@',                       # list of interfaces included in the load tracking
+        'exclude|et=s@',                       # list of interfaces excluded from the load tracking
+        'include|it=s@',                       # list of interfaces included in the load tracking
         'warning|wt=s',
         'critical|ct=s',
         'community=s',                          # community string
@@ -2554,7 +2557,7 @@ sub check_options () {
         'cisco',                                # Add cisco specific info in the info table
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
-        'trackprop|tp=s@',                      # list of tracked properties
+        'track-property|tp=s@',                      # list of tracked properties
         'exclude-property|ep=s@',                       # list of interfaces excluded from the property tracking
         'include-property|ip=s@',                       # list of interfaces included in the property tracking
         'warning-property|wp=i',
@@ -2565,27 +2568,37 @@ sub check_options () {
         'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...). 
                                                 # By default, the plugin returns general counts (nb ports, nb changes,...) 
                                                 # + what changes has been detected
+        #------- performance data -------#
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
         'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
         'perfdatashort',                        # restrict the performance data to the global statistics. Statistics specific 
                                                 # to each interfaces will be not returned.
         'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl',                           # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
-        # SNMP related
+        #-------- SNMP related ----------#
         'port|p=i',
         'community|C=s',
         'v2c|2',
-        'snmp-login|l=s',
+        'login|l=s',
         'passwd|x=s',
         'privpass|X=s',
         'protocols|L=s',
         'timeout|t=i'
         );
-    # Default option values
+    # gathering commandline options
+    if (! GetOptions(\%commandline, @params)) {
+        print_help();
+        exit $ERRORS{UNKNOWN};
+    }
+    
+    #====== Configuration hashes ======#
+    # Default values: general options
     %ghOptions = (
+        #------- general options --------#
         'help'                      => 0,
         'verbose'                   => 0,
         'showdefaults'              => 0,
+        #--- plugin specific options ----#
         'hostquery'                 => '',
         'hostdisplay'               => '',
         'cachedir'                  => "@cachedir@",
@@ -2593,11 +2606,10 @@ sub check_options () {
         'accessmethod'              => "ssh",
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
-        'exclude-traffic'           => undef,
-        'include-traffic'           => undef,
+        'exclude'           => undef,
+        'include'           => undef,
         'warning'                   => "101,0,0",
         'critical'                  => "101,0,0",
-        'community'                 => "public",
         'delta'                     => 600,
         'ifs'                       => ',',
         'cache'                     => 3600,
@@ -2613,26 +2625,26 @@ sub check_options () {
         'warning-property'          => 0,
         'critical-property'         => 0,
         'regexp'                    => 0,
-        'timeout'                   => $TIMEOUT,
+        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
         'outputshort'               => 0,
+        #------- performance data -------#
         'enableperfdata'            => 0,
         'portperfunit'              => "bit",
         'perfdatashort',            => 0,
-        'grapher'                   => "pnp4nagios",
-        'grapherurl'                => ""
+        'grapher'                   => "@grapher@",
+        'grapherurl'                => "@grapher_url@"
     );
-    # set the default grapher url depending to the selected grapher
-    my %defaultgrapherurl = (
-        'pnp4nagios'        => '/pnp4nagios', 
-        'nagiosgrapher'     => '/nagios/cgi-bin',
-        'netwaysgrapherv2'  => '/nagios/cgi-bin'
-        );
-    $ghOptions{'grapherurl'} = "$defaultgrapherurl{$ghOptions{grapher}}";
-    # gathering commandline options
-    if (! GetOptions(\%commandline, @params)) {
-        print_help();
-        exit $ERRORS{UNKNOWN};
-    }
+    # Default values: snmp options
+    %ghSNMPOptions = (
+        'port'                      => 161,
+        'community'                 => "public",
+        'version'                   => "1",         # 1, 2c, 3
+        'login'                     => "",
+        'passwd'                    => "",
+        'privpass'                  => "",
+        'protocols'                 => "",
+        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
+    );
     ### mandatory commandline options: hostquery
     # applying commandline options
     if (exists $commandline{verbose}) {
@@ -2690,18 +2702,18 @@ sub check_options () {
         $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
     }
     # organizing excluded/included interfaces for load tracking
-    if (exists $commandline{'exclude-traffic'}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-traffic'}}));
-        $ghOptions{'exclude-traffic'} = \@tmparray;
+    if (exists $commandline{'exclude'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude'}}));
+        $ghOptions{'exclude'} = \@tmparray;
     } 
-    if (exists $commandline{'include-traffic'}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-traffic'}}));
-        $ghOptions{'include-traffic'} = \@tmparray;
+    if (exists $commandline{'include'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include'}}));
+        $ghOptions{'include'} = \@tmparray;
     }
     # organizing tracked fields
-    if (exists $commandline{track}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{track}}));
-        $ghOptions{'track'} = \@tmparray;
+    if (exists $commandline{'track-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'track-property'}}));
+        $ghOptions{'track-property'} = \@tmparray;
     }
     # organizing excluded/included interfaces for property(ies) tracking
     if (exists $commandline{'exclude-property'}) {
@@ -2720,9 +2732,6 @@ sub check_options () {
     }
     if (exists $commandline{htmltableurl}) {
         $ghOptions{'htmltableurl'} = "$commandline{htmltableurl}";
-    }
-    if (exists $commandline{community}) {
-        $ghOptions{'community'} = "$commandline{community}";
     }
     if (exists $commandline{delta}) {
         $ghOptions{'delta'} = "$commandline{delta}";
@@ -2782,13 +2791,43 @@ sub check_options () {
     }
     if (exists $commandline{grapherurl}) {
         $ghOptions{'grapherurl'} = "$commandline{grapherurl}";
-    } else {
-        $ghOptions{'grapherurl'} = "$defaultgrapherurl{$ghOptions{grapher}}";
     }
     
+    #-------- SNMP related ----------#
+    if (exists $commandline{port}) {
+        $ghSNMPOptions{'port'} = "$commandline{port}";
+    }
+    if (exists $commandline{community}) {
+        $ghSNMPOptions{'community'} = "$commandline{community}";
+    }
+    if (exists $commandline{v2c}) {
+        $ghSNMPOptions{'version'} = "2";
+    } elsif (exists $commandline{login}) {
+        $ghSNMPOptions{'version'} = "3";
+    } else {
+        $ghSNMPOptions{'version'} = "1";
+    }
+    if (exists $commandline{login}) {
+        $ghSNMPOptions{'login'} = "$commandline{login}";
+    }
+    if (exists $commandline{passwd}) {
+        $ghSNMPOptions{'passwd'} = "$commandline{passwd}";
+    }
+    if (exists $commandline{privpass}) {
+        $ghSNMPOptions{'privpass'} = "$commandline{privpass}";
+    }
+    if (exists $commandline{protocols}) {
+        $ghSNMPOptions{'protocols'} = "$commandline{protocols}";
+    }
+    if (exists $commandline{timeout}) {
+        $ghSNMPOptions{'timeout'} = "$commandline{timeout}";
+        $TIMEOUT = $ghSNMPOptions{'timeout'};
+    }   
+    
     # print the options in command line, and the resulting full option hash
-    logger(3, "commandline\n".Dumper(\%commandline));
-    logger(3, "options\n".Dumper(\%ghOptions));
+    logger(3, "commandline: \n".Dumper(\%commandline));
+    logger(3, "general options: \n".Dumper(\%ghOptions));
+    logger(3, "snmp options: \n".Dumper(\%ghSNMPOptions));
 }
 
 __END__
@@ -3024,7 +3063,7 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  Specifies the snmp v1 community string. Other snmp versions are not
  implemented yet.
 
-=head3 --exclude-traffic | -e (optional)
+=head3 --exclude | -e (optional)
 
  Comma separated list of interfaces excluded from load tracking (main check). Can 
  be used to exclude:
@@ -3036,7 +3075,7 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
  
  Note: if --regexp is not used, the interface descriptions must match exactly!
 
-=head3 --include-traffic | -i (optional)
+=head3 --include | -i (optional)
 
  Comma separated list of interfaces included in load tracking (main check). By 
  default, all the interfaces are included. But there are some case where you 

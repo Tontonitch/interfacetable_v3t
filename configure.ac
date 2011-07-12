@@ -22,7 +22,7 @@ AC_CANONICAL_HOST
 PKG_NAME=interfacetable_v3t
 PKG_VERSION="0.03"
 PKG_HOME_URL="http://www.tontonitch.com"
-PKG_REL_DATE="XX-06-2011"
+PKG_REL_DATE="XX-XX-2011"
 AC_SUBST(PKG_NAME)
 AC_SUBST(PKG_VERSION)
 AC_SUBST(PKG_HOME_URL)
@@ -125,6 +125,8 @@ AC_ARG_WITH(htmldir,      [  --with-htmldir=/path/to/html/dir               Sets
 AC_ARG_WITH(htmlurl,      [  --with-htmlurl=<local-url>                     Sets interface table URL location],htmlurl=$withval,htmlurl=/interfacetable_v3t)
 AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets software cgi programs directory],cgidir=$withval,cgidir=${prefix}/sbin)
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
+AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data],grapher=$withval,grapher=pnp4nagios)
+AC_ARG_WITH(grapher_url,  [  --with-grapher-url=<grapher-url>               Sets URL to the graphing solution web interface],grapher_url=$withval,grapher_url=none)
 AC_SUBST(nagios_base)
 AC_SUBST(nagios_libexec)
 AC_SUBST(cachedir)
@@ -133,6 +135,19 @@ AC_SUBST(htmldir)
 AC_SUBST(htmlurl)
 AC_SUBST(cgidir)
 AC_SUBST(cgiurl)
+AC_SUBST(grapher)
+
+dnl In case not specified, adapt the grapher url depending on the selected grapher
+if test x$grapher_url = xnone; then
+	if test x$grapher = xpnp4nagios; then
+		grapher_url="/pnp4nagios"
+	elif test x$grapher = xnagiosgrapher; then
+		grapher_url="/nagios/cgi-bin"
+	elif test x$grapher = xnetwaysgrapherv2; then
+		grapher_url="/nagios/cgi-bin"
+	fi
+fi
+AC_SUBST(grapher_url)
 
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
@@ -193,7 +208,7 @@ AC_SUBST(sudoers)
 
 AC_CONFIG_FILES(
 	subst
-    Makefile 
+	Makefile 
 	sbin/Makefile
 	etc/Makefile 
 	lib/Makefile 
@@ -234,6 +249,14 @@ AC_MSG_RESULT([                   Apache conf.d Dir:  $httpd_conf])
 AC_MSG_RESULT([                         Apache User:  $apache_user])
 AC_MSG_RESULT([                     Apache AuthName:  $apache_authname])
 AC_MSG_RESULT([                        Sudoers file:  $sudoers])
+
+echo ""
+echo " Graphing Options:"
+echo " -------------------------"
+
+AC_MSG_RESULT([              Graphing solution name:  $grapher])
+AC_MSG_RESULT([               Graphing solution url:  $grapher_url])
+
 echo ""
 echo ""
 echo "Review the options above for accuracy.  If they look okay,"
