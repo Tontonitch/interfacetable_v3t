@@ -2079,8 +2079,10 @@ sub colorcode {
         if ($current > 0) {
             if ($current <= $warning) {
                 $current = $current * 50 / $warning;
-            } elsif ($current <= $critical) {
+            } elsif ($current < $critical) {
                 $current = $current * 100 / $critical;
+            } elsif ($current >= $critical) {
+               $current = 99.99;
             }
         }
         my $color = 5.12 * $current;      # (256+256) * $current / 100
