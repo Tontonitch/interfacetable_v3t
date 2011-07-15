@@ -83,7 +83,7 @@ if(($display_errors == 1) && (isset($RRDFILE[4]))){
     $num_graph++;
     $ds_name[$num_graph] = 'Error/discard packets';
     $opt[$num_graph] = " --vertical-label \"pkts/s\" -b 1000 --title \"Error/discard packets for $hostname / $servicedesc\" ";
-    $opt[$num_graph] .= "--watermark=\"Template: check_snmp_netint.php by Yannick Charton\" ";
+    $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_octet.php by Yannick Charton\" ";
     $def[$num_graph] = "";
     $def[$num_graph] .= rrd::def     ("pkt_in_err", $RRDFILE[4], $DS[4], "AVERAGE");
     $def[$num_graph] .= rrd::def     ("pkt_out_err", $RRDFILE[5], $DS[5], "AVERAGE");
@@ -103,7 +103,7 @@ if($display_operstatus == 1){
     $num_graph++;
     $ds_name[$num_graph] = 'Operational status';
     $opt[$num_graph] = " --vertical-label \"\"  --title 'Operational status' --y-grid none --units-length 8";
-    $opt[$num_graph] .= " --watermark=\"Template: check_snmp_netint.php by Yannick Charton\" ";
+    $opt[$num_graph] .= " --watermark=\"Template: check_interface_table_port_octet.php by Yannick Charton\" ";
     $def[$num_graph] = "";
     $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
     $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, 0.33,"ff","#00ff00","#ff0000","#ff8c00");
