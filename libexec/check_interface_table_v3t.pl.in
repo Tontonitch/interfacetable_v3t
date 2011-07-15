@@ -1537,28 +1537,28 @@ sub EvaluatePackets {
                 $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInErr}->{"$Index"} >=
                     $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"} ) ? 0 : $overfl_mod;
                 $ppsErrIn = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInErr}->{"$Index"} -
-                    $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInErr}->{"$Index"} + $overfl) / $gUsedDelta;
         }
         if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} 
             and defined $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"}){ 
                 $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} >=
                     $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"} ) ? 0 : $overfl_mod;
                 $ppsErrOut = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutErr}->{"$Index"} -
-                    $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutErr}->{"$Index"} + $overfl) / $gUsedDelta;
         }
         if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} 
             and defined $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"}){ 
                 $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} >=
                     $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"} ) ? 0 : $overfl_mod;
                 $ppsDiscardIn = ($grefhFile->{'history'}->{$STARTTIME}->{PktsInDiscard}->{"$Index"} -
-                    $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+                    $grefhFile->{'history'}->{$firsttime}->{PktsInDiscard}->{"$Index"} + $overfl) / $gUsedDelta;
         }
         if (defined $grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} 
             and defined $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"}){ 
                 $overfl = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} >=
                     $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} ) ? 0 : $overfl_mod;
                 $ppsDiscardOut = ($grefhFile->{'history'}->{$STARTTIME}->{PktsOutDiscard}->{"$Index"} -
-                    $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} + $overfl) / $gUsedDelta * 8;
+                    $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} + $overfl) / $gUsedDelta;
         }
         
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
@@ -2356,9 +2356,13 @@ sub print_usage () {
 
     * basic usage:
       $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
-        [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
-        [-w <warning change counter>] [-c <critical change counter>] [-W <warning load prct>] 
-        [-C <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
+        [--exclude <interface exclusion list>] [--include <interface inclusion list>] [-r]
+        [-t <property list>] 
+        [--warning-property <warning change counter>] [--critical-property <critical change counter>] 
+        [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
+        [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
+        [--enableperfdata] [--grapher <grapher solution>] [--perfdatashort]
+        [--outputshort] 
 
     * advanced usage:
       $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
@@ -2377,68 +2381,106 @@ sub print_usage () {
       $PROGNAME [--version | -V]
       $PROGNAME [--showdefaults | -D]
 
-  Common options:
-    --help | -?
+  General options:
+    -?, --help
         Show this help page
-    --version | -V
+    -V, --version
         Plugin version
-    --verbose | -v
+    -v, --verbose
         Verbose mode. Can be specified multiple times to increase the verbosity (max 3 times).
-    --showdefaults | -D
+    -D, --showdefaults
         Print the option default values
-    --hostquery | -H (required)
+
+  Plugin common options:
+    -H, --hostquery (required)
         Specifies the remote host to poll.
-    --hostdisplay | -h (optional)
+    -h, --hostdisplay (optional)
         Specifies the remote host to display in the HTML link.
         If omitted, it defaults to the host with -H
-    --community (required)
-        Specifies the snmp v1 community string. Other snmp versions are not
-        implemented yet.
-    --exclude | -e (optional)
-        Comma separated list of interfaces excluded from tracking. Can be used to exclude:
-         * virtual or loopback interfaces
-         * flapping interfaces
-    --include | -i (optional)
-        Comma separated list of interfaces included for tracking. By default, all the 
-        interfaces are included. But there are some case where you need to include an 
-        interface which is part of a group of previously excluded interfaces.
-    --track | -t (optional)
-        List of tracked properties. Values can be:
-         * 'ifAdminStatus'      : the administrative status of the interface
-         * 'ifOperStatus'       : the operational status of the interface
-         * 'ifSpeedReadable'    : the speed of the interface
-         * 'ifVlanNames'        : the vlan on which the interface was associated
-         * 'IpInfo'             : the ip configuration for the interface
-        Default is 'ifOperStatus'
-        Note: interface traffic load(s) is not considered as a property, and is always 
-              monitored following defined thresholds. 
-    --regexp | -r (optional)
+    -r, --regexp (optional)
         Interface names and property names for some other options will be interpreted as
         regular expressions.
-    --warning | -w (optional)
-        Number of property changes before leading to a warning alert
-    --critical | -c (optional)
-        Number of property changes before leading to a critical alert
-    --warning-load | -W (optional)
-        Interface traffic load percentage leading to a warning alert 
-    --critical-load | -C (optional)
-        Interface traffic load percentage leading to a critical alert 
-    --enableperfdata | -f (optional)
-        Enable port performance data, default is port perfdata disabled
-    --grapher (optional)
-        Specify the used graphing solution. 
-        Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
     --outputshort (optional)
         Reduce the verbosity of the plugin output. If used, the plugin only returns 
         general counts (nb ports, nb changes,...). This is close to the way the 
         previous versions of the plugin was working.
-        
         In this version of the plugin, by default the plugin returns 
         + general counts (nb ports, nb changes,...) 
         + what changes has been detected 
         + what interface(s) suffer(s) from high load.
     
-  Advanced options:
+  Traffic checks (load & packet errors/discards)
+    --et, --exclude (optional)
+        Comma separated list of interfaces excluded from traffic checks 
+        (load & packet errors/discards). Can be used to exclude:
+        * virtual or loopback interfaces
+        * flapping interfaces
+        Excluding an interface from traffic checks will also exclude it from property 
+        checks.
+    --it, --include (optional)
+        Comma separated list of interfaces included for traffic checks 
+        (load & packet errors/discards). By default, all the interfaces are included. 
+        But there are some case where you need to include an interface which is part 
+        of a group of previously excluded interfaces.
+    --wt, --warning (optional)
+        Interface traffic load percentage leading to a warning alert 
+    --ct, --critical (optional)
+        Interface traffic load percentage leading to a critical alert 
+  
+  Property checks (interface property changes)
+    --tp, --track-property (optional)
+        List of tracked properties. Values can be:
+        * 'ifAdminStatus'      : the administrative status of the interface
+        * 'ifOperStatus'       : the operational status of the interface
+        * 'ifSpeedReadable'    : the speed of the interface
+        * 'ifVlanNames'        : the vlan on which the interface was associated
+        * 'IpInfo'             : the ip configuration for the interface
+        Default is 'ifOperStatus'
+        Note: interface traffic load(s) is not considered as a property, and is always 
+            monitored following defined thresholds. 
+    --ep, --exclude-property (optional)
+        Comma separated list of interfaces excluded from the property tracking. 
+    --ip, --include-property (optional)
+        Comma separated list of interfaces included in the property tracking. 
+        By default, all the interfaces that are tracked are included. But there are some 
+        case where you need to include an interface which is part of a group of previously 
+        excluded interfaces.
+    --wp, --warning-property (optional)
+        Number of property changes before leading to a warning alert
+    --cp, --critical-property (optional)
+        Number of property changes before leading to a critical alert
+  
+  Snmp options:
+    -C, --community (required)
+        Specifies the snmp v1 community string. Other snmp versions are not
+        implemented yet.
+    -2, --v2c
+        Use snmp v2c
+    -l, --login=LOGIN ; -x, --passwd=PASSWD
+        Login and auth password for snmpv3 authentication
+        If no priv password exists, implies AuthNoPriv
+    -X, --privpass=PASSWD
+        Priv password for snmpv3 (AuthPriv protocol)
+    -L, --protocols=<authproto>,<privproto>
+        <authproto> : Authentication protocol (md5|sha : default md5)
+        <privproto> : Priv protocole (des|aes : default des)
+    -P, --port=PORT
+        SNMP port (Default 161)
+
+  Graphing options:
+    -f, --enableperfdata (optional)
+        Enable port performance data, default is port perfdata disabled
+    -g, --grapher (optional)
+        Specify the used graphing solution. 
+        Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
+    --grapherurl (optional)
+        Graphing system url. Default values are:
+        Ex: /pnp4nagios
+    --portperfunit (optional)
+        In/out traffic in perfdata could be reported in octets or in bits.
+        Possible values: bit or octet
+        
+  Other options:
     --cachedir (optional)
         Sets the directory where snmp responses are cached.
     --statedir (optional)
@@ -2473,24 +2515,9 @@ sub print_usage () {
         ignored. Default is enabled.
     --timeout (optional)
         Define the timeout limit of the plugin.
-    --exclude-property | -E (optional)
-        Comma separated list of interfaces excluded from the property tracking. 
-    --include-property | -I (optional)
-        Comma separated list of interfaces included in the property tracking. 
-        By default, all the interfaces that are tracked are included. But there are some 
-        case where you need to include an interface which is part of a group of previously 
-        excluded interfaces.
-    --portperfunit (optional)
-        In/out traffic in perfdata could be reported in octets or in bits.
-        Possible values: bit or octet
-    --grapherurl (optional)
-        Graphing system url. Default values are:
-         * pnp4nagios       : /pnp4nagios
-         * nagiosgrapher    : /nagios/cgi-bin (?)
-         * netwaysgrapherv2 : /nagios/cgi-bin (?)
-
+        
   Notes:
-    - For options --track, --exclude, --include, --excludeportperf, --includeportperf:
+    - For options --exclude, --include, --track-property, --exclude-property, --include-property:
        * These options can be used multiple times, the lists of interfaces/properties 
          will be concatenated.
        * The separator can be changed using the --ifs option.
