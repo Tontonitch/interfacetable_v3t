@@ -23,7 +23,7 @@ use GeneralUtils;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(SnmpGetV1 SnmpGetV2 GetDataWithSnmp GetMultipleDataWithSnmp GetDataWithUnixSnmpWalk ExecuteCommand);
+    @EXPORT      = qw(SnmpGetV1 SnmpGetV2 SnmpGetV3 GetDataWithSnmp GetMultipleDataWithSnmp GetDataWithUnixSnmpWalk ExecuteCommand);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
@@ -276,9 +276,142 @@ sub SnmpGetV2 {
                         close (OUT);
                     }
                 }
-                logger(1, "SnmpGetV1 data from net (cache=$CacheTimer sec.) OID=$OID ");
+                logger(1, "SnmpGetV2 data from net (cache=$CacheTimer sec.) OID=$OID ");
             } else {
-                logger(1, "SnmpGetV1 data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
+                logger(1, "SnmpGetV2 data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
+            }
+
+            logger(1, "SnmpValue: $SnmpValue");
+
+            # fill hash with data
+            $refhSnmpValues->{$OID}="$SnmpValue";
+        } # for my $OIDLine ...
+
+        # if we have only 1 OID -> return the Value instead the hash
+        if ($#$refaOIDs == 0) {
+            return $SnmpValue;
+        }
+    }
+    # return the complete hash with OIDs as keys or
+    # undef if the SNMP session fails
+    return $refhSnmpValues;
+}
+
+# ------------------------------------------------------------------------
+
+sub SnmpGetV3 {
+
+    ################################
+    # SUB use: 
+    # SUB specs: 
+    #  * arg 0:
+    #  * return:
+    ################################
+
+    my $refhStruct = shift;
+
+    #
+    # store variables and delete them from the hash
+    # this is necessary for the snmp session which takes the same
+    # hash ref and does not work with arguments other than starting
+    # with a dash
+    #
+
+    my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
+    my $GlobalCacheDir      = $refhStruct->{CacheDir};
+    my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
+
+    delete $refhStruct->{OID};
+    delete $refhStruct->{CacheDir};
+    delete $refhStruct->{CacheTimer};
+
+    my $refhSnmpValues; # hash returned to the caller
+    my $refoSession;    # SNMP session object
+    my $SessionError;   # SNMP session error
+
+    # example cache dir name
+    # /tmp/watchit/Cache/SnmpGetV1/cat-itd-01
+    my $CacheDir = "$GlobalCacheDir/SnmpGetV3";
+
+    # Create the directory if not existend
+    not -d $CacheDir and MyMkdir($CacheDir);
+
+    # create snmp V3 session
+    ($refoSession,$SessionError) = Net::SNMP->session (%$refhStruct);
+
+    my $OIDLine;    # one line of OIDs or OIDs and caching timers
+    my $SnmpValue;  # one snmp value
+
+    if (defined $refoSession) {
+
+        # OIDs come in an array (ref) - go through each
+        # example:
+        #    $refaOIDs = [
+        #              '.1.3.6.1.2.1.2.2.1.11.1',
+        #              '.1.3.6.1.2.1.2.2.1.12.1'
+        #            ];
+        for $OIDLine (@$refaOIDs) {
+
+            my  $CacheTimer=0;
+
+            $SnmpValue="";  # clear value
+
+            # OID could be .1.3.6.1.2.1.2.2.1.11.1,200
+            # <OID>,<CacheTimer> for this OID only
+            my ($OID,$OIDCacheTimer) = ("","");
+            ($OID,$OIDCacheTimer) = split ',',$OIDLine,2;
+
+            if (defined $OIDCacheTimer) {
+                # remove non digits
+                $OIDCacheTimer =~ s/\D//g;
+                if ("X$OIDCacheTimer" eq "X") { # is empty?
+                    $CacheTimer = $GlobalCacheTimer;
+                } else {
+                    $CacheTimer = $OIDCacheTimer;
+                }
+            } else {
+                $CacheTimer = $GlobalCacheTimer;
+            }
+
+            if ($CacheTimer > 0) {
+                if (-r "$CacheDir/$OID") {
+                    my @FileProperties=stat("$CacheDir/$OID");
+
+                    # $FileProperties[9] = LastModifyTime of file
+                    # only read the cache file if it is not too old
+                    if (time - $CacheTimer < $FileProperties[9]) {
+                        open (IN,"<$CacheDir/$OID");
+                            $SnmpValue = <IN>;
+                        close (IN);
+                    }
+                }
+            }
+            unless (defined $SnmpValue) {$SnmpValue = "";}
+            # snmp value not from cache - read it from the net
+            if ("X$SnmpValue" eq "X") {
+                # get the snmp value - we do not check errors
+                # here because of negative caching
+                my $refhValue = $refoSession->get_request(-varbindlist => ["$OID"]);
+                if (defined $refhValue->{"$OID"}) {
+                    $SnmpValue  =   $refhValue->{"$OID"};
+
+                    # remove non ascii chars incl. \r and \n
+                    $SnmpValue  =~  s/[\000-\037]|[\177-\377]//g;
+
+                    # replace ; with , - just to be sure
+                    $SnmpValue  =~  s/;/,/g;
+
+                    if ($CacheTimer > 0) {
+
+                        umask "0000";
+                        open (OUT,">$CacheDir/$OID");
+                            print OUT $SnmpValue;
+                        close (OUT);
+                    }
+                }
+                logger(1, "SnmpGetV3 data from net (cache=$CacheTimer sec.) OID=$OID ");
+            } else {
+                logger(1, "SnmpGetV3 data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
             }
 
             logger(1, "SnmpValue: $SnmpValue");
@@ -320,11 +453,40 @@ sub GetDataWithSnmp {
     unless ($CacheTimer) {$CacheTimer = 0;}
     my $Value = "";
     
-    if ( $refhSNMPOptions->{'version'} eq 2 ) {
+    if ( $refhSNMPOptions->{'version'} eq 3 ) {
+        if (defined $refhSNMPOptions->{'privpass'}) {
+            $Value = SnmpGetV3 ({
+                -hostname       => "$host",
+                -version        => 3,
+                -username		=> "$refhSNMPOptions->{'login'}",
+                -authpassword	=> "$refhSNMPOptions->{'passwd'}",
+                -authprotocol	=> "$refhSNMPOptions->{'authproto'}",
+                -privpassword	=> "$refhSNMPOptions->{'privpass'}",
+                -privprotocol   => "$refhSNMPOptions->{'privproto'}",
+                -timeout        => "$refhSNMPOptions->{'timeout'}",
+                OID         => $refaOID,
+                CacheDir    => "$CacheDir",
+                CacheTimer  => int rand ($CacheTimer),  # random caching  
+            });
+        } else {
+            $Value = SnmpGetV3 ({
+                -hostname       => "$host",
+                -version        => 3,
+                -username		=> "$refhSNMPOptions->{'login'}",
+                -authpassword	=> "$refhSNMPOptions->{'passwd'}",
+                -authprotocol	=> "$refhSNMPOptions->{'authproto'}",
+                -timeout        => "$refhSNMPOptions->{'timeout'}",
+                OID         => $refaOID,
+                CacheDir    => "$CacheDir",
+                CacheTimer  => int rand ($CacheTimer),  # random caching  
+            });
+        }
+    } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
         $Value = SnmpGetV2 ({
             -hostname   => "$host",
-            -community  => "$refhSNMPOptions->{'community'}",
             -version    => 2,
+            -community  => "$refhSNMPOptions->{'community'}",
+            -timeout    => "$refhSNMPOptions->{'timeout'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching  
@@ -332,7 +494,9 @@ sub GetDataWithSnmp {
     } else {
         $Value = SnmpGetV1 ({
             -hostname   => "$host",
+            -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
+            -timeout    => "$refhSNMPOptions->{'timeout'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching  
@@ -366,11 +530,26 @@ sub GetMultipleDataWithSnmp {
     unless ($CacheTimer) {$CacheTimer = 0;}
     my $refhSNMP    = ();
     
-    if ( $refhSNMPOptions->{'version'} eq 2 ) {
+    if ( $refhSNMPOptions->{'version'} eq 3 ) {
         $refhSNMP = SnmpGetV1 ({
             -hostname   => "$host",
-            -community  => "$refhSNMPOptions->{'community'}",
+            -version    => 3,
+            -username		=> "$refhSNMPOptions->{'login'}",
+            -authpassword	=> "$refhSNMPOptions->{'passwd'}",
+            -authprotocol	=> "$refhSNMPOptions->{'authproto'}",
+            -privpassword	=> "$refhSNMPOptions->{'privpass'}",
+            -privprotocol   => "$refhSNMPOptions->{'privproto'}",
+            -timeout        => "$refhSNMPOptions->{'timeout'}",
+            OID         => $refaOID,
+            CacheDir    => "$CacheDir",
+            CacheTimer  => int rand ($CacheTimer),  # random caching
+        });
+    } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
+        $refhSNMP = SnmpGetV1 ({
+            -hostname   => "$host",
             -version    => 2,
+            -community  => "$refhSNMPOptions->{'community'}",
+            -timeout    => "$refhSNMPOptions->{'timeout'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -378,7 +557,9 @@ sub GetMultipleDataWithSnmp {
     } else {
         $refhSNMP = SnmpGetV1 ({
             -hostname   => "$host",
+            -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
+            -timeout    => "$refhSNMPOptions->{'timeout'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -412,16 +593,32 @@ sub GetDataWithUnixSnmpWalk {
     unless ($CacheTimer) {$CacheTimer = 0;}
     my $refaLines   = ();
     
-    if ( $refhSNMPOptions->{'version'} eq 2 ) {
+    if ( $refhSNMPOptions->{'version'} eq 3 ) {
+        if (defined($refhSNMPOptions->{'privpass'})) {
+            ($refaLines) = ExecuteCommand ({
+                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} $host $OID",
+                Retry       => 2,
+                CacheDir    => $CacheDir,
+                CacheTimer  => int rand ($CacheTimer),
+            });
+        } else {
+            ($refaLines) = ExecuteCommand ({
+                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} $host $OID",
+                Retry       => 2,
+                CacheDir    => $CacheDir,
+                CacheTimer  => int rand ($CacheTimer),
+            });
+        }
+    } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
         ($refaLines) = ExecuteCommand ({
-            Command     => "snmpbulkwalk -Oqn -c $refhSNMPOptions->{'community'} -v 2c $host $OID",
+            Command     => "snmpbulkwalk -Oqn -v 2c -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} $host $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),
         });
     } else {
         ($refaLines) = ExecuteCommand ({
-            Command     => "snmpwalk -Oqn -c $refhSNMPOptions->{'community'} -v 1 $host $OID",
+            Command     => "snmpwalk -Oqn -v 1 -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} $host $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),

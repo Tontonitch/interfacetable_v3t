@@ -2605,15 +2605,16 @@ sub check_options () {
         'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl',                           # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
-        'port|p=i',
-        'community|C=s',
-        'v2c|2',
-        'login|l=s',
-        'passwd|x=s',
-        'privpass|X=s',
-        'protocols|L=s',
+        'port|p=i',                             # SNMP port
+        'community|C=s',                        # Specifies the snmp v1/v2c community string.
+        'v2c|2',                                # Use snmp v2c
+        'login|l=s',                            # Login for snmpv3 authentication
+        'passwd|x=s',                           # Password for snmpv3 authentication
+        'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
+        'protocols|L=s',                        # Format: <authproto>,<privproto>; 
         'timeout|t=i'
         );
+        
     # gathering commandline options
     if (! GetOptions(\%commandline, @params)) {
         print_help();
@@ -2671,7 +2672,8 @@ sub check_options () {
         'login'                     => "",
         'passwd'                    => "",
         'privpass'                  => "",
-        'protocols'                 => "",
+        'authproto'                 => "md5",       # md5, sha
+        'privproto'                 => "des",       # des, aes
         'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
     );
     ### mandatory commandline options: hostquery
@@ -2823,18 +2825,23 @@ sub check_options () {
     }
     
     #-------- SNMP related ----------#
-    if (exists $commandline{port}) {
-        $ghSNMPOptions{'port'} = "$commandline{port}";
+    if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
+	    print "Can't mix snmp v1,2c,3 protocols!\n"; 
+        print_usage(); 
+        exit $ERRORS{"UNKNOWN"};
     }
-    if (exists $commandline{community}) {
-        $ghSNMPOptions{'community'} = "$commandline{community}";
-    }
-    if (exists $commandline{v2c}) {
+	if (exists $commandline{v2c}) {
         $ghSNMPOptions{'version'} = "2";
     } elsif (exists $commandline{login}) {
         $ghSNMPOptions{'version'} = "3";
     } else {
         $ghSNMPOptions{'version'} = "1";
+    }
+    if (exists $commandline{port}) {
+        $ghSNMPOptions{'port'} = "$commandline{port}";
+    }
+    if (exists $commandline{community}) {
+        $ghSNMPOptions{'community'} = "$commandline{community}";
     }
     if (exists $commandline{login}) {
         $ghSNMPOptions{'login'} = "$commandline{login}";
@@ -2845,9 +2852,25 @@ sub check_options () {
     if (exists $commandline{privpass}) {
         $ghSNMPOptions{'privpass'} = "$commandline{privpass}";
     }
-    if (exists $commandline{protocols}) {
-        $ghSNMPOptions{'protocols'} = "$commandline{protocols}";
-    }
+    if (exists $commandline{'protocols'}) {
+        if (!exists{'login'}) { 
+            print "Put snmp V3 login info with protocols!\n"; 
+            print_usage(); 
+            exit $ERRORS{"UNKNOWN"};
+        }
+        my @v3proto=split(/,/,$commandline{'protocols'});
+        if ((defined ($v3proto[0])) && ($v3proto[0] ne "")) {
+            $ghSNMPOptions{'authproto'} = $v3proto[0];
+        }
+        if (defined ($v3proto[1])) {
+            $ghSNMPOptions{'privproto'} = $v3proto[1];
+        }
+        if ((defined ($v3proto[1])) && (!exists $commandline{'privpass'})) {
+            print "Put snmp V3 priv login info with priv protocols!\n";
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+	}
     if (exists $commandline{timeout}) {
         $ghSNMPOptions{'timeout'} = "$commandline{timeout}";
         $TIMEOUT = $ghSNMPOptions{'timeout'};
