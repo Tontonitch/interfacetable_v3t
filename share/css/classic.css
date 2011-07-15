@@ -5,6 +5,10 @@ body {
 	font-family: Verdana Geneva Arial Helvetica sans-serif;
 }
 
+img {
+	border: 0;
+}
+
 /***** TABLES *****/
 
 table {

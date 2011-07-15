@@ -2,10 +2,13 @@
 
 body {
 	color: #000000;
-    font-family: arial,serif;
 	font-family: Verdana Geneva Arial Helvetica sans-serif;
 }
 
+img {
+	border: 0;
+}
+    
 /***** TABLES *****/
 
 table {
