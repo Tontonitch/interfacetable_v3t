@@ -9,6 +9,7 @@
 #      2 stylesheets currently available: 
 #       * classic.css: follow the style of previous versions of the plugin
 #       * icinga.css: follow the style of the icinga classic ui
+#       * nagiosxi.css: follow the style of the nagiosxi ui
 #    - change: moved javascript to external file & reviewed to not generate conflicts 
 #      with styles defined in css stylesheets
 #    - feature: new interface inclusion/exclusion system distinguing properties and 
@@ -50,6 +51,7 @@
 #    - enhancement: colorcode function standardized for other use (not only for load statistics)
 #    - change: some options renamed, but will certainly change again
 #    - enhancement: check and remove the % character if any in some commandline arguments
+#    - feature: snmp v2c & v3 support
 #
 #   ----------------------------------------------------------------------
 # * 0.02-2 (bugfix release)
