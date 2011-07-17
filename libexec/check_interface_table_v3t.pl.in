@@ -2853,7 +2853,7 @@ sub check_options () {
         $ghSNMPOptions{'privpass'} = "$commandline{privpass}";
     }
     if (exists $commandline{'protocols'}) {
-        if (!exists{'login'}) { 
+        if (!exists $commandline{'login'}) { 
             print "Put snmp V3 login info with protocols!\n"; 
             print_usage(); 
             exit $ERRORS{"UNKNOWN"};
