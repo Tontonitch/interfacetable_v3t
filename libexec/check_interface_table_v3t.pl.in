@@ -70,6 +70,7 @@ my $oid_sysUpTime       = ".1.3.6.1.2.1.1.3.0";
 
 my $oid_ifDescr         = ".1.3.6.1.2.1.2.2.1.2";   # + ".<index>"
 my $oid_ifSpeed         = ".1.3.6.1.2.1.2.2.1.5";   # + ".<index>"
+my $oid_ifSpeed_64      = ".1.3.6.1.2.1.31.1.1.1.15"; # + ".<index>"
 
 my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";   # + ".<index>"
 my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";   # + ".<index>"
@@ -96,8 +97,8 @@ my $oid_in_discard_table        = '1.3.6.1.2.1.2.2.1.13';    # + ".<index>"
 my $oid_out_octet_table         = '1.3.6.1.2.1.2.2.1.16';    # + ".<index>"
 my $oid_out_error_table         = '1.3.6.1.2.1.2.2.1.20';    # + ".<index>"
 my $oid_out_discard_table       = '1.3.6.1.2.1.2.2.1.19';    # + ".<index>"
-# NOT USED - my $oid_in_octet_table_64  = '1.3.6.1.2.1.31.1.1.1.6';  # + ".<index>"
-# NOT USED - my $oid_out_octet_table_64 = '1.3.6.1.2.1.31.1.1.1.10'; # + ".<index>"
+my $oid_in_octet_table_64       = '1.3.6.1.2.1.31.1.1.1.6';  # + ".<index>"
+my $oid_out_octet_table_64      = '1.3.6.1.2.1.31.1.1.1.10'; # + ".<index>"
 
 # Cisco Specific
 my $oid_cisco_type              = '.1.3.6.1.4.1.9.5.1.2.16.0'; # ex: WS-C3550-48-SMI
@@ -252,6 +253,12 @@ if ($#$grefaOperStatusLines < 0 ) {
 
 # -----------------------------------------------------------------
 # Get lines with interface octet counters - no caching !
+
+# Change to 64 bit counters if option is set : 
+if ($ghSNMPOptions{'64bits'}) {
+  $oid_out_octet_table  = $oid_out_octet_table_64;
+  $oid_in_octet_table   = $oid_in_octet_table_64;
+}
 
 # -> Octets in
 $grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
@@ -1354,8 +1361,7 @@ sub CalculateBps {
     my $firsttime = shift;
     # check if the counter is back to 0 after 2^32 / 2^64.
     # First set the modulus depending on highperf counters or not
-    #my $overfl_mod = defined ($o_highperf) ? 18446744073709551616 : 4294967296;
-    my $overfl_mod = 4294967296;
+    my $overfl_mod = ($ghSNMPOptions{'64bits'}) ? 18446744073709551616 : 4294967296;
     
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $Index (@$grefaAllIndizes) {
@@ -1782,6 +1788,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
     # loop through all found interfaces
     for my $Desc (keys %{$grefhCurrent->{If}}) {
 
+        my $refhSNMP = ();
         my $CacheTimer = 0;
 
         # extract the index out of the MetaData
@@ -1802,13 +1809,28 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
          }
 
         # get next interface properties with caching to avoid network load
-        my $refhSNMP = GetMultipleDataWithSnmp (
-            $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index","$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
-
+        if ($ghSNMPOptions{'64bits'}) {
+            $refhSNMP = GetMultipleDataWithSnmp (
+                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifAlias.$Index", "$oid_ifSpeed_64.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+        } else {
+            $refhSNMP = GetMultipleDataWithSnmp (
+                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+        }
+        
         # store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
             ConvertIfStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
 
+        # Get the speed in normal or highperf speed counters
+        if ($refhSNMP->{"$oid_ifSpeed.$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
+            logger(1, " (Debug) $Desc($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhSNMP->{"$oid_ifSpeed.$Index"});
+            if ($ghSNMPOptions{'64bits'} && $refhSNMP->{"$oid_ifSpeed_64.$Index"} != 0) {
+                $refhSNMP->{"$oid_ifSpeed.$Index"} = $refhSNMP->{"$oid_ifSpeed_64.$Index"} * 1000000;
+            } elsif (! $ghSNMPOptions{'64bits'}) {
+                logger(2, " (Debug) $Desc($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $Desc($Index) !!!");
+            }
+        }
+        
         # store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeed} =
             ($refhSNMP->{"$oid_ifSpeed.$Index"});
@@ -2602,8 +2624,8 @@ sub check_options () {
         'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
         'perfdatashort',                        # restrict the performance data to the global statistics. Statistics specific 
                                                 # to each interfaces will be not returned.
-        'grapher|g',                            # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
-        'grapherurl',                           # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
+        'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+        'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
         'port|p=i',                             # SNMP port
         'community|C=s',                        # Specifies the snmp v1/v2c community string.
@@ -2612,7 +2634,8 @@ sub check_options () {
         'passwd|x=s',                           # Password for snmpv3 authentication
         'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
         'protocols|L=s',                        # Format: <authproto>,<privproto>; 
-        'timeout|t=i'
+        'timeout|t=i',
+        '64bits'                                # Use 64 bits counters
         );
         
     # gathering commandline options
@@ -2636,8 +2659,8 @@ sub check_options () {
         'accessmethod'              => "ssh",
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
-        'exclude'           => undef,
-        'include'           => undef,
+        'exclude'                   => undef,
+        'include'                   => undef,
         'warning'                   => "101,0,0",
         'critical'                  => "101,0,0",
         'delta'                     => 600,
@@ -2675,6 +2698,7 @@ sub check_options () {
         'authproto'                 => "md5",       # md5, sha
         'privproto'                 => "des",       # des, aes
         'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
+        '64bits'                    => 0
     );
     ### mandatory commandline options: hostquery
     # applying commandline options
@@ -2875,6 +2899,24 @@ sub check_options () {
         $ghSNMPOptions{'timeout'} = "$commandline{timeout}";
         $TIMEOUT = $ghSNMPOptions{'timeout'};
     }   
+    if (exists $commandline{'64bits'}) {
+        $ghSNMPOptions{'64bits'} = 1;
+    }
+    # Check snmpv2c or v3 with 64 bit counters
+    if ( $ghSNMPOptions{'64bits'} && $ghSNMPOptions{'version'} == 1) {
+        print "Can't get 64 bit counters with snmp version 1\n"; 
+        print_usage(); 
+        exit $ERRORS{"UNKNOWN"}
+    }
+    if ($ghSNMPOptions{'64bits'}) {
+        if (eval "require bigint") {
+            use bigint;
+        } else { 
+            print "Need bigint module for 64 bit counters\n"; 
+            print_usage(); 
+            exit $ERRORS{"UNKNOWN"}
+        }
+    }
     
     # print the options in command line, and the resulting full option hash
     logger(3, "commandline: \n".Dumper(\%commandline));
