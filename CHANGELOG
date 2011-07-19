@@ -52,6 +52,7 @@
 #    - change: some options renamed, but will certainly change again
 #    - enhancement: check and remove the % character if any in some commandline arguments
 #    - feature: snmp v2c & v3 support
+#    - feature: 64bit counters support (octets in/out & speed) for interfaces >=10Gbps
 #
 #   ----------------------------------------------------------------------
 # * 0.02-2 (bugfix release)
