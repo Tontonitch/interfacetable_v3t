@@ -225,7 +225,11 @@ if (($ghOptions{'track-property'} and ($ghOptions{'track-property'}[0] eq "NONE"
 # ------------------------------------------------------------------------------
 
 # get uptime of the host - no caching !
-$grefhCurrent->{MD}->{sysUpTime} = GetUptime ([ "$oid_sysUpTime" ],0);
+$grefhCurrent->{MD}->{sysUpTime} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime" ],$ghOptions{'cachedir'},0);
+if (!defined $grefhCurrent->{MD}->{sysUpTime}) {
+    print "$0: Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n";
+    exit $ERRORS{"CRITICAL"};
+}
 
 # read all interfaces and its properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
@@ -1065,36 +1069,6 @@ sub EvaluateInterfaces {
         
     } # for each interface
     return $grefhCurrent;
-}
-
-# ------------------------------------------------------------------------
-# Get the uptime of the remote system and store timeticks in raw format
-# (not translated into human readable format)
-# ------------------------------------------------------------------------
-sub GetUptime {
-    my $refaOID     = shift;
-    my $CacheTimer  = shift;
-
-    my $Value = SnmpGetV1 ({
-        -hostname   => "$ghOptions{'hostquery'}",
-        -community  => "$ghSNMPOptions{'community'}",
-        -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
-        OID         => $refaOID,
-        CacheDir    => "$ghOptions{'cachedir'}",
-        CacheTimer  => int rand ($CacheTimer),
-    });
-
-    # we got data
-    if ($Value) {
-        return $Value;
-    } else {
-        # und tschuess - hat keinen Sinn weiter zu machen
-        print "$0: Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n";
-#TODO get from cache to enrich error text
-# $oid_cisco_type   = '.1.3.6.1.4.1.9.5.1.2.16.0'; # WS-C3550-48-SMI
-# $oid_cisco_serial = '.1.3.6.1.4.1.9.5.1.2.19.0'; # CAT0645Z0HB
-        exit $ERRORS{"CRITICAL"};
-    }
 }
 
 # ------------------------------------------------------------------------
