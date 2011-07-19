@@ -389,7 +389,7 @@ sub MyMkdir {
 }
 
 # ------------------------------------------------------------------------
-# normalize and denormalize subroutines extracted from our Common library
+# normalize and denormalize subroutines
 # - used to get rid of special characters
 
 sub normalize {
@@ -401,7 +401,7 @@ sub normalize {
 }
 
 # ------------------------------------------------------------------------
-# normalize and denormalize subroutines extracted from our Common library
+# normalize and denormalize subroutines
 # - used to get rid of special characters
 
 sub denormalize {
