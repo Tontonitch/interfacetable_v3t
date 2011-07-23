@@ -53,12 +53,19 @@
 #    - enhancement: check and remove the % character if any in some commandline arguments
 #    - feature: snmp v2c & v3 support
 #    - feature: 64bit counters support (octets in/out & speed) for interfaces >=10Gbps
+#    - bugfix: colorcode rewritten for correctly handle colors between a warning and a critical threshold
+#
+#   ----------------------------------------------------------------------
+# * 0.02-3 (bugfix release)
+#   ----------------------------------------------------------------------
+#    - bugfix: exclude/include options now behave correctly on plugin 
+#      output, not only on html file and performance data
 #
 #   ----------------------------------------------------------------------
 # * 0.02-2 (bugfix release)
 #   ----------------------------------------------------------------------
 #    - bugfix: fixed problem with the grapher options
-#    - bugfix: the "exclude/includeportperf" options now work
+#    - bugfix: the "excludeportperf/includeportperf" options now work
 #
 #   ----------------------------------------------------------------------
 # * 0.02-1 (bugfix release)
