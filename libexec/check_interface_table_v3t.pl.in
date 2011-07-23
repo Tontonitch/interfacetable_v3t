@@ -1339,7 +1339,13 @@ sub CalculateBps {
     
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $Index (@$grefaAllIndizes) {
-
+        
+        # Get normalized interface name (key for If data structure)
+        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+            next;
+        }
+        
         # ---------- Bandwidth calculation -----------
         
         my $overfl      = 0;
@@ -1366,8 +1372,6 @@ sub CalculateBps {
                     $grefhFile->{'history'}->{$firsttime}->{OctetsOut}->{"$Index"} + $overfl) / $gUsedDelta * 8;
         }
         
-        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
-
         # bandwidth usage in percent of (configured/negotiated) interface speed
         if ($grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed} > 0) {
             my $ifLoadIn  = 100 * $bpsIn  / $grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed};
@@ -1503,7 +1507,13 @@ sub EvaluatePackets {
     
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     for my $Index (@$grefaAllIndizes) {
-
+        
+        # Get normalized interface name (key for If data structure)
+        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+            next;
+        }
+        
         my $overfl              = 0;
         my $ppsErrIn            = 0;
         my $ppsErrOut           = 0;
@@ -1541,8 +1551,6 @@ sub EvaluatePackets {
                     $grefhFile->{'history'}->{$firsttime}->{PktsOutDiscard}->{"$Index"} + $overfl) / $gUsedDelta;
         }
         
-        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
-
         # compare against thresholds
         my $pwarn = 0; 
         my $pcrit = 0;
@@ -2070,25 +2078,24 @@ sub colorcode {
         #   #00FF00 (green) at 0 % over
         #   #FFFF00 (yellow) at $warn % to
         #   #FF0000 (red) at $crit % and over
-
+        
         # first adjust the percent value according to the given warning and critical levels
+        my $green  = 255;
+        my $red    = 0;
         if ($current > 0) {
-            if ($current <= $warning) {
-                $current = $current * 50 / $warning;
-            } elsif ($current < $critical) {
-                $current = $current * 100 / $critical;
-            } elsif ($current >= $critical) {
-               $current = 99.99;
-            }
+            if (($current <= $warning) && ($current < $critical)) {
+                $green  = 255;
+                $red    = $current * 255 / $warning;
+            } elsif ($current <= $critical) {
+                $green  = 255 - ( $current * 255 / $critical );
+                $red    = 255;
+            } elsif ($current > $critical) {
+                $green  = 0;
+                $red    = 255;
+            }                
         }
-        my $color = 5.12 * $current;      # (256+256) * $current / 100
-        if ($color > 512) { $color = 512 }
-        my $red   = ($color > 255) ? 255 : $color;
-        my $green = ($color < 255) ? 255 : -1 - (-1 * (512 - $color));
         $colorcode = sprintf "%2.2x%2.2x%2.2x", $red, $green, 0;
-        logger(2, " (Debug) colorcode: $colorcode, current: $current, color: $color, red: $red, green: $green");
-                # (Debug) colorcode: ff5f00, current: 81.1764679663113, color: 415.623515987514, red: 255, green: 95.3764840124863
-                # (Debug) colorcode: b8ff00, current: 36.0897789918691, color: 184.77966843837, red: 184.77966843837, green: 255
+        logger(2, " (Debug) colorcode: $colorcode, current: $current, red: $red, green: $green");
     }
     return $colorcode;
 }
