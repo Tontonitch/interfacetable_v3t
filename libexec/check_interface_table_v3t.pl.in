@@ -2157,7 +2157,7 @@ sub check_for_unused_interfaces {
 # This function generates a html table
 #
 # Function call:
-# $gHtml   = Csv2Html ($refaHeader,$refaLines);
+# $gHtml   = Csv2Html ($refaHeader,$refaLines,$cssClass);
 # ------------------------------------------------------------------------------
 sub Csv2Html {
     my $refaHeader = shift;       # Header contains the HTML table header as scalar
