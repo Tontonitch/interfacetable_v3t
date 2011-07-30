@@ -47,7 +47,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.03';
+$REVISION       = '0.03b1';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -2358,27 +2358,28 @@ sub print_usage () {
   Usage:
 
     * basic usage:
-      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
-        [--exclude <interface exclusion list>] [--include <interface inclusion list>] [-r]
-        [-t <property list>] 
-        [--warning-property <warning change counter>] [--critical-property <critical change counter>] 
+      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] {-2] [-C <community string>] 
+        [--exclude <interface exclusion list>] [--include <interface inclusion list>] 
         [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
         [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
-        [--enableperfdata] [--grapher <grapher solution>] [--perfdatashort]
-        [--outputshort] 
-
+        [--track-property <property list>] [--include-property <interface inclusion list>] 
+        [--exclude-property <interface exclusion list>] [--warning-property <warning change counter>] 
+        [--critical-property <critical change counter>] [-r] [-f]
+        
     * advanced usage:
-      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [--community <community string>] 
-        [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
-        [-w <warning change counter>] [-c <critical change counter>] [-W <warning load prct>] 
-        [-C <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
-        [--cachedir <caching directory>] [--statedir <state files directory>] [--vlan] [--cisco]
-        [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
+      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
+        [--et <interface exclusion list>] [--it <interface inclusion list>] 
+        [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
+        [--ct <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
+        [--tp <property list>] [--ip <interface inclusion list>] [--ep <interface exclusion list>] 
+        [--wp <warning change counter>] [--cp <critical change counter>] [-r] [-f]
+        [--cachedir <caching directory>] [--statedir <state files directory>] 
+        [--vlan] [--cisco] [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
-        [--(no)human] [--(no)snapshot] [--portperfunit <unit>] [--grapherurl <url to grapher>]
-        [-E <interface perfdata exclusion list>] [-I <interface perfdata inclusion list>]
-
+        [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
+        [--portperfunit <unit>] [--perfdatashort] [--outputshort] 
+        
     * other usages:
       $PROGNAME [--help | -?]
       $PROGNAME [--version | -V]
