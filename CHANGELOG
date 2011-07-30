@@ -6,7 +6,7 @@
 # * 0.03 (in progess)
 #   ----------------------------------------------------------------------
 #    - feature: all styles are now handled in an external css stylesheet. 
-#      2 stylesheets currently available: 
+#      3 stylesheets currently available: 
 #       * classic.css: follow the style of previous versions of the plugin
 #       * icinga.css: follow the style of the icinga classic ui
 #       * nagiosxi.css: follow the style of the nagiosxi ui
@@ -42,18 +42,22 @@
 #      of outputshort/perfdatashort options to reduce them).
 #    - feature: error/discard packets:
 #      * checked against thresholds (rates)
-#      * presented via a specific column in the interface table. Cell background color changes in case of warning/critical state
-#    - change: new format for warning & critical commandline options: --warning/--critical <load%>,<pkterr/s>,<pktdiscard/s>
-#      for more simplicity, 
+#      * presented via a specific column in the interface table. Cell background color 
+#        changes in case of warning/critical state
+#    - change: new format for warning & critical commandline options for more simplicity: 
+#      --warning/--critical <load%>,<pkterr/s>,<pktdiscard/s>
 #       1. unique threshold for in/out statistics (ex: loadin/loadout)
-#       2. one option for all traffic checks (load, pkt errors, pkt discards) to avoid too many options
+#       2. one option for all traffic checks (load, pkt errors, pkt discards) to avoid 
+#          too many options
 #      ex: --warning 50,0,0 --critical 80,100,100
 #    - enhancement: colorcode function standardized for other use (not only for load statistics)
 #    - change: some options renamed, but will certainly change again
 #    - enhancement: check and remove the % character if any in some commandline arguments
 #    - feature: snmp v2c & v3 support
 #    - feature: 64bit counters support (octets in/out & speed) for interfaces >=10Gbps
-#    - bugfix: colorcode rewritten for correctly handle colors between a warning and a critical threshold
+#    - bugfix: colorcode rewritten for correctly handle colors between a warning and a 
+#      critical threshold
+#    - feature: testing install option
 #
 #   ----------------------------------------------------------------------
 # * 0.02-3 (bugfix release)

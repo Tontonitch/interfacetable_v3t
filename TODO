@@ -11,8 +11,6 @@
 #              one.
 # DONE    - snmp v2c & v3 support
 # DONE    - think about the use 64 bits counters
-# IN PROG - info table (first table) building way review for more flexibility
-# IN PROG - review general structure of the plugin
 # DONE    - see if the short (old) plugin output is really relevant or can be 
 #           simply replaced by the long output
 #           -> long output is now default, unique --outputshort and --perfdatashort
@@ -29,11 +27,13 @@
 #              cumbersome 
 # DONE    - move all html style properties from the generated html page to a css
 #           stylesheet. To allow easier customisation of the generated html page.
-# DONE    - nagiosxi css
+# DONE    - css stylesheets
 # 
 # ----------------------------------------------------------------------
 # Todo for 0.04
 # ----------------------------------------------------------------------
+# IN PROG - info table (first table) building way review for more flexibility
+# IN PROG - review general structure of the plugin
 #         - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 #           against the use of unix snmpwalk
 #         - extend the debug with new debug levels. Might be in the model of 
