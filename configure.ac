@@ -127,6 +127,19 @@ AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
 AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data],grapher=$withval,grapher=pnp4nagios)
 AC_ARG_WITH(grapher_url,  [  --with-grapher-url=<grapher-url>               Sets URL to the graphing solution web interface],grapher_url=$withval,grapher_url=none)
+AC_ARG_ENABLE(testing,    [  --enable-testing                               Testing mode. All files and directories will be installed in <prefix>])
+
+dnl Testing mode
+if test x$enable_testing = xyes; then
+  nagios_base=${prefix}/nagios/sbin
+  nagios_libexec=${prefix}/nagios/libexec
+  cachedir=${prefix}/tmp/.ifCache
+  statedir=${prefix}/tmp/.ifState
+  htmldir=${prefix}/share
+  htmlurl=/interfacetable_v3t_testing
+  cgidir=${prefix}/sbin
+  cgiurl=/interfacetable_v3t_testing/cgi-bin
+fi
 AC_SUBST(nagios_base)
 AC_SUBST(nagios_libexec)
 AC_SUBST(cachedir)
@@ -136,6 +149,7 @@ AC_SUBST(htmlurl)
 AC_SUBST(cgidir)
 AC_SUBST(cgiurl)
 AC_SUBST(grapher)
+AC_SUBST(testing)
 
 dnl In case not specified, adapt the grapher url depending on the selected grapher
 if test x$grapher_url = xnone; then
@@ -162,6 +176,9 @@ if test x$httpd_conf = xno; then
 	else
 		httpd_conf="$sysconfdir/apache-conf.d/"
 	fi
+fi
+if test x$enable_testing = xyes; then
+    httpd_conf="${prefix}/httpd/conf.d"
 fi
 AC_SUBST(httpd_conf)
 
@@ -233,6 +250,12 @@ AC_MSG_RESULT([*** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DAT
 echo ""
 echo " General Options:"
 echo " -------------------------"
+
+if test x$enable_testing = xyes; then
+  echo ""
+  echo "                               --- TESTING MODE ENABLED ---"
+  echo ""
+fi
 
 AC_MSG_RESULT([                  Install user/group:  $nagios_user,$nagios_grp])
 AC_MSG_RESULT([                   Install \${prefix}:  ${prefix}])
