@@ -61,8 +61,8 @@ install:
 	for file in js/*; \
 		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/js; done
 	
-	#for file in tables/*; \
-	#	do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/tables; done
+	for file in tables/*; \
+		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/tables; done
 
 install-apache-config:
     

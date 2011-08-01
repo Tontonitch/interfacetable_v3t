@@ -43,6 +43,7 @@ install:
 	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(prefix)/settings.cfg
 
 install-apache-config:
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(httpd_conf)
 	$(INSTALL) -m 644 interfacetable_v3t.conf.httpd $(httpd_conf)/interfacetable_v3t.conf
 	@echo ""
 	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
@@ -54,7 +55,7 @@ install-sudo-config:
 	if [ "$(sudoers)" != "no" ] ; then \
 		chmod 0640 $(sudoers); \
 		if test -w $(sudoers); then \
-			if [ `$(GREP) -c "InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
+			if [ `$(GREP) -c "$(cgidir)/InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
 				echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(sudoers); \
 				SUDOERS_OK=1; \
 				echo ""; \
