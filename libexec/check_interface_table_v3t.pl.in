@@ -2654,7 +2654,7 @@ sub check_options () {
         'ifloadgradient'            => 1,
         'human'                     => 1,
         'snapshot'                  => 0,
-        'track'                     => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
+        'track-property'            => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
         'exclude-property'          => undef,
         'include-property'          => undef,
         'warning-property'          => 0,
