@@ -214,9 +214,8 @@ my $gFile =  normalize($ghOptions{'hostdisplay'}).'-Interfacetable';
 # file where we store interface information table
 my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";
 
-# If -snapshot is set or DisableTrackingChanges is disabled on all interfaces
-# we dont track changes
-if (($ghOptions{'track-property'} and ($ghOptions{'track-property'}[0] eq "NONE")) or $ghOptions{'snapshot'}) {
+# If --snapshot is set, we dont track changes
+if ($ghOptions{'snapshot'}) {
     $gInitialRun = 1;
 }
 
@@ -335,19 +334,19 @@ logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhC
 
 # Save include/exclude information of each interface in the metadata
 # This includes:
-#  * include/exclude interface from load tracking. Load tracking consists in a 
-#    check of the bandwidth usage of the interface. By default, all the interfaces 
-#    are included in this tracking. Excluding an interface from that tracking is 
-#    usually done for interfaces that we don't want any tracking (e.g. loopback 
-#    interfaces)
-#  * include/exclude interface from property tracking. Property tracking consists
-#    in the check of any changes in the properties of an interface, properties 
-#    listed via the --track option. By default, only the "operstatus" property is 
-#    tracked. You have the ability to exclude/include some interfaces from that check.
-#    This would be done for exemple for ports on which printers are connected (indeed, 
-#    some printers going in standby mode has also their network interface going done, 
-#    generating a false alert)
-
+#  * include/exclude interface from traffic tracking. Traffic tracking consists in a 
+#    check of the bandwidth usage of the interface, and the error/discard packets. 
+#    By default, all the interfaces are included in this tracking. Excluding an interface 
+#    from that tracking is usually done for the interfaces that we don't want any tracking 
+#    (e.g. loopback interfaces)
+#  * include/exclude interface from property tracking. Property tracking consists in 
+#    the check of any changes in the properties of an interface, properties listed via 
+#    the --track-property option. By default, only the "operstatus" property is tracked. 
+#    You have the ability to exclude/include some interfaces from that check. This would 
+#    be done for exemple for ports on which printers are connected (indeed, some printers 
+#    going in standby mode has also their network interface going done, generating an 
+#    unwanted alert) 
+    
 $grefhCurrent = EvaluateInterfaces (
     $ghOptions{'exclude'},
     $ghOptions{'include'},
