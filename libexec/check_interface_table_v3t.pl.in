@@ -2532,8 +2532,12 @@ EOUS
 
 }
 sub print_defaults () {
-  print "Default option values:\n\n";
+  print "\nDefault option values:\n";
+  print "----------------------\n\n";
+  print "General options:\n\n";
   print Dumper(\%ghOptions);
+  print "\nSnmp options:\n\n";
+  print Dumper(\%ghSNMPOptions);
 }
 sub print_help () {
   print "Copyright (c) 2011 Yannick Charton\n\n";
