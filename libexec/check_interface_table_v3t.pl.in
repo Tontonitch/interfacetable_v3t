@@ -845,7 +845,7 @@ sub GenerateHtmlTable {
                 } else {
                     # Field content has changed ...
                     $CellContent = "now: " . denormalize( $CurrentFieldContent ) . "$LastChangeInfo was: " . denormalize ( $FileFieldContent );
-                    if ($ghOptions{verbose} or $ghOptions{warning} > 0 or $ghOptions{critical} > 0) {
+                    if ($ghOptions{verbose} or $ghOptions{'warning-property'} > 0 or $ghOptions{'critical-property'} > 0) {
                         $gChangeText .= "(" . denormalize ($oid_ifDescr) .
                             ") $FieldName now <b>$CurrentFieldContent</b> (was: <b>$FileFieldContent</b>)<br>";
                     }
@@ -1838,9 +1838,9 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
         my %vlanname;
         foreach my $tmp ( @$VlanNames ) {
             my ($oid, @name) = split(/ /, $tmp);
-                chomp(@name);
-                $vlanname{$oid} = "@name";
-                $vlanname{$oid} =~ tr/"<>/'../; #"
+            chomp(@name);
+            $vlanname{$oid} = "@name";
+            $vlanname{$oid} =~ tr/"<>/'../; #"
         }
         if (@$VlanPortHP > 0) {
             foreach my $tmp ( @$VlanPortHP ) {
@@ -1851,7 +1851,9 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
                 my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$port};
 
                 # store ifVlanNames
-                $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlanname{"$oid_ifVlanName.$vlan"}. " ";
+                if((defined $oid_ifDescr) and ($oid_ifDescr ne '')) {
+                    $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlanname{"$oid_ifVlanName.$vlan"}. " ";
+                }
 
                 #logger(1, " (Debug) VlanName -> $port, " . $vlanname{"$oid_ifVlanName.$vlan"});
                 }
@@ -1865,12 +1867,14 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
                 my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$port};
 
                 # store ifVlanNames
-                $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlan. " ";
+                if((defined $oid_ifDescr) and ($oid_ifDescr ne '')) {
+                    $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlan. " ";
+                }
 
                 #logger(1, " (Debug) VlanName -> $port, " . $vlan ."");
                 }
         }
-        }
+    }
 
     return 0;
 }
