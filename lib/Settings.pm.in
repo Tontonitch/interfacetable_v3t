@@ -39,24 +39,22 @@ BEGIN {
 sub getSettings()
 {
 	my ($in, %settings, $var, $value);
-    logger(5, "#==== Start of config ====#");
+    logger(3, "#==== Start of config ====#");
 	open(IN, "<$SETTINGCONF") or die "unable to read file $SETTINGCONF\n";
 		while ($in = <IN>)
 		{
 			if ($in !~ m/(^\s*$|^\s*#)/)
 			{
-				logger(5, "in: ".$in);
 				chomp($in);
 				($var, $value) = split(/=/, $in);
 				$var = cutOffSpaces($var);
 				$value = cutOffSpaces($value);
-				logger(5, "var: ".$var);
-				logger(5, "value: ".$value);
 				$settings{$var}=$value;
+				logger(3, "variable: ".$var.", value: ".$value);
 			}
 		}
 	close(IN);
-	logger(5, "#==== End of config ====#");
+	logger(3, "#==== End of config ====#");
 	return(\%settings);
 }
 

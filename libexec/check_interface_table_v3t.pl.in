@@ -226,13 +226,13 @@ if ($ghOptions{'snapshot'}) {
 # get uptime of the host - no caching !
 $grefhCurrent->{MD}->{sysUpTime} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime" ],$ghOptions{'cachedir'},0);
 if (!defined $grefhCurrent->{MD}->{sysUpTime}) {
-    print "$0: Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n";
+    logger(0, "Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n");
     exit $ERRORS{"CRITICAL"};
 }
 
 # read all interfaces and its properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
-logger(3, "grefhFile:".Dumper ($grefhFile));
+logger(3, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 if ($ghOptions{'cisco'}) { 
@@ -250,7 +250,7 @@ if ($ghOptions{'cisco'}) {
 # get lines with interface oper status - no caching !
 $grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 if ($#$grefaOperStatusLines < 0 ) {
-    print "$0: Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -266,42 +266,42 @@ if ($ghSNMPOptions{'64bits'}) {
 # -> Octets in
 $grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetInLines < 0 ) {
-    print "$0: Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Octets out
 $grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetOutLines < 0 ) {
-    print "$0: Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors in
 $grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInErrorsLines < 0 ) {
-    print "$0: Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet errors out
 $grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutErrorsLines < 0 ) {
-    print "$0: Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards in
 $grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInDiscardsLines < 0 ) {
-    print "$0: Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
 # -> Packet discards out
 $grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutDiscardLines < 0 ) {
-    print "$0: Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n";
+    logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -326,7 +326,7 @@ Get_IpAddress_SubnetMask ($grefaIPLines);
 # get ifAdminStatus, ifSpeed and ifAlias from the net or from cache
 Get_AdminStatus_Speed_Alias_Vlan ($grefhCurrent);
 
-logger(3, " Get interface info -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
+logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
 # ------------------------------------------------------------------------------
 # Include / Exclude interfaces
@@ -353,7 +353,7 @@ $grefhCurrent = EvaluateInterfaces (
     $ghOptions{'exclude-property'},
     $ghOptions{'include-property'}
     );
-logger(3, " Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper ($grefhCurrent));
+#logger(3, "Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
 # ------------------------------------------------------------------------------
 # Create interface information table data
@@ -362,7 +362,7 @@ logger(3, " Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".
 # sort ifIndex by number
 @$grefaAllIndizes = sort { $a <=> $b }
     keys (%{$grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}});
-logger(3, " Interface information table data -> generated array\ngrefaAllIndizes:".Dumper ($grefaAllIndizes));
+logger(3, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
 my $basetime = CleanAndSelectHistoricalDataset();
 if (defined $basetime) {
@@ -391,7 +391,7 @@ if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and $ghOptions{'enabl
 if (not $grefhFile->{TableReset}) {
     $grefhFile->{TableReset} = scalar localtime time ();
     $grefhFile->{If} = $grefhCurrent->{If};
-    logger(1, " (Debug) Initial run -> $grefhFile->{TableReset}");
+    logger(1, "Initial run -> $grefhFile->{TableReset}");
 }
 
 # Fill up the MD tree (MD = MetaData) - here we store all variable
@@ -473,16 +473,16 @@ my $TimeDiff = $EndTime-$STARTTIME;
 
 # If current run is the first run we dont compare data
 if ( $gInitialRun ) {
-    logger(1, " (Debug) Initial run -> Setting DifferenceCounter to zero.");
+    logger(1, " Initial run -> Setting DifferenceCounter to zero.");
     $gDifferenceCounter = 0;
     #$gText = "$gNumberOfInterfacesWithoutTrunk interface(s)";
     $gText = "Initial run...";    
 } elsif ( $gNoHistory ){
-    logger(1, " (Debug) Initial run -> Setting DifferenceCounter to zero.");
+    logger(1, " No history -> Setting DifferenceCounter to zero.");
     $gDifferenceCounter = 0;
     $gText = "No valid historical dataset...";        
 } else {
-    logger(1, " (Debug) Differences: $gDifferenceCounter");
+    logger(1, " Differences: $gDifferenceCounter");
     if ($gDifferenceCounter > 0) { 
         if ($ghOptions{'outputshort'}) { 
             $gText .= ", $gDifferenceCounter change(s)";
@@ -656,7 +656,7 @@ sub perfdataout {
                 }
             }
             
-            logger(1, "collected perfdata: $oid_ifDescr\t$perfdata");
+            logger(2, "collected perfdata: $oid_ifDescr\t$perfdata");
             if ($ghOptions{perfdatadir}) { # perfdata to file
                 #TODO: make it atomic (ie rename after write) and use a save filename
                 print OUT "$grefhCurrent->{MD}->{sysName}\t";  # hostname
@@ -753,7 +753,7 @@ sub GenerateHtmlTable {
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
-    logger(1, "x"x50);
+    logger(2, "x"x50);
     
     # Print tracking info
     logger(3, "Available fields:".Dumper($refaFields));
@@ -837,7 +837,7 @@ sub GenerateHtmlTable {
             }
 
             if ( $CompareThisField  ) {
-                logger(1, "Compare \"".denormalize($oid_ifDescr)."($FieldName)\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
+                logger(2, "Compare \"".denormalize($oid_ifDescr)."($FieldName)\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
                 if ( $CurrentFieldContent eq $FileFieldContent ) {
                     # Field content has NOT changed
                     $CellContent = denormalize ( $CurrentFieldContent );
@@ -857,7 +857,7 @@ sub GenerateHtmlTable {
                 }
             } else {
                 # Filed will not be compared, just write the current field - value in the table.
-                logger(1, "Not comparing $FieldName on interface ".denormalize($oid_ifDescr));
+                logger(2, "Not comparing $FieldName on interface ".denormalize($oid_ifDescr));
                 $CellContent = denormalize( $CurrentFieldContent );
             }
 
@@ -920,7 +920,7 @@ sub GenerateHtmlTable {
 
     # Print a footer for debug information
     logger(3, " List of changes -> generated hash of array\ngrefhListOfChanges:".Dumper ($grefhListOfChanges));
-    logger(1, "x"x50);
+    logger(2, "x"x50);
 
     return $refaContentForHtmlTable;
 }
@@ -972,10 +972,10 @@ sub EvaluateInterfaces {
     my $ExcludePropertyTrackList = shift;
     my $IncludePropertyTrackList = shift;
 
-    logger(1, "ExcludeLoadTrackList:\n".Dumper($ExcludeLoadTrackList));
-    logger(1, "IncludeLoadTrackList:\n".Dumper($IncludeLoadTrackList));
-    logger(1, "ExcludePropertyTrackList:\n".Dumper($ExcludePropertyTrackList));
-    logger(1, "IncludePropertyTrackList:\n".Dumper($IncludePropertyTrackList));
+    logger(2, "ExcludeLoadTrackList:\n".printArray($ExcludeLoadTrackList," "));
+    logger(2, "IncludeLoadTrackList:\n".printArray($IncludeLoadTrackList," "));
+    logger(2, "ExcludePropertyTrackList:\n".printArray($ExcludePropertyTrackList," "));
+    logger(2, "IncludePropertyTrackList:\n".printArray($IncludePropertyTrackList," "));
     
     # Loop through all interfaces
     for my $oid_ifDescr (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -1009,12 +1009,12 @@ sub EvaluateInterfaces {
         for my $IncludeString (@$IncludeLoadTrackList) {
             if ($ghOptions{regexp}) {
                 if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
-                    logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                    logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
                 }
             }
             elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
-                logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                 $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
             }
         }
@@ -1052,12 +1052,12 @@ sub EvaluateInterfaces {
             for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
                     if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
-                        logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                        logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                     }
                 }
                 elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
-                    logger(1, "+ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                    logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                 }
             }
@@ -1086,7 +1086,7 @@ sub Get_OperStatus_Description_Index {
         $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
         $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow"); 
         
-        logger(1, "Index = $Index $gLongCacheTimer");
+        logger(2, "Index=$Index (long cache: $gLongCacheTimer)");
         # read the interface description with the index extracted above
         my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 
@@ -1096,7 +1096,7 @@ sub Get_OperStatus_Description_Index {
             # read the MAC address of the interface - independend if it has one or not
             my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
             $Desc = "($MacAddress)";
-            logger(1, "Interface with index $Index has no description.\nSet it to $Desc");
+            logger(2, "Interface with index $Index has no description.\nSet it to $Desc");
         }
 
         # normalize the interface description to not get into trouble
@@ -1120,7 +1120,7 @@ sub Get_OperStatus_Description_Index {
             } else {
                 $Text = "(${Index})";
             }
-            logger(1, "Duplicate if ($Index) name - \"$Text\"");
+            logger(2, "Duplicate if ($Index) name - \"$Text\"");
 
             # append a blank (normalized) the MAC Address or the index
             # to the end of the description
@@ -1153,7 +1153,7 @@ sub Get_OperStatus_Description_Index {
         my $OperStatusFile = $grefhFile->{If}->{"$Desc"}->{ifOperStatus};
         unless ($OperStatusFile) {$OperStatusFile = "";}
         
-        logger(1, "Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
+        logger(2, "Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
         # set cache timer for further reads
         if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
             $grefhCurrent->{MD}->{If}->{"$Desc"}->{CacheTimer} = $gShortCacheTimer;
@@ -1305,23 +1305,24 @@ sub CleanAndSelectHistoricalDataset {
     my $firsttime = $STARTTIME;
 
     # loop through all historical perfdata
+    logger(1, "Clean/select historical datasets");
     for my $time (sort keys %{$grefhFile->{'history'}}) {
         if (($STARTTIME - ($ghOptions{'delta'} + 200)) > $time) {
             # delete anything older than starttime - (delta + a bit buffer)
             # so we keep a sliding window following us
             delete $grefhFile->{'history'}->{$time};
-            logger(1, "outdated perfdata cleanup: $time");
+            logger(1, " outdated perfdata cleanup: $time");
         } elsif ($time < $firsttime) {
             # chose the oldest dataset to compare with
             $firsttime = $time;
             $gUsedDelta = $STARTTIME - $firsttime;
-            logger(1, "now ($STARTTIME) - comparetimestamp ($time) = used delta ($gUsedDelta)");
+            logger(1, " now ($STARTTIME) - comparetimestamp ($time) = used delta ($gUsedDelta)");
             last;
         } else {
             # no dataset (left) to compare with
             # no further calculations if we run for the first time.
             $firsttime = undef;
-            logger(1, "no dataset (left) to compare with, bandwitdh calculations will not be done");
+            logger(1, " no dataset (left) to compare with, bandwitdh calculations will not be done");
         }
     }
     return $firsttime;
@@ -1461,25 +1462,26 @@ sub CalculateBps {
         #   * -1  -> interface used, unknown last traffic
         #   * 0   -> interface used, last traffic is < crit duration
         #   * 1   -> interface unused, last traffic is >= crit duration
-        
+
+        logger(2, "Last traffic calculation");
         if ($LastTrafficStatus == $ERRORS{'CRITICAL'}) {
-            logger(2, "  (debug) interface unused, last traffic is >= crit duration");
+            logger(2, " interface unused, last traffic is >= crit duration");
             # this means "no traffic seen during the last LastTrafficCrit seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "red";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 1; # interface unused
         } elsif ($LastTrafficStatus == $ERRORS{'WARNING'}) {
-            logger(2, "  (debug) interface used, last traffic is < crit duration");
+            logger(2, " interface used, last traffic is < crit duration");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         } elsif ($LastTrafficStatus == $ERRORS{'UNKNOWN'}) {
-            logger(2, "  (debug) interface used, unknown last traffic");
+            logger(2, " interface used, unknown last traffic");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "orange";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = -1; # interface unused
         } else {
-            logger(2, "  (debug) interface used, last traffic is < crit duration");            
-            logger(1, "  (debug) LastTraffic ($oid_ifDescr): ", $grefhFile->{MD}->{If}->{$oid_ifDescr}->{LastTraffic});
+            logger(2, " interface used, last traffic is < crit duration");            
+            logger(2, " LastTraffic ($oid_ifDescr): ", $grefhFile->{MD}->{If}->{$oid_ifDescr}->{LastTraffic});
             # this means "there is traffic on the interface during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         }
@@ -1635,7 +1637,7 @@ sub Get_IpAddress_SubnetMask {
     # Example lines:
     # .1.3.6.1.2.1.4.20.1.2.172.31.99.76 15
     # .1.3.6.1.2.1.4.20.1.2.193.83.153.254 29
-    logger(3, "IP information lines (refaIPLines): ".Dumper($refaIPLines));
+    logger(3, "IP information lines");
     for (@$refaIPLines) {
         my ($IpAddress,$Index) = split / /,$_,2;        # blank splits OID & ifIndex
         $IpAddress  =~  s/^.*1\.4\.20\.1\.2\.//;    # remove up to the ip address
@@ -1751,7 +1753,7 @@ sub WriteConfigFileNew {
 
     # Write Config File
     if (-f "$ConfigFile" and not -w "$ConfigFile") {
-        print "Unable to write to file $ConfigFile $!\n";
+        logger(0, "Unable to write to file $ConfigFile $!\n");
         exit $ERRORS{"UNKNOWN"};
     }
 
@@ -1804,11 +1806,12 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
 
         # Get the speed in normal or highperf speed counters
         if ($refhSNMP->{"$oid_ifSpeed.$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
-            logger(1, " (Debug) $Desc($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhSNMP->{"$oid_ifSpeed.$Index"});
             if ($ghSNMPOptions{'64bits'} && $refhSNMP->{"$oid_ifSpeed_64.$Index"} != 0) {
                 $refhSNMP->{"$oid_ifSpeed.$Index"} = $refhSNMP->{"$oid_ifSpeed_64.$Index"} * 1000000;
             } elsif (! $ghSNMPOptions{'64bits'}) {
-                logger(2, " (Debug) $Desc($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $Desc($Index) !!!");
+                logger(1, " --->>> WARNING");
+                logger(1, " $Desc($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhSNMP->{"$oid_ifSpeed.$Index"});
+                logger(1, " $Desc($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $Desc($Index) !!!");
             }
         }
         
@@ -1897,7 +1900,7 @@ sub ExtractCacheTimer {
     } elsif ($CacheString =~ /^\d+$ghOptions{'ifs'}\d+$/) {
         ($gShortCacheTimer,$gLongCacheTimer) = split (/$ghOptions{'ifs'}/,$CacheString);
     } else {
-        print "$0: Wrong cache timer specified\n";
+        logger(0, "Wrong cache timer specified\n");
         exit $ERRORS{"UNKNOWN"};
     }
     logger(1, "Set ShortCacheTimer = $gShortCacheTimer and LongCacheTimer = $gLongCacheTimer");
@@ -1964,7 +1967,7 @@ sub ReadInterfaceInformationFile {
         # we got data from an old formated file - check this
         if (not $grefhFile->{MD}->{sysUpTime}) {
             unlink ("$InterfaceInformationFile");   # delete the old file
-            print "$0: first run - initializing interface table now\n";
+            logger(0, "first run - initializing interface table now\n");
             exit $ERRORS{"OK"};
         }
 
@@ -2098,7 +2101,7 @@ sub colorcode {
             }                
         }
         $colorcode = sprintf "%2.2x%2.2x%2.2x", $red, $green, 0;
-        logger(2, " (Debug) colorcode: $colorcode, current: $current, red: $red, green: $green");
+        logger(3, " colorcode: $colorcode, current: $current, red: $red, green: $green");
     }
     return $colorcode;
 }
@@ -2715,7 +2718,7 @@ sub check_options () {
         $ghOptions{'ifs'} = "$commandline{ifs}";
     }
     if (! exists $commandline{'hostquery'}) {
-        print "host to query not defined (-H)\n";
+        logger(0, "host to query not defined (-H)\n");
         print_help();
         exit $ERRORS{UNKNOWN};
     } else {
@@ -2806,7 +2809,7 @@ sub check_options () {
     }
     my @tmparray2=split(/,/,$ghOptions{'warning'});
     if ($#tmparray2 != 2) {
-        print "3 warning levels needed! (i.e. --warning 101,0,0)";
+        logger(0, "3 warning levels needed! (i.e. --warning 101,0,0)");
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'warning-load'} = $tmparray2[0];
@@ -2818,7 +2821,7 @@ sub check_options () {
     }
     my @tmparray3=split(/,/,$ghOptions{'critical'});
     if ($#tmparray3 != 2) {
-        print "3 critical levels needed! (i.e. --critical 101,0,0)";
+        logger(0, "3 critical levels needed! (i.e. --critical 101,0,0)");
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'critical-load'} = $tmparray3[0];
@@ -2839,7 +2842,7 @@ sub check_options () {
     
     #-------- SNMP related ----------#
     if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
-	    print "Can't mix snmp v1,2c,3 protocols!\n"; 
+	    logger(0, "Can't mix snmp v1,2c,3 protocols!\n"); 
         print_usage(); 
         exit $ERRORS{"UNKNOWN"};
     }
@@ -2867,7 +2870,7 @@ sub check_options () {
     }
     if (exists $commandline{'protocols'}) {
         if (!exists $commandline{'login'}) { 
-            print "Put snmp V3 login info with protocols!\n"; 
+            logger(0, "Put snmp V3 login info with protocols!\n"); 
             print_usage(); 
             exit $ERRORS{"UNKNOWN"};
         }
@@ -2879,7 +2882,7 @@ sub check_options () {
             $ghSNMPOptions{'privproto'} = $v3proto[1];
         }
         if ((defined ($v3proto[1])) && (!exists $commandline{'privpass'})) {
-            print "Put snmp V3 priv login info with priv protocols!\n";
+            logger(0, "Put snmp V3 priv login info with priv protocols!\n");
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
@@ -2893,7 +2896,7 @@ sub check_options () {
     }
     # Check snmpv2c or v3 with 64 bit counters
     if ( $ghSNMPOptions{'64bits'} && $ghSNMPOptions{'version'} == 1) {
-        print "Can't get 64 bit counters with snmp version 1\n"; 
+        logger(0, "Can't get 64 bit counters with snmp version 1\n"); 
         print_usage(); 
         exit $ERRORS{"UNKNOWN"}
     }
@@ -2901,13 +2904,14 @@ sub check_options () {
         if (eval "require bigint") {
             use bigint;
         } else { 
-            print "Need bigint module for 64 bit counters\n"; 
+            logger(0, "Need bigint module for 64 bit counters\n"); 
             print_usage(); 
             exit $ERRORS{"UNKNOWN"}
         }
     }
     
     # print the options in command line, and the resulting full option hash
+    logger(3, "--->>> Commandline & options");
     logger(3, "commandline: \n".Dumper(\%commandline));
     logger(3, "general options: \n".Dumper(\%ghOptions));
     logger(3, "snmp options: \n".Dumper(\%ghSNMPOptions));

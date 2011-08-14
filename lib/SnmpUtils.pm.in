@@ -143,12 +143,10 @@ sub SnmpGet {
                         close (OUT);
                     }
                 }
-                logger(1, "SnmpGet data from net (cache=$CacheTimer sec.) OID=$OID ");
+                logger(2, "SnmpGet data from net:  OID=${OID}, value=${SnmpValue}, cache=${CacheTimer}s");
             } else {
-                logger(1, "SnmpGet data from file (cache=$CacheTimer sec.) $CacheDir/$OID ");
+                logger(2, "SnmpGet data from file: ${CacheDir}/${OID}, value=${SnmpValue}, cache=${CacheTimer}s");
             }
-
-            logger(1, "SnmpValue: $SnmpValue");
 
             # fill hash with data
             $refhSnmpValues->{$OID}="$SnmpValue";
@@ -401,7 +399,7 @@ sub ExecuteCommand {
                     @$refaLines=<IN>;
                 close (IN);
                 # leave this subroutine with cached data found
-                logger(2, "ExecuteCommand (1) got data from cache $CacheFile");
+                logger(3, "ExecuteCommand: got data from cache $CacheFile");
                 return ($refaLines,0);
             }
         }
@@ -415,11 +413,11 @@ sub ExecuteCommand {
     close(UNIX);
     $ExitCode=$? >> 8; # calculate the exit code
 
-    logger(2, "ExecuteCommand (2) executed \"$Command\" and got ExitCode \"$ExitCode\"");
+    logger(3, "ExecuteCommand: executed \"$Command\" and got ExitCode \"$ExitCode\"");
 
     # write a cache file if the cache timer > 0
     if ($refhStruct->{CacheTimer} > 0) {
-        logger(2, "ExecuteCommand (3) Write cache file CacheTimer=$refhStruct->{CacheTimer}");
+        logger(3, "ExecuteCommand: write cache file CacheTimer=$refhStruct->{CacheTimer}");
         umask "0000"; # change to rw-rw-rw maybe changed later because of security
         open (OUT,">$CacheFile") or return ($refaLines,$ExitCode);
             print OUT @$refaLines;
