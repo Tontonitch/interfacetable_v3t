@@ -189,6 +189,7 @@ sub GetDataWithSnmp {
         if (defined $refhSNMPOptions->{'privpass'}) {
             $Value = SnmpGet ({
                 -hostname       => "$host",
+                -port           => "$refhSNMPOptions->{'port'}",
                 -version        => 3,
                 -username		=> "$refhSNMPOptions->{'login'}",
                 -authpassword	=> "$refhSNMPOptions->{'passwd'}",
@@ -204,6 +205,7 @@ sub GetDataWithSnmp {
         } else {
             $Value = SnmpGet ({
                 -hostname       => "$host",
+                -port           => "$refhSNMPOptions->{'port'}",
                 -version        => 3,
                 -username		=> "$refhSNMPOptions->{'login'}",
                 -authpassword	=> "$refhSNMPOptions->{'passwd'}",
@@ -218,6 +220,7 @@ sub GetDataWithSnmp {
     } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
         $Value = SnmpGet ({
             -hostname   => "$host",
+            -port       => "$refhSNMPOptions->{'port'}",
             -version    => 2,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
@@ -229,6 +232,7 @@ sub GetDataWithSnmp {
     } else {
         $Value = SnmpGet ({
             -hostname   => "$host",
+            -port       => "$refhSNMPOptions->{'port'}",
             -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
@@ -269,6 +273,7 @@ sub GetMultipleDataWithSnmp {
     if ( $refhSNMPOptions->{'version'} eq 3 ) {
         $refhSNMP = SnmpGet ({
             -hostname   => "$host",
+            -port       => "$refhSNMPOptions->{'port'}",
             -version    => 3,
             -username		=> "$refhSNMPOptions->{'login'}",
             -authpassword	=> "$refhSNMPOptions->{'passwd'}",
@@ -283,6 +288,7 @@ sub GetMultipleDataWithSnmp {
     } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
         $refhSNMP = SnmpGet ({
             -hostname   => "$host",
+            -port       => "$refhSNMPOptions->{'port'}",
             -version    => 2,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
@@ -293,6 +299,7 @@ sub GetMultipleDataWithSnmp {
     } else {
         $refhSNMP = SnmpGet ({
             -hostname   => "$host",
+            -port       => "$refhSNMPOptions->{'port'}",
             -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
@@ -332,14 +339,14 @@ sub GetDataWithUnixSnmpWalk {
     if ( $refhSNMPOptions->{'version'} eq 3 ) {
         if (defined($refhSNMPOptions->{'privpass'})) {
             ($refaLines) = ExecuteCommand ({
-                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} $host $OID",
+                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} ${host}:$refhSNMPOptions->{'port'} $OID",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
                 CacheTimer  => int rand ($CacheTimer),
             });
         } else {
             ($refaLines) = ExecuteCommand ({
-                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} $host $OID",
+                Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} ${host}:$refhSNMPOptions->{'port'} $OID",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
                 CacheTimer  => int rand ($CacheTimer),
@@ -347,14 +354,14 @@ sub GetDataWithUnixSnmpWalk {
         }
     } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
         ($refaLines) = ExecuteCommand ({
-            Command     => "snmpbulkwalk -Oqn -v 2c -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} $host $OID",
+            Command     => "snmpbulkwalk -Oqn -v 2c -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} ${host}:$refhSNMPOptions->{'port'} $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),
         });
     } else {
         ($refaLines) = ExecuteCommand ({
-            Command     => "snmpwalk -Oqn -v 1 -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} $host $OID",
+            Command     => "snmpwalk -Oqn -v 1 -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} ${host}:$refhSNMPOptions->{'port'} $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),

@@ -473,16 +473,16 @@ my $TimeDiff = $EndTime-$STARTTIME;
 
 # If current run is the first run we dont compare data
 if ( $gInitialRun ) {
-    logger(1, " Initial run -> Setting DifferenceCounter to zero.");
+    logger(1, "Initial run -> Setting DifferenceCounter to zero.");
     $gDifferenceCounter = 0;
     #$gText = "$gNumberOfInterfacesWithoutTrunk interface(s)";
     $gText = "Initial run...";    
 } elsif ( $gNoHistory ){
-    logger(1, " No history -> Setting DifferenceCounter to zero.");
+    logger(1, "No history -> Setting DifferenceCounter to zero.");
     $gDifferenceCounter = 0;
     $gText = "No valid historical dataset...";        
 } else {
-    logger(1, " Differences: $gDifferenceCounter");
+    logger(1, "Differences: $gDifferenceCounter");
     if ($gDifferenceCounter > 0) { 
         if ($ghOptions{'outputshort'}) { 
             $gText .= ", $gDifferenceCounter change(s)";
@@ -1858,7 +1858,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
                     $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlanname{"$oid_ifVlanName.$vlan"}. " ";
                 }
 
-                #logger(1, " (Debug) VlanName -> $port, " . $vlanname{"$oid_ifVlanName.$vlan"});
+                #logger(3, " VlanName -> $port, " . $vlanname{"$oid_ifVlanName.$vlan"});
                 }
         }
         if (@$VlanPortCisco > 0) {
@@ -1874,7 +1874,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
                     $grefhCurrent->{If}->{"$oid_ifDescr"}->{ifVlanNames} .= $vlan. " ";
                 }
 
-                #logger(1, " (Debug) VlanName -> $port, " . $vlan ."");
+                #logger(3, " VlanName -> $port, " . $vlan ."");
                 }
         }
     }
@@ -2619,7 +2619,7 @@ sub check_options () {
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
-        'port|p=i',                             # SNMP port
+        'port|P=i',                             # SNMP port
         'community|C=s',                        # Specifies the snmp v1/v2c community string.
         'v2c|2',                                # Use snmp v2c
         'login|l=s',                            # Login for snmpv3 authentication
