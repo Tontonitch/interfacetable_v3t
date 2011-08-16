@@ -225,7 +225,7 @@ if ($ghOptions{'snapshot'}) {
 
 # get uptime of the host - no caching !
 $grefhCurrent->{MD}->{sysUpTime} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime" ],$ghOptions{'cachedir'},0);
-if (!defined $grefhCurrent->{MD}->{sysUpTime}) {
+if (!defined $grefhCurrent->{MD}->{sysUpTime} or $grefhCurrent->{MD}->{sysUpTime} eq "") {
     logger(0, "Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n");
     exit $ERRORS{"CRITICAL"};
 }

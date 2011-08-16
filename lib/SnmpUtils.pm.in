@@ -133,7 +133,14 @@ sub SnmpGet {
                 my $refhValue = $refoSession->get_request(-varbindlist => ["$OID"]);
                 if (defined $refhValue->{"$OID"}) {
                     $SnmpValue  =   $refhValue->{"$OID"};
-
+                    
+                    # check result validity
+                    if ($SnmpValue =~ /No more variables left in this MIB View/) 
+                        or ($SnmpValue =~ /noSuchObject/) {
+                        logger(0, "The snmp response seems to be problematic: ".$SnmpValue);
+                        exit 1;
+                    }
+                    
                     # remove non ascii chars incl. \r and \n
                     $SnmpValue  =~  s/[\000-\037]|[\177-\377]//g;
 
@@ -387,6 +394,15 @@ sub GetDataWithUnixSnmpWalk {
             CacheTimer  => int rand ($CacheTimer),
         });
     }
+    
+    # check result validity
+    foreach my $line ( @$refaLines ) {
+        if ($line =~ /No more variables left in this MIB View/
+            or $line =~ /noSuchObject/) {
+            logger(0, "The snmp response seems to be problematic: ".$line);
+            exit 1;
+        }
+    }
 
     return $refaLines;
 }
@@ -433,7 +449,6 @@ sub ExecuteCommand {
     }
 
     # execute the unix command
-    logger(3, "ExecuteCommand: executing the following unix command:\n".$Command);
     open(UNIX,"$Command |") or last;
         while (<UNIX>) {
             push @$refaLines,$_;
@@ -441,8 +456,15 @@ sub ExecuteCommand {
     close(UNIX);
     $ExitCode=$? >> 8; # calculate the exit code
 
+
     logger(3, "ExecuteCommand: executed \"$Command\" and got ExitCode \"$ExitCode\"");
 
+    # stop in case of error
+    if ($ExitCode != 0) {
+        logger(0, "The UNIX command \"$Command\" returned the ExitCode \"$ExitCode\"");
+        exit 1;
+    }
+    
     # write a cache file if the cache timer > 0
     if ($refhStruct->{CacheTimer} > 0) {
         logger(3, "ExecuteCommand: write cache file CacheTimer=$refhStruct->{CacheTimer}");
