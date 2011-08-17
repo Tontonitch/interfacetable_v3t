@@ -40,7 +40,7 @@ distclean: clean
 install:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/etc
-	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(prefix)/settings.cfg
+	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(prefix)/etc/settings.cfg
 
 install-apache-config:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(httpd_conf)
