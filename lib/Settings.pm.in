@@ -23,39 +23,39 @@ use GeneralUtils;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(getSettings);
+    @EXPORT      = qw(parseConfigFile);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
-    
-    use vars qw($SETTINGCONF);
-    $SETTINGCONF = "@etcdir@/settings.cfg";
 }
 
 ##############################################################################
 ### S U B S ##################################################################
 ##############################################################################
 
-sub getSettings()
+sub parseConfigFile
 {
-	my ($in, %settings, $var, $value);
+	my $file = shift;
+    my $config = shift;
+    my ($in, $var, $value);
+    
     logger(3, "#==== Start of config ====#");
-	open(IN, "<$SETTINGCONF") or die "unable to read file $SETTINGCONF\n";
+	open(IN, "<$file") or die "unable to read file $file\n";
 		while ($in = <IN>)
 		{
-			if ($in !~ m/(^\s*$|^\s*#)/)
-			{
-				chomp($in);
+			chomp($in);          # Get rid of the trailling \n
+            $in =~ s/^\s*//;     # Remove spaces at the start of the line
+            $in =~ s/\s*$//;     # Remove spaces at the end of the line
+            if ($in !~ m/(^$|^#)/) {
 				($var, $value) = split(/=/, $in);
 				$var = cutOffSpaces($var);
 				$value = cutOffSpaces($value);
-				$settings{$var}=$value;
+				$$config{$var}=$value;
 				logger(3, "variable: ".$var.", value: ".$value);
 			}
 		}
 	close(IN);
 	logger(3, "#==== End of config ====#");
-	return(\%settings);
 }
 
 1;

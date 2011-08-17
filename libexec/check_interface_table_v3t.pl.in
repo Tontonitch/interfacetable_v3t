@@ -2,14 +2,16 @@
 # nagios: -epn
 
 # ------------------------------------------------------------------------
+# Program: @PKG_NAME@-@PKG_VERSION@
+# License: GPLv2
+# Copyright (c) 2009-2011 Yannick Charton (@PKG_HOME_URL@)
+
 # COPYRIGHT:
-#
 # This software and the additional scripts provided with this software are
 # Copyright (c) 2011 Yannick Charton (tontonitch-pro@yahoo.fr)
 # (Except where explicitly superseded by other copyright notices)
 #
 # LICENSE:
-#
 # This work is made available to you under the terms of version 3 of
 # the GNU General Public License. A copy of that license should have
 # been provided with this software. 
@@ -56,8 +58,6 @@ my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
-my $css_stylesheet	= "icinga.css";
-my $feature_interfaceInfoDetail = 0;
 # NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
@@ -705,7 +705,7 @@ sub WriteHtmlTable {
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
-    <link rel="stylesheet" type="text/css" href="../css/' . $css_stylesheet . '">
+    <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
 	<script type="text/javascript" src="../js/functions.js"></script>
   </head>
 <body>
@@ -888,7 +888,7 @@ sub GenerateHtmlTable {
                         }
                 }
                 # Retrieve detailed interface info via snmp link
-                if ($feature_interfaceInfoDetail and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+                if ($ghOptions{'ifdetails'} and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
                     $CellContent .= '<a href="xxxxxxxxxxxx.cgi?' . 
                                    'host=' . $ghOptions{'hostquery'} . 
                                    '&ifindex=' . $InterfaceIndex .
@@ -2525,6 +2525,9 @@ sub print_usage () {
         ignored. Default is enabled.
     --timeout (optional)
         Define the timeout limit of the plugin.
+    --css (optional)
+        Define the css stylesheet used by the generated html files.
+        Can be: classical, icinga or nagiosxi
         
   Notes:
     - For options --exclude, --include, --track-property, --exclude-property, --include-property:
@@ -2574,6 +2577,7 @@ sub support () {
 # ------------------------------------------------------------------------
 sub check_options () {
     my %commandline = ();
+    my %configfile = ();
     my @params = (
         #------- general options --------#
         'help|?',
@@ -2627,7 +2631,10 @@ sub check_options () {
         'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
         'protocols|L=s',                        # Format: <authproto>,<privproto>; 
         'timeout|t=i',
-        '64bits'                                # Use 64 bits counters
+        '64bits',                               # Use 64 bits counters
+        #------- other features ---------#
+        'css=s',                                # Used css stylesheet
+        'ifdetails'                             # Link to query interface info - not yet functional
         );
         
     # gathering commandline options
@@ -2677,7 +2684,10 @@ sub check_options () {
         'portperfunit'              => "bit",
         'perfdatashort',            => 0,
         'grapher'                   => "@grapher@",
-        'grapherurl'                => "@grapher_url@"
+        'grapherurl'                => "@grapher_url@",
+        #------- other features ---------#
+        'css'                       => "icinga",             # Used css stylesheet. Can be classical, icinga or nagiosxi.
+        'ifdetails'                 => 0
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -2692,6 +2702,15 @@ sub check_options () {
         'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
         '64bits'                    => 0
     );
+    
+    # process config file first, as command line options overwrite them
+    parseConfigFile("@etcdir@/settings.cfg", \%configfile);
+    foreach my $key (keys %configfile) {
+        if (exists $ghOptions{$key}) {
+            $ghOptions{$key} = $configfile{$key};
+        }
+    }
+    
     ### mandatory commandline options: hostquery
     # applying commandline options
     if (exists $commandline{verbose}) {
@@ -2838,6 +2857,14 @@ sub check_options () {
     }
     if (exists $commandline{grapherurl}) {
         $ghOptions{'grapherurl'} = "$commandline{grapherurl}";
+    }
+    
+    if (exists $commandline{css}) {
+        $ghOptions{'css'} = "$commandline{css}";
+    }
+    if (! -e "$ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css") {
+        logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/css/$ghOptions{'css'}.css");
+        exit $ERRORS{"UNKNOWN"};
     }
     
     #-------- SNMP related ----------#
