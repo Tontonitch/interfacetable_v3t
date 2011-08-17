@@ -3,7 +3,17 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
-# * 0.03 (in progess)
+# * 0.03b2 (in progess)
+#   ----------------------------------------------------------------------
+#    - bugfix: fixed badly-used options warning/critical
+#    - enhancement: added checks of undefined variables
+#    - enhancement: reviewed debug/verbose mode to be clearer and better understandable
+#    - enhancement: SnmpUtils.pm now more robust and verbose in case of problem
+#    - bugfix: port option (-P) now working
+#    - bugfix: fixed some snmpv3 authentication problems 
+#
+#   ----------------------------------------------------------------------
+# * 0.03b1
 #   ----------------------------------------------------------------------
 #    - feature: all styles are now handled in an external css stylesheet. 
 #      3 stylesheets currently available: 
