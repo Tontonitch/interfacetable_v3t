@@ -11,6 +11,8 @@
 #    - enhancement: SnmpUtils.pm now more robust and verbose in case of problem
 #    - bugfix: port option (-P) now working
 #    - bugfix: fixed some snmpv3 authentication problems 
+#    - feature: config file. Using the --config option, a config file can be 
+#      loaded. (really useful? lets see...)
 #
 #   ----------------------------------------------------------------------
 # * 0.03b1

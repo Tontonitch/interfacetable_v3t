@@ -32,6 +32,8 @@
 #           an addition of 0/1/2/4/8/16/32/64 to really select what is needed...
 #            -> prefered to keep a standard way with levels (currently 0-3).
 #               reviewed, added loglevel 0 for critical errors
+# DONE    - config file feature. Using the --config option, a config file can be 
+#           loaded. (really useful? lets see...)
 # 
 # ----------------------------------------------------------------------
 # Todo for 0.04
@@ -40,7 +42,6 @@
 # IN PROG - review general structure of the plugin
 #         - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 #           against the use of unix snmpwalk
-#         - config file... or not?
 #         - add STP info
 #         - add Cisco specific port info
 #

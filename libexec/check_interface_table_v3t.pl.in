@@ -2528,6 +2528,8 @@ sub print_usage () {
     --css (optional)
         Define the css stylesheet used by the generated html files.
         Can be: classical, icinga or nagiosxi
+    --config (optional)
+        Specify a config file to load.
         
   Notes:
     - For options --exclude, --include, --track-property, --exclude-property, --include-property:
@@ -2591,8 +2593,8 @@ sub check_options () {
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'exclude|et=s@',                       # list of interfaces excluded from the load tracking
-        'include|it=s@',                       # list of interfaces included in the load tracking
+        'exclude|et=s@',                        # list of interfaces excluded from the load tracking
+        'include|it=s@',                        # list of interfaces included in the load tracking
         'warning|wt=s',
         'critical|ct=s',
         'community=s',                          # community string
@@ -2604,9 +2606,9 @@ sub check_options () {
         'cisco',                                # Add cisco specific info in the info table
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
-        'track-property|tp=s@',                      # list of tracked properties
-        'exclude-property|ep=s@',                       # list of interfaces excluded from the property tracking
-        'include-property|ip=s@',                       # list of interfaces included in the property tracking
+        'track-property|tp=s@',                 # list of tracked properties
+        'exclude-property|ep=s@',               # list of interfaces excluded from the property tracking
+        'include-property|ip=s@',               # list of interfaces included in the property tracking
         'warning-property|wp=i',
         'critical-property|cp=i',
         'snapshot!',
@@ -2633,6 +2635,7 @@ sub check_options () {
         'timeout|t=i',
         '64bits',                               # Use 64 bits counters
         #------- other features ---------#
+        'config=s'                              # Configuration file
         'css=s',                                # Used css stylesheet
         'ifdetails'                             # Link to query interface info - not yet functional
         );
@@ -2686,6 +2689,7 @@ sub check_options () {
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
+        'config'                    => '',
         'css'                       => "icinga",             # Used css stylesheet. Can be classical, icinga or nagiosxi.
         'ifdetails'                 => 0
     );
@@ -2704,10 +2708,12 @@ sub check_options () {
     );
     
     # process config file first, as command line options overwrite them
-    parseConfigFile("@etcdir@/settings.cfg", \%configfile);
-    foreach my $key (keys %configfile) {
-        if (exists $ghOptions{$key}) {
-            $ghOptions{$key} = $configfile{$key};
+    if (exists $commandline{'config'}) {
+        parseConfigFile("$commandline{'config'}", \%configfile);
+        foreach my $key (keys %configfile) {
+            if (exists $ghOptions{$key}) {
+                $ghOptions{$key} = "$configfile{$key}";
+            }
         }
     }
     

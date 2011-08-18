@@ -8,10 +8,60 @@
 # version 3, as published by the Free Software Foundation
 # ------------------------------------------------------------------------
 
-# css stylesheet used by the generated html tables 
-# can be classical, icinga, or nagiosxi
-css = icinga
+# ---------------------- plugin configuration ----------------------------
 
-# ------------- Below are unfinished stuffs, don't use it ----------------
+# caching directory
+cachedir = "@cachedir@"
+
+# interface table state directory
+statedir = "@statedir@"
+
+# interface table HTML directory
+htmltabledir = "@htmldir@/tables"
+
+# interface table URL location
+htmltableurl = "@htmlurl@/tables"
+
+reseturl = "@cgiurl@"
+
+# access method for the link to the host in the HTML page
+accessmethod = "ssh"
+
+# color gradient from green over yellow to red representing the load percentage
+ifloadgradient = 1
+
+# translate bandwidth usage in human readable format (G/M/K bps)
+human = 1
+
+# interface throuput delta in seconds
+delta = 600
+
+# cache timer
+cache = 3600
+
+# plugin timeout
+timeout = 120
+
+# ------------------------ performance data ------------------------------
+
+# enable port performance data, default is port perfdata disabled
+enableperfdata = 0
+
+# bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+portperfunit = "bit"
+
+# graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+grapher = "@grapher@"
+
+# graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
+grapherurl = "@grapher_url@"
+
+# ------------------------- other features -------------------------------
+
+# css stylesheet used by the generated html tables 
+# Used css stylesheet. Can be classical, icinga or nagiosxi.
+css = "icinga"
+        
+# ============= Below are unfinished stuffs, don't use it ================
 # activate/disactivate the feature allowing you to query interface details
 #ifdetails = 0
