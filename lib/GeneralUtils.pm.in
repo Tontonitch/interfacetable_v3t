@@ -164,19 +164,24 @@ sub logger {
 
 sub printArray
 {
-	my $array = shift;
-	my $prefix = shift;
-	my ($i, $len);
+    my $array = shift;
+    my $prefix = shift;
+    my $output = "";
+    my ($i, $len);
 	
 	if (defined $array) {
         $len=length(@$array - 1);
-        #print "len: $len\n";
+        #$output = $output . "len: $len";
         for ($i=0; $i<@$array; $i++)
         {
             $i = sprintf("%0${len}d", $i);
-            print "${prefix}[$i]: $array->[$i]\n";
+            if ($output ne "") {
+                $output = $output . '\n';
+            }
+            $output = $output . "${prefix}[$i]: $array->[$i]";
         }
     }
+    return $output;
 }
 
 =head2 GeneralUtils::printHash
@@ -197,6 +202,7 @@ sub printHash
 {
 	my $hash = shift;
 	my $prefix = shift || "";
+    my $output = "";
 	my ($key);
 	my $maxlen = 0;
 
@@ -208,14 +214,16 @@ sub printHash
                 $maxlen = length($key);
             }
         }
-        #print "max: $maxlen\n";
-    
+        #$output = $output . "max: $maxlen\n";
         foreach $key (keys %$hash)
         {
-            print "${prefix}" . fixedLen("[$key]", $maxlen+2, "left") . " => $hash->{$key}\n";
-            # print "${prefix}[$key] => $hash->{$key}\n";
+            if ($output ne "") {
+                $output = $output . '\n';
+            }
+            $output = $output . "${prefix}" . fixedLen("[$key]", $maxlen+2, "left") . " => $hash->{$key}";
         }
     }
+    return $output;
 }
 
 # ------------------------------------------------------------------------
