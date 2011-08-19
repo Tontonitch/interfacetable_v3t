@@ -2635,7 +2635,7 @@ sub check_options () {
         'timeout|t=i',
         '64bits',                               # Use 64 bits counters
         #------- other features ---------#
-        'config=s'                              # Configuration file
+        'config=s',                             # Configuration file
         'css=s',                                # Used css stylesheet
         'ifdetails'                             # Link to query interface info - not yet functional
         );
