@@ -2476,6 +2476,8 @@ sub print_usage () {
         <privproto> : Priv protocole (des|aes : default des)
     -P, --port=PORT
         SNMP port (Default 161)
+    --64bits
+        Use SNMP 64 bits counters
 
   Graphing options:
     -f, --enableperfdata (optional)
