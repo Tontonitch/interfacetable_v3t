@@ -7,12 +7,17 @@
 #   ----------------------------------------------------------------------
 #    - bugfix: fixed badly-used options warning/critical
 #    - enhancement: added checks of undefined variables
-#    - enhancement: reviewed debug/verbose mode to be clearer and better understandable
+#    - enhancement: reviewed debug/verbose mode to be clearer and better 
+#      understandable
 #    - enhancement: SnmpUtils.pm now more robust and verbose in case of problem
 #    - bugfix: port option (-P) now working
 #    - bugfix: fixed some snmpv3 authentication problems 
 #    - feature: config file. Using the --config option, a config file can be 
 #      loaded. (really useful? lets see...)
+#    - bugfix: now "noSuchObject" response is handled correctly for all snmp 
+#      versions. By default, v1 always returns an empty string, and v2c/v3 return 
+#      "noSuchObject". Now all the modes translate noSuchObject to an empty string,
+#      and some extra debug info in case of v2c/v3
 #
 #   ----------------------------------------------------------------------
 # * 0.03b1
