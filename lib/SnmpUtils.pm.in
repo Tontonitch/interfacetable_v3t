@@ -54,7 +54,8 @@ sub SnmpGet {
     my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
     my $GlobalCacheDir      = $refhStruct->{CacheDir};
     my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
-
+    my $strict              = 0;
+    
     delete $refhStruct->{OID};
     delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
@@ -62,7 +63,7 @@ sub SnmpGet {
     my $refhSnmpValues; # hash returned to the caller
     my $refoSession;    # SNMP session object
     my $SessionError;   # SNMP session error
-
+    
     # example cache dir name
     # /tmp/watchit/Cache/SnmpGet/cat-itd-01
     my $CacheDir = "$GlobalCacheDir/SnmpGet";
@@ -134,13 +135,6 @@ sub SnmpGet {
                 if (defined $refhValue->{"$OID"}) {
                     $SnmpValue  =   $refhValue->{"$OID"};
                     
-                    # check result validity
-                    if ($SnmpValue =~ /No more variables left in this MIB View/
-                        or $SnmpValue =~ /noSuchObject/) {
-                        logger(0, "SnmpGet data from net:  OID=${OID}, problematic snmp response: ${SnmpValue}");
-                        exit 1;
-                    }
-                    
                     # remove non ascii chars incl. \r and \n
                     $SnmpValue  =~  s/[\000-\037]|[\177-\377]//g;
 
@@ -159,11 +153,31 @@ sub SnmpGet {
             } else {
                 logger(2, "SnmpGet data from file: ${CacheDir}/${OID}, value=${SnmpValue}, cache=${CacheTimer}s");
             }
-
+            # check result validity
+            if ($SnmpValue =~ /noSuchObject/) {
+                if ($strict == 0) {
+                    # Replacing noSuchObject by an empty string.
+                    # Indeed, the different snmp versions handle requests for missing oids 
+                    # differently. v1 always returns an empty string. v2c/v3 return "noSuchObject" 
+                    # string, and -translate noSuchObject -> '' correct that. BUt we do the change 
+                    # to empty string after to be able to inform the user. Also, snmpwalk and other 
+                    # unix programs don't have such a translate option.
+                    # Ex: snmpwalk
+                    # [icinga@server libexec]$ snmpwalk -Oqn -v 1 -t 15 -c s2un2um2up2u rt5.noc.cdt.europa.eu:161 .1.3.6.1.4.1.9.5.1.2.16.0
+                    # [icinga@server libexec]$
+                    # [icinga@server libexec]$ snmpwalk -Oqn -v 2c -t 15 -c s2un2um2up2u rt5.noc.cdt.europa.eu:161 .1.3.6.1.4.1.9.5.1.2.16.0
+                    # .1.3.6.1.4.1.9.5.1.2.16.0 No Such Object available on this agent at this OID
+                    # [icinga@server libexec]$
+                    $SnmpValue = "";
+                    logger(2, "SnmpGet data validity check: OID=${OID}, no such objet in the mib. Strict mode disabled, replacing by ''");
+                } else {
+                    logger(2, "SnmpGet data validity check: OID=${OID}, no such objet in the mib. Strict mode enabled, keeping 'noSuchObject'");
+                }
+            }
             # fill hash with data
             $refhSnmpValues->{$OID}="$SnmpValue";
-        } # for my $OIDLine ...
-
+        }
+        
         # if we have only 1 OID -> return the Value instead the hash
         if ($#$refaOIDs == 0) {
             return $SnmpValue;
@@ -355,24 +369,26 @@ sub GetDataWithUnixSnmpWalk {
 	#  * return: hash of values retrieved by snmp
     ################################
 
-    my $host        = shift;
+    my $host            = shift;
     my $refhSNMPOptions = shift;
-    my $OID         = shift;    # only one OID (number or name)
-    my $CacheDir    = shift;
-    my $CacheTimer  = shift;
+    my $OID             = shift;    # only one OID (number or name)
+    my $CacheDir        = shift;
+    my $CacheTimer      = shift;
     unless ($CacheTimer) {$CacheTimer = 0;}
-    my $refaLines   = ();
+    my $strict          = 0;
+    my $refaLinesTmp    = ();
+    my $refaLines       = ();
     
     if ( $refhSNMPOptions->{'version'} eq 3 ) {
         if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
-            ($refaLines) = ExecuteCommand ({
+            ($refaLinesTmp) = ExecuteCommand ({
                 Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} ${host}:$refhSNMPOptions->{'port'} $OID",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
                 CacheTimer  => int rand ($CacheTimer),
             });
         } else {
-            ($refaLines) = ExecuteCommand ({
+            ($refaLinesTmp) = ExecuteCommand ({
                 Command     => "snmpbulkwalk -Oqn -v 3 -t $refhSNMPOptions->{'timeout'} -u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} ${host}:$refhSNMPOptions->{'port'} $OID",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
@@ -380,14 +396,14 @@ sub GetDataWithUnixSnmpWalk {
             });
         }
     } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
-        ($refaLines) = ExecuteCommand ({
+        ($refaLinesTmp) = ExecuteCommand ({
             Command     => "snmpbulkwalk -Oqn -v 2c -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} ${host}:$refhSNMPOptions->{'port'} $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),
         });
     } else {
-        ($refaLines) = ExecuteCommand ({
+        ($refaLinesTmp) = ExecuteCommand ({
             Command     => "snmpwalk -Oqn -v 1 -t $refhSNMPOptions->{'timeout'} -c $refhSNMPOptions->{'community'} ${host}:$refhSNMPOptions->{'port'} $OID",
             Retry       => 2,
             CacheDir    => $CacheDir,
@@ -396,13 +412,31 @@ sub GetDataWithUnixSnmpWalk {
     }
     
     # check result validity
-    foreach my $line ( @$refaLines ) {
-        if ($line =~ /No more variables left in this MIB View/
-            or $line =~ /noSuchObject/) {
-            logger(0, "The snmp response seems to be problematic: ".$line);
-            exit 1;
+    foreach my $line ( @$refaLinesTmp ) {
+        if ($line =~ /No Such Object available on this agent at this OID/) {
+            if ($strict == 0) {
+                # Replacing noSuchObject by an empty string.
+                # Indeed, the different snmp versions handle requests for missing oids 
+                # differently. While v1 returns an empty string, v2c/v3 return "noSuchObject" 
+                # string
+                # Ex: snmpwalk
+                # [icinga@server libexec]$ snmpwalk -Oqn -v 1 -t 15 -c s2un2um2up2u rt5.noc.cdt.europa.eu:161 .1.3.6.1.4.1.9.5.1.2.16.0
+                # [icinga@server libexec]$
+                # [icinga@server libexec]$ snmpwalk -Oqn -v 2c -t 15 -c s2un2um2up2u rt5.noc.cdt.europa.eu:161 .1.3.6.1.4.1.9.5.1.2.16.0
+                # .1.3.6.1.4.1.9.5.1.2.16.0 No Such Object available on this agent at this OID
+                # [icinga@server libexec]$
+                push(@$refaLines, "");
+                logger(2, "SnmpGet data validity check: $line, no such objet in the mib. Strict mode disabled, replacing by ''");
+            } else {
+                push(@$refaLines, $line);
+                logger(2, "SnmpGet data validity check: $line, no such objet in the mib. Strict mode enabled, keeping '$line'");
+            }
+        } else {
+            push(@$refaLines, $line);
         }
     }
+    
+    print Dumper($refaLines);
 
     return $refaLines;
 }

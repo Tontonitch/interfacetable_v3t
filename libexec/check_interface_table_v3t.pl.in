@@ -972,10 +972,10 @@ sub EvaluateInterfaces {
     my $ExcludePropertyTrackList = shift;
     my $IncludePropertyTrackList = shift;
 
-    if (@{$ExcludeLoadTrackList}) { logger(2, "ExcludeLoadTrackList:\n".printArray($ExcludeLoadTrackList," ")); }
-    if (@{$IncludeLoadTrackList}) { logger(2, "IncludeLoadTrackList:\n".printArray($IncludeLoadTrackList," ")); }
-    if (@{$ExcludePropertyTrackList}) { logger(2, "ExcludePropertyTrackList:\n".printArray($ExcludePropertyTrackList," ")); }
-    if (@{$IncludePropertyTrackList}) { logger(2, "IncludePropertyTrackList:\n".printArray($IncludePropertyTrackList," ")); }
+    if (defined $ExcludeLoadTrackList) { logger(2, "ExcludeLoadTrackList: @{$ExcludeLoadTrackList}"); }
+    if (defined $IncludeLoadTrackList) { logger(2, "IncludeLoadTrackList: @{$IncludeLoadTrackList}"); }
+    if (defined $ExcludePropertyTrackList) { logger(2, "ExcludePropertyTrackList: @{$ExcludePropertyTrackList}"); }
+    if (defined $IncludePropertyTrackList) { logger(2, "IncludePropertyTrackList: @{$IncludePropertyTrackList}"); }
     
     # Loop through all interfaces
     for my $oid_ifDescr (keys %{$grefhCurrent->{MD}->{If}}) {
