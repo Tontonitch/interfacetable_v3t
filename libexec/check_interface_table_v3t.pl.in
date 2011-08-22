@@ -1845,7 +1845,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
             $vlanname{$oid} = "@name";
             $vlanname{$oid} =~ tr/"<>/'../; #"
         }
-        if (@$VlanPortHP > 0) {
+        if (defined $VlanPortHP and @$VlanPortHP > 0) {
             foreach my $tmp ( @$VlanPortHP ) {
                 my ($oid, $port) = split(/ /, $tmp);
                         chomp($port);
@@ -1861,7 +1861,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
                 #logger(3, " VlanName -> $port, " . $vlanname{"$oid_ifVlanName.$vlan"});
                 }
         }
-        if (@$VlanPortCisco > 0) {
+        if (defined $VlanPortCisco and @$VlanPortCisco > 0) {
             foreach my $tmp ( @$VlanPortCisco ) {
                 my ($oid, $vlan) = split(/ /, $tmp);
                         chomp($vlan);

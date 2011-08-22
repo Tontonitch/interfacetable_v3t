@@ -425,8 +425,8 @@ sub GetDataWithUnixSnmpWalk {
                 # [icinga@server libexec]$ snmpwalk -Oqn -v 2c -t 15 -c s2un2um2up2u rt5.noc.cdt.europa.eu:161 .1.3.6.1.4.1.9.5.1.2.16.0
                 # .1.3.6.1.4.1.9.5.1.2.16.0 No Such Object available on this agent at this OID
                 # [icinga@server libexec]$
-                push(@$refaLines, "");
-                logger(2, "SnmpGet data validity check: $line, no such objet in the mib. Strict mode disabled, replacing by ''");
+                logger(2, "SnmpGet data validity check: $line, no such objet in the mib. Strict mode disabled, returning an empty array");
+                return $refaLines;
             } else {
                 push(@$refaLines, $line);
                 logger(2, "SnmpGet data validity check: $line, no such objet in the mib. Strict mode enabled, keeping '$line'");
@@ -435,8 +435,6 @@ sub GetDataWithUnixSnmpWalk {
             push(@$refaLines, $line);
         }
     }
-    
-    print Dumper($refaLines);
 
     return $refaLines;
 }
