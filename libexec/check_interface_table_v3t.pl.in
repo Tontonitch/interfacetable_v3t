@@ -1008,12 +1008,12 @@ sub EvaluateInterfaces {
         # subset of a group of interfaces which were excluded previously
         for my $IncludeString (@$IncludeLoadTrackList) {
             if ($ghOptions{regexp}) {
-                if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                     logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
                 }
             }
-            elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+            elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                 logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                 $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
             }
@@ -1051,12 +1051,12 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                    if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                         logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                     }
                 }
-                elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$oid_ifAliasReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                     logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                 }
