@@ -76,6 +76,7 @@ my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";   # + ".<index>"
 my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";   # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";   # + ".<index>"
 my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>"
+my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
 
 # RFC1213 - Extracts about in/out stats
 # ------------------------------------------------------------------------
@@ -154,17 +155,17 @@ my $grefaInfoTableData;                              # Contents of the Info tabl
 
 my $gInterfaceTable;                                 # Html code of the interface table
 my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
-    'Index','Description','Alias','AdminStatus','OperStatus','Speed',
+    'Index','Description','Alias','AdminStatus','OperStatus','Speed','Duplex',
     'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
     ];
 my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
-    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable',
+    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable','ifDuplexStatus',
     'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','pktErrDiscard','ifLastTraffic','actions'
     ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
-    splice(@$grefaInterfaceTableHeader,6,0,'VLANs');
-    splice(@$grefaInterfaceTableFields,6,0,'ifVlanNames');
+    splice(@$grefaInterfaceTableHeader,7,0,'VLANs');
+    splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
 }
 
 my $grefaInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
@@ -324,7 +325,7 @@ Get_OperStatus_Description_Index ($grefaOperStatusLines);
 Get_IpAddress_SubnetMask ($grefaIPLines);
 
 # get ifAdminStatus, ifSpeed and ifAlias from the net or from cache
-Get_AdminStatus_Speed_Alias_Vlan ($grefhCurrent);
+Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 
 logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
@@ -460,7 +461,7 @@ if ($ghOptions{'cisco'}) {
 #
 # Generate Html Table
 # do not compare ifDescr and ifIndex because they can change during reboot
-# Field list: index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic
+# Field list: index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifDuplexStatus,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic
 #
 $grefaInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{'track-property'});
 
@@ -789,7 +790,7 @@ sub GenerateHtmlTable {
             my $FileFieldContent        = "";
             my $FieldType               = "";
             
-            if ($FieldName =~ /^index$|^ifDescr$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifVlanNames$|^IpInfo$/i) {
+            if ($FieldName =~ /^index$|^ifDescr$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifDuplexStatus$|^ifVlanNames$|^IpInfo$/i) {
                 $FieldType = "property";
             } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^ifLastTraffic$/i ) {
                 $FieldType = "load";
@@ -1764,9 +1765,10 @@ sub WriteConfigFileNew {
     return 0;
 }
 # ------------------------------------------------------------------------
-# walk through each interface and read ifAdminStatus, ifSpeed and ifAlias
+# walk through each interface and read ifAdminStatus, ifSpeed and ifAlias,
+# ifVlan, ifDuplexStatus
 # ------------------------------------------------------------------------
-sub Get_AdminStatus_Speed_Alias_Vlan {
+sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
 
     # loop through all found interfaces
     for my $Desc (keys %{$grefhCurrent->{If}}) {
@@ -1774,7 +1776,7 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
         my $refhSNMP = ();
         my $CacheTimer = 0;
 
-        # extract the index out of the MetaData
+        # Extract the index out of the MetaData
         my $Index           = $grefhCurrent->{MD}->{IfIndexTable}->{ByName}->{"$Desc"};
 
         # Current state | first state  |  CacheTimer
@@ -1791,16 +1793,16 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
             $CacheTimer = $gLongCacheTimer;
          }
 
-        # get next interface properties with caching to avoid network load
+        # Get next interface properties with caching to avoid network load
         if ($ghSNMPOptions{'64bits'}) {
             $refhSNMP = GetMultipleDataWithSnmp (
-                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifAlias.$Index", "$oid_ifSpeed_64.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index", "$oid_ifSpeed_64.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
         } else {
             $refhSNMP = GetMultipleDataWithSnmp (
-                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
         }
         
-        # store ifAdminStatus converted from a digit to "up" or "down"
+        # Store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
             ConvertIfStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
 
@@ -1815,20 +1817,24 @@ sub Get_AdminStatus_Speed_Alias_Vlan {
             }
         }
         
-        # store ifSpeed in a machine and human readable format
+        # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeed} =
             ($refhSNMP->{"$oid_ifSpeed.$Index"});
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeedReadable} =
             ConvertSpeedToReadable ($refhSNMP->{"$oid_ifSpeed.$Index"});
 
-        # store ifAlias normalized to not get into trouble with special chars
+        # Store ifDuplexStatus converted from a digit to string
+        $grefhCurrent->{If}->{"$Desc"}->{ifDuplexStatus} =
+            ConvertIfDuplexStatusToReadable ($refhSNMP->{"$oid_ifDuplexStatus.$Index"});
+            
+        # Store ifAlias normalized to not get into trouble with special chars
         $grefhCurrent->{If}->{"$Desc"}->{ifAlias} =
             normalize ($refhSNMP->{"$oid_ifAlias.$Index"});
 
         if ($ghOptions{vlan}) { # show VLANs per port
-                # clear ifVlanNames
-                $grefhCurrent->{If}->{"$Desc"}->{ifVlanNames} = '';
-                }
+            # clear ifVlanNames
+            $grefhCurrent->{If}->{"$Desc"}->{ifVlanNames} = '';
+        }
     }
 
     if ($ghOptions{vlan}) { # show VLANs per port
@@ -1944,6 +1950,30 @@ sub ConvertIfStatusToReadable {
     my $status = shift;
     my %status_conversion = ( 1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant');
     if ($status =~ /^(1|2|3|4|5)$/) {
+        $status = $status_conversion{$status};
+    } else {
+        # we do nothing and leave the original status
+    }
+    return $status;
+}
+
+# ------------------------------------------------------------------------
+# get the interface duplex status as integer or string and convert
+# it to a readable format - return a string
+#
+# http://www.faqs.org/rfcs/rfc3635.html (EtherLike MIB)
+#
+#    dot3StatsDuplexStatus OBJECT-TYPE
+#        SYNTAX  INTEGER {
+#                    unknown(1),
+#                    halfDuplex(2),
+#                    fullDuplex(3)
+#        }
+# ------------------------------------------------------------------------
+sub ConvertIfDuplexStatusToReadable {
+    my $status = shift;
+    my %status_conversion = ( 1=>'unknown', 2=>'halfDuplex', 3=>'fullDuplex');
+    if ($status =~ /^(1|2|3)$/) {
         $status = $status_conversion{$status};
     } else {
         # we do nothing and leave the original status
@@ -2443,6 +2473,7 @@ sub print_usage () {
         * 'ifAdminStatus'      : the administrative status of the interface
         * 'ifOperStatus'       : the operational status of the interface
         * 'ifSpeedReadable'    : the speed of the interface
+        * 'ifDuplexStatus'     : the operation mode of the interface (duplex mode)
         * 'ifVlanNames'        : the vlan on which the interface was associated
         * 'IpInfo'             : the ip configuration for the interface
         Default is 'ifOperStatus'
@@ -2676,7 +2707,7 @@ sub check_options () {
         'ifloadgradient'            => 1,
         'human'                     => 1,
         'snapshot'                  => 0,
-        'track-property'            => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifVlanNames, IpInfo
+        'track-property'            => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifDuplexStatus, ifVlanNames, IpInfo
         'exclude-property'          => undef,
         'include-property'          => undef,
         'warning-property'          => 0,
@@ -3215,6 +3246,7 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
   * 'ifAdminStatus'      : the administrative status of the interface
   * 'ifOperStatus'       : the operational status of the interface
   * 'ifSpeedReadable'    : the speed of the interface
+  * 'ifDuplexStatus'     : the operation mode of the interface (duplex mode)
   * 'ifVlanNames'        : the vlan on which the interface was associated
   * 'IpInfo'             : the ip configuration for the interface
  Default is 'ifOperStatus'

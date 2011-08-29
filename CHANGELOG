@@ -18,6 +18,8 @@
 #      versions. By default, v1 always returns an empty string, and v2c/v3 return 
 #      "noSuchObject". Now all the modes translate noSuchObject to an empty string,
 #      and some extra debug info in case of v2c/v3
+#    - feature: new property tracked ifDuplexStatus, which is the operation mode 
+#      of the interface (duplex mode) (kudos Oliver Windt for the idea) 
 #
 #   ----------------------------------------------------------------------
 # * 0.03b1
