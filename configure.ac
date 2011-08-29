@@ -63,8 +63,8 @@ AC_SUBST(INSTALL)
 
 ### Checks for libraries.
 dnl Checking Net::SNMP
-if ( $PERL -M"Net::SNMP" -e 'exit' 2>/dev/null  )
 AC_MSG_CHECKING(for Net::SNMP perl module)
+if ( $PERL -M"Net::SNMP" -e 'exit' 2>/dev/null  )
 then
 	AC_MSG_RESULT([found])
 else
@@ -72,8 +72,8 @@ else
 fi
 
 dnl Checking Config::General
-if ( $PERL -M"Config::General" -e 'exit' 2>/dev/null  )
 AC_MSG_CHECKING(for Config::General perl module)
+if ( $PERL -M"Config::General" -e 'exit' 2>/dev/null  )
 then
 	AC_MSG_RESULT([found])
 else
@@ -81,8 +81,8 @@ else
 fi
 
 dnl Checking Data::Dumper
-if ( $PERL -M"Data::Dumper" -e 'exit' 2>/dev/null  )
 AC_MSG_CHECKING(for Data::Dumper perl module)
+if ( $PERL -M"Data::Dumper" -e 'exit' 2>/dev/null  )
 then
 	AC_MSG_RESULT([found])
 else
@@ -90,8 +90,8 @@ else
 fi
 
 dnl Checking Getopt::Std
-if ( $PERL -M"Getopt::Std" -e 'exit' 2>/dev/null  )
 AC_MSG_CHECKING(for Getopt::Std perl module)
+if ( $PERL -M"Getopt::Std" -e 'exit' 2>/dev/null  )
 then
 	AC_MSG_RESULT([found])
 else
