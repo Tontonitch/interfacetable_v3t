@@ -1702,12 +1702,16 @@ sub Get_IpAddress_SubnetMask {
 sub ReadConfigFileNew {
 
     my $ConfigFile = shift;
-
+    logger(2, "Reading config file: $ConfigFile");
+    
     my $refoConfig; # object definition for the config
     my $refhConfig; # hash reference returned
 
     # return undef if file is not readable
-    -r "$ConfigFile" or return $refhConfig;
+    unless (-r "$ConfigFile") {
+        logger(2, "Config file \"$ConfigFile\" not readable");
+        return $refhConfig;
+    }
 
     # Initialize ConfigFile Read Process (create object)
     eval {
@@ -1716,6 +1720,7 @@ sub ReadConfigFileNew {
             -UseApacheInclude       => "false",
             -MergeDuplicateBlocks   => "false",
             -InterPolateVars        => "false",
+            -SplitPolicy            => 'equalsign'
         );
     };
     if($@) {
@@ -1741,7 +1746,8 @@ sub ReadConfigFileNew {
 sub WriteConfigFileNew {
     my $ConfigFile   =   shift;
     my $refhStruct   =   shift;
-
+    logger(3, "File to write: $ConfigFile");
+    
     use File::Basename;
 
     my $refoConfig; # object definition for the config
@@ -1749,9 +1755,13 @@ sub WriteConfigFileNew {
 
     # Initialize ConfigFile Read Process (create object)
     $refoConfig = new Config::General (
-        -ConfigPath => "$Directory"
+        -ConfigPath             => "$Directory",
+        -UseApacheInclude       => "false",
+        -MergeDuplicateBlocks   => "false",
+        -InterPolateVars        => "false",
+        -SplitPolicy            => 'equalsign'
     );
-
+    
     # Write Config File
     if (-f "$ConfigFile" and not -w "$ConfigFile") {
         logger(0, "Unable to write to file $ConfigFile $!\n");
@@ -1972,7 +1982,7 @@ sub ConvertIfStatusToReadable {
 # ------------------------------------------------------------------------
 sub ConvertIfDuplexStatusToReadable {
     my $status = shift;
-    my %status_conversion = ( 1=>'unknown', 2=>'halfDuplex', 3=>'fullDuplex');
+    my %status_conversion = ( 1=>'unknown', 2=>'half', 3=>'full');
     if ($status =~ /^(1|2|3)$/) {
         $status = $status_conversion{$status};
     } else {

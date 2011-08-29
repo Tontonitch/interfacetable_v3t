@@ -174,6 +174,17 @@ sub SnmpGet {
                     logger(2, "SnmpGet data validity check: OID=${OID}, no such objet in the mib. Strict mode enabled, keeping 'noSuchObject'");
                 }
             }
+            if ($SnmpValue =~ /noSuchInstance/) {
+                if ($strict == 0) {
+                    # Replacing noSuchInstance by an empty string.
+                    # Indeed, the different snmp versions handle requests for missing oids 
+                    # differently. v1 always returns an empty string. v2c/v3 return "noSuchInstance" 
+                    $SnmpValue = "";
+                    logger(2, "SnmpGet data validity check: OID=${OID}, no such objet in the mib. Strict mode disabled, replacing by ''");
+                } else {
+                    logger(2, "SnmpGet data validity check: OID=${OID}, no such objet in the mib. Strict mode enabled, keeping 'noSuchInstance'");
+                }
+            }
             # fill hash with data
             $refhSnmpValues->{$OID}="$SnmpValue";
         }
