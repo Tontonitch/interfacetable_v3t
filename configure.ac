@@ -98,6 +98,15 @@ else
 	AC_MSG_WARN([not found - install Getopt::Std perl module!])
 fi
 
+dnl Checking CGI
+AC_MSG_CHECKING(for CGI perl module)
+if ( $PERL -M"CGI" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install CGI module!])
+fi
+
 ### Checks for header files.
 
 ### Checks for typedefs, structures, and compiler characteristics.
