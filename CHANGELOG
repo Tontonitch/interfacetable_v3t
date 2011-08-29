@@ -20,6 +20,8 @@
 #      and some extra debug info in case of v2c/v3
 #    - feature: new property tracked ifDuplexStatus, which is the operation mode 
 #      of the interface (duplex mode) (kudos Oliver Windt for the idea) 
+#    - enhancement/bugfix: reviewed the way config::general is used to be more
+#      robust and compatible with last versions of the module
 #
 #   ----------------------------------------------------------------------
 # * 0.03b1
