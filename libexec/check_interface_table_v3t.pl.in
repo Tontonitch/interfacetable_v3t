@@ -2858,10 +2858,10 @@ sub check_options () {
         $ghOptions{'reseturl'} = "$commandline{reseturl}";
     }
     if (exists $commandline{ifloadgradient}) {
-        $ghOptions{'ifloadgradient'} = 1;
+        $ghOptions{'ifloadgradient'} = $commandline{ifloadgradient};
     }
     if (exists $commandline{human}) {
-        $ghOptions{'human'} = 1;
+        $ghOptions{'human'} = $commandline{human};
     }
     if (exists $commandline{vlan}) {
         $ghOptions{'vlan'} = 1;
@@ -2870,7 +2870,7 @@ sub check_options () {
         $ghOptions{'cisco'} = 1;
     }
     if (exists $commandline{snapshot}) {
-        $ghOptions{'snapshot'} = 1;
+        $ghOptions{'snapshot'} = $commandline{snapshot};
     }
     if (exists $commandline{warning}) {
         $ghOptions{'warning'} = "$commandline{warning}";
