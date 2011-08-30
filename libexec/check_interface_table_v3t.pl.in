@@ -155,7 +155,7 @@ my $grefaInfoTableData;                              # Contents of the Info tabl
 
 my $gInterfaceTable;                                 # Html code of the interface table
 my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
-    'Index','Description','Alias','AdminStatus','OperStatus','Speed','Duplex',
+    'Index','Description','Alias','Admin status','Oper status','Speed','Duplex',
     'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
     ];
 my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
@@ -164,7 +164,7 @@ my $grefaInterfaceTableFields = [                    # Hash keys for the content
     ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
-    splice(@$grefaInterfaceTableHeader,7,0,'VLANs');
+    splice(@$grefaInterfaceTableHeader,7,0,'Vlan');
     splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
 }
 
