@@ -614,7 +614,6 @@ exit $ERRORS{"UNKNOWN"};
 # perfdataout ();
 # ------------------------------------------------------------------------
 sub perfdataout {
-    my %gh_operstatus = ('up'=>1,'down'=>2,'testing'=>3,'unknown'=>4,'dormant'=>5);
     if ($ghOptions{perfdatadir}) { # perfdata to file
         my $filename = $ghOptions{perfdatadir} . "/service-perfdata.$STARTTIME";
         umask "$UMASK";
@@ -639,12 +638,12 @@ sub perfdataout {
             if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
                 if ($ghOptions{'portperfunit'} eq "octet") {
                         $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "OperStatus=".$gh_operstatus{"$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}"}.";;;0; " .
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
                                 "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
                                 "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
                 } else {
                         $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                "OperStatus=".$gh_operstatus{"$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}"}.";;;0; " .
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
                                 "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
                                 "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
                 }
@@ -1949,20 +1948,43 @@ sub ConvertSpeedToReadable {
 #
 #    ifAdminStatus OBJECT-TYPE
 #        SYNTAX  INTEGER {
-#                    up(1),       -- ready to pass packets
-#                    down(2),
-#                    testing(3),  -- in some test mode
-#                    unknown(4),
-#                    dormant(5)
+#                up(1),      -- ready to pass packets
+#                down(2),
+#                testing(3)  -- in some test mode
 #        }
+#
+#    ifOperStatus OBJECT-TYPE
+#        SYNTAX  INTEGER {
+#                up(1),        -- ready to pass packets
+#                down(2),
+#                testing(3),   -- in some test mode
+#                unknown(4),   -- status can not be determined
+#                              -- for some reason.
+#                dormant(5),
+#                notPresent(6),    -- some component is missing
+#                lowerLayerDown(7) -- down due to state of
+#                                  -- lower-layer interface(s)
+#        ]
 # ------------------------------------------------------------------------
 sub ConvertIfStatusToReadable {
     my $status = shift;
-    my %status_conversion = ( 1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant');
-    if ($status =~ /^(1|2|3|4|5)$/) {
+    my %status_conversion = ( 1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown');
+    if ($status =~ /^(1|2|3|4|5|6|7)$/) {
         $status = $status_conversion{$status};
     } else {
         # we do nothing and leave the original status
+    }
+    return $status;
+}
+sub ConvertIfStatusToNumber {
+    my $status = shift;
+    my %status_conversion = ( 'up'=>1,'down'=>2,'testing'=>3,'unknown'=>4,'dormant'=>5,'notPresent'=>6,'lowerLayerDown'=>7 );
+    if ($status =~ /^(up|down|testing|unknown|dormant|notPresent|lowerLayerDown)$/) {
+        $status = $status_conversion{$status};
+    } else {
+        # we do nothing and leave the original status
+        ## we return an empty string
+        #$status = '';
     }
     return $status;
 }
