@@ -1183,7 +1183,7 @@ sub Get_OperStatus_Description_Index {
             }
         }
         # ifOperstatus has changed to up, no alert
-        elsif ("$OperStatusNow" ne "down") {
+        elsif ("$OperStatusNow" eq "up") {
             # update the state in the status file
             $grefhFile->{If}->{"$Desc"}->{ifOperStatus} = "$OperStatusNow";
             # delete the changed flag and reset the time when it was changed
