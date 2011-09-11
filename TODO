@@ -38,11 +38,11 @@
 # ----------------------------------------------------------------------
 # Todo for 0.04
 # ----------------------------------------------------------------------
-# IN PROG - info table (first table) building way review for more flexibility
-# IN PROG - review general structure of the plugin
+#         - info table (first table) building way review for more flexibility
+#         - review general structure of the plugin
 #         - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 #           against the use of unix snmpwalk
 #         - add STP info
 #         - add Cisco specific port info
-#
+#         - add a feature to anonymize the info in debug reports (script or option?)
 # ========================================================================
