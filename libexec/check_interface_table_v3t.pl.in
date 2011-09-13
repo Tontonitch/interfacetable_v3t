@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.03b2';
+$REVISION       = '0.03b3';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -75,7 +75,7 @@ my $oid_ifSpeed_64      = ".1.3.6.1.2.1.31.1.1.1.15"; # + ".<index>"
 my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";   # + ".<index>"
 my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";   # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";   # + ".<index>"
-my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>"
+my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>", not used
 my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
 
 # RFC1213 - Extracts about in/out stats
@@ -1338,11 +1338,15 @@ sub CalculateBps {
     my $overfl_mod = ($ghSNMPOptions{'64bits'}) ? 18446744073709551616 : 4294967296;
     
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
+    logger(2, "x"x50);
+    logger(2, "Load & packet problem calculations");
     for my $Index (@$grefaAllIndizes) {
         
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
+        logger(2, " ifDescr: $oid_ifDescr (index: $Index)");
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+            logger(2, "  -> excluded interface, skipping");
             next;
         }
         
@@ -1396,6 +1400,9 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn} = 0;
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} = 0;
         }
+        logger(2, "  -> speed=".$grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed}.
+            "loadin=".$grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn}.
+            "loadout=".$grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut});
 
         #print OUT "BandwidthUsageIn=${bpsIn}bps;0;0;0;$grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed} ";
         #print OUT "BandwidthUsageOut=${bpsOut}bps;0;0;0;$grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed} ";
@@ -1465,29 +1472,29 @@ sub CalculateBps {
 
         logger(2, "Last traffic calculation");
         if ($LastTrafficStatus == $ERRORS{'CRITICAL'}) {
-            logger(2, " interface unused, last traffic is >= crit duration");
+            logger(2, "  -> interface unused, last traffic is >= crit duration");
             # this means "no traffic seen during the last LastTrafficCrit seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "red";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 1; # interface unused
         } elsif ($LastTrafficStatus == $ERRORS{'WARNING'}) {
-            logger(2, " interface used, last traffic is < crit duration");
+            logger(2, "  -> interface used, last traffic is < crit duration");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "yellow";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         } elsif ($LastTrafficStatus == $ERRORS{'UNKNOWN'}) {
-            logger(2, " interface used, unknown last traffic");
+            logger(2, "  -> interface used, unknown last traffic");
             # this means "no traffic seen during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLastTrafficOutOfRange} = "orange";
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = -1; # interface unused
         } else {
-            logger(2, " interface used, last traffic is < crit duration");            
-            logger(2, " LastTraffic ($oid_ifDescr): ", $grefhFile->{MD}->{If}->{$oid_ifDescr}->{LastTraffic});
+            logger(2, "  -> interface used, last traffic is < crit duration (LastTraffic ($oid_ifDescr): ".$grefhFile->{MD}->{If}->{$oid_ifDescr}->{LastTraffic}.")");
             # this means "there is traffic on the interface during the last LastTrafficWarn seconds"
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage} = 0; # interface used
         }
         check_for_unused_interfaces ($oid_ifDescr, $grefhCurrent->{If}->{$oid_ifDescr}->{ifUsage});
 
     }
+    logger(2, "x"x50);
     #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent));
     #logger(3, "grefhFile: " . Dumper ($grefhFile));
     #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent->{If}));

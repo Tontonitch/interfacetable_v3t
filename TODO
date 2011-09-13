@@ -43,6 +43,10 @@
 #         - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
 #           against the use of unix snmpwalk
 #         - add STP info
-#         - add Cisco specific port info
 #         - add a feature to anonymize the info in debug reports (script or option?)
+#         - extend debug if needed
+#         - think about an option to generate an anonymous report for better support
+#         - extend Cisco port info
+#         - add options for hp, or other brands if relevant
+#
 # ========================================================================
