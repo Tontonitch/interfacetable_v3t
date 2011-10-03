@@ -1595,7 +1595,7 @@ sub EvaluatePackets {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardOutOutOfRange} = colorcode($ppsDiscardOut, $ghOptions{'warning-pktdiscard'}, $ghOptions{'critical-pktdiscard'});
         }
         # totals field
-        $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscard} = sprintf("%.0f/%.0f/%.0f/%.0f", $ppsErrIn, $ppsErrOut, $ppsDiscardIn, $ppsDiscardOut);
+        $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscard} = sprintf("%.1f/%.1f/%.1f/%.1f", $ppsErrIn, $ppsErrOut, $ppsDiscardIn, $ppsDiscardOut);
         if ($pcrit > 0) {
             $grefhCurrent->{If}->{$oid_ifDescr}->{pktErrDiscardOutOfRange} = 'red';
         } elsif ($pwarn > 0) {
@@ -2735,8 +2735,8 @@ sub check_options () {
         'htmltableurl'              => "@htmlurl@/tables",
         'exclude'                   => undef,
         'include'                   => undef,
-        'warning'                   => "101,0,0",
-        'critical'                  => "101,0,0",
+        'warning'                   => "101,1000,1000",
+        'critical'                  => "101,5000,5000",
         'delta'                     => 600,
         'ifs'                       => ',',
         'cache'                     => 3600,
