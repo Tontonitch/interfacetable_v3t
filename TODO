@@ -48,5 +48,17 @@
 #         - think about an option to generate an anonymous report for better support
 #         - extend Cisco port info
 #         - add options for hp, or other brands if relevant
+#         - review generated link [details] to be not a relative URL, to be usable in 
+#           email notifications
+#         - evaluate a system where properties changing from empty to a value are not
+#           reported as a problem
+#         - better handling of counters cleared manually or via node restart
+#         - think about interface including/exclusion for load/traffic tracking, which 
+#           would be different from the global inclusion/exclusion, as it would only 
+#           prevent comparison to thresholds.
+#         - create a more detailed documentation on supported nodes, also to prevent
+#           regressions
+#         - add a feature to exclude/include interfaces from traffic load & err tracking,
+#           useful in case of normal high load on some interfaces
 #
 # ========================================================================
