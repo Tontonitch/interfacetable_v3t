@@ -34,14 +34,16 @@
 #               reviewed, added loglevel 0 for critical errors
 # DONE    - config file feature. Using the --config option, a config file can be 
 #           loaded. (really useful? lets see...)
+# IN PROG - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
+#           against the use of unix snmpwalk
+# IN PROG - add a feature to exclude/include interfaces from traffic load & err tracking,
+#           useful in case of normal high load on some interfaces
 # 
 # ----------------------------------------------------------------------
 # Todo for 0.04
 # ----------------------------------------------------------------------
 #         - info table (first table) building way review for more flexibility
 #         - review general structure of the plugin
-#         - add GetSnmpWalkxxxxx -> use of get_table and evaluate performances
-#           against the use of unix snmpwalk
 #         - add STP info
 #         - add a feature to anonymize the info in debug reports (script or option?)
 #         - extend debug if needed
@@ -58,7 +60,7 @@
 #           prevent comparison to thresholds.
 #         - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
-#         - add a feature to exclude/include interfaces from traffic load & err tracking,
-#           useful in case of normal high load on some interfaces
+#         - replace repeated single snmp request by table snmp request / snmpwalk when 
+#           possible -> performance enhancement
 #
 # ========================================================================
