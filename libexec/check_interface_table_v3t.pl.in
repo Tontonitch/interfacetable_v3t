@@ -384,6 +384,8 @@ logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCur
 $grefhCurrent = EvaluateInterfaces (
     $ghOptions{'exclude'},
     $ghOptions{'include'},
+    $ghOptions{'exclude-traffic'},
+    $ghOptions{'include-traffic'},
     $ghOptions{'exclude-property'},
     $ghOptions{'include-property'}
     );
@@ -658,7 +660,7 @@ sub perfdataout {
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
             and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
             my $port = sprintf("%03d", $InterfaceIndex);
             #my $servicename = "Port$port";
@@ -680,12 +682,14 @@ sub perfdataout {
                                 "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
                                 "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
                 }
-                #Add pkt errors/discards if available
-                if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
-                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
-                                "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
-                                "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
-                                "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                #Add pkt errors/discards if available and wanted
+                unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                    if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
+                        $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                    }
                 }
             }
             
@@ -699,7 +703,7 @@ sub perfdataout {
                 print OUT "\t$STARTTIME\n";                   # unix timestamp
                         }
 
-            if($ghOptions{'enableperfdata'}){$gPerfdata .= " $perfdata"; }      # thd collect performancedata
+            if($ghOptions{'enableperfdata'}){$gPerfdata .= "$perfdata"; }      # thd collect performancedata
         }
     } # for $InterfaceIndex
     if (defined $ghOptions{perfdatadir}) { # perfdata to file
@@ -853,7 +857,7 @@ sub GenerateHtmlTable {
             if ($gInitialRun)  {
                 $CompareThisField = 0;
 				$CellStyle = "cellInitialRun";
-            } elsif ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+            } elsif ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "true") {
                 $CompareThisField = 0;
 				$CellStyle = "cellExcluded";
             } elsif (($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true") && ( $FieldType eq "property" )) {
@@ -901,7 +905,7 @@ sub GenerateHtmlTable {
             # Actions field
             if (grep (/$FieldName/i, "Actions")) {
                 # Graphing solution link - one link per line/interface/port
-                if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" 
+                if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
                     and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
                     and $ghOptions{'enableperfdata'}) {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
@@ -921,7 +925,7 @@ sub GenerateHtmlTable {
                         }
                 }
                 # Retrieve detailed interface info via snmp link
-                if ($ghOptions{'ifdetails'} and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+                if ($ghOptions{'ifdetails'} and $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
                     $CellContent .= '<a href="xxxxxxxxxxxx.cgi?' . 
                                    'host=' . $ghOptions{'hostquery'} . 
                                    '&ifindex=' . $InterfaceIndex .
@@ -1000,11 +1004,15 @@ sub GenerateHtmlTable {
 # ------------------------------------------------------------------------
 sub EvaluateInterfaces {
 
+    my $ExcludeTrackList = shift;
+    my $IncludeTrackList = shift;
     my $ExcludeLoadTrackList = shift;
     my $IncludeLoadTrackList = shift;
     my $ExcludePropertyTrackList = shift;
     my $IncludePropertyTrackList = shift;
 
+    if (defined $ExcludeTrackList) { logger(2, "ExcludeTrackList: @{$ExcludeTrackList}"); }
+    if (defined $IncludeTrackList) { logger(2, "IncludeTrackList: @{$IncludeTrackList}"); }
     if (defined $ExcludeLoadTrackList) { logger(2, "ExcludeLoadTrackList: @{$ExcludeLoadTrackList}"); }
     if (defined $IncludeLoadTrackList) { logger(2, "IncludeLoadTrackList: @{$IncludeLoadTrackList}"); }
     if (defined $ExcludePropertyTrackList) { logger(2, "ExcludePropertyTrackList: @{$ExcludePropertyTrackList}"); }
@@ -1013,54 +1021,95 @@ sub EvaluateInterfaces {
     # Loop through all interfaces
     for my $oid_ifDescr (keys %{$grefhCurrent->{MD}->{If}}) {
 
-        #----- Includes or excludes interfaces from traffic load tracking -----#
-        
         # Denormalize interface name
         my $oid_ifDescrReadable = denormalize ($oid_ifDescr);
         my $oid_ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$oid_ifDescr"}->{ifAlias});
         
+        #----- Includes or excludes interfaces from all tracking -----#
+        
         # By default, don't exclude the interface
-        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "false";
         
         # Process the interface exclusion list
-        for my $ExcludeString (@$ExcludeLoadTrackList) {
+        for my $ExcludeString (@$ExcludeTrackList) {
             if ($ghOptions{regexp}) {
                 if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                     logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "true";
                 }
             }
             elsif ("$oid_ifDescrReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                 logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
-                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
+                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "true";
             }
         }
 
         # Process the interface inclusion list
         # Inclusions are done after exclusions to be able to include a 
         # subset of a group of interfaces which were excluded previously
-        for my $IncludeString (@$IncludeLoadTrackList) {
+        for my $IncludeString (@$IncludeTrackList) {
             if ($ghOptions{regexp}) {
                 if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                     logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "false";
                 }
             }
             elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                 logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
-                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+                $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "false";
             }
         }
       
         # Update the counter if needed        
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
             $gNumberOfPerfdataInterfaces++;
+        }
+        
+        #----- Includes or excludes interfaces from traffic load tracking -----#
+        
+        # For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
+            
+            # By default, don't exclude the interface
+            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+            
+            # Process the interface exclusion list
+            for my $ExcludeString (@$ExcludeLoadTrackList) {
+                if ($ghOptions{regexp}) {
+                    if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                        logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
+                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
+                    }
+                }
+                elsif ("$oid_ifDescrReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                    logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
+                }
+            }
+    
+            # Process the interface inclusion list
+            # Inclusions are done after exclusions to be able to include a 
+            # subset of a group of interfaces which were excluded previously
+            for my $IncludeString (@$IncludeLoadTrackList) {
+                if ($ghOptions{regexp}) {
+                    if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                        logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+                    }
+                }
+                elsif ("$oid_ifDescrReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                    logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
+                    $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+                }
+            }
+        } else {
+            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
         }
         
         #----- Includes or excludes interfaces from property change tracking -----#
         
 		# For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
             
             # By default, track the properties of the interface
             $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
@@ -1372,13 +1421,13 @@ sub CalculateBps {
     
     # $grefaAllIndizes is a indexed and sorteted list of all interfaces
     logger(2, "x"x50);
-    logger(2, "Load & packet problem calculations");
+    logger(2, "Load calculations");
     for my $Index (@$grefaAllIndizes) {
         
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
         logger(2, " ifDescr: $oid_ifDescr (index: $Index)");
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
             next;
         }
@@ -1417,7 +1466,7 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
             # check interface utilization in percent
 
-            if ($ifLoadIn > 0 or $ifLoadOut > 0) {
+            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ifLoadIn > 0 or $ifLoadOut > 0)) {
                 # just traffic light color codes for the lame
                 if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
                     push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($oid_ifDescr));
@@ -1551,7 +1600,7 @@ sub EvaluatePackets {
         
         # Get normalized interface name (key for If data structure)
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$Index};
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "true") {
             next;
         }
         
@@ -1597,7 +1646,7 @@ sub EvaluatePackets {
         my $pcrit = 0;
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrIn}  = sprintf("%.2f", $ppsErrIn);
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrOut} = sprintf("%.2f", $ppsErrOut);
-        if ($ppsErrIn > 0 or $ppsErrOut > 0) {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ppsErrIn > 0 or $ppsErrOut > 0)) {
             # just traffic light color codes for the lame
             if ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'}) {
                 push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($oid_ifDescr));
@@ -1613,7 +1662,7 @@ sub EvaluatePackets {
         }
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardIn}  = sprintf("%.2f", $ppsDiscardIn);
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardOut} = sprintf("%.2f", $ppsDiscardOut);
-        if ($ppsDiscardIn > 0 or $ppsDiscardOut > 0) {
+        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ppsDiscardIn > 0 or $ppsDiscardOut > 0)) {
             # just traffic light color codes for the lame
             if ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'}) {
                 push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($oid_ifDescr));
@@ -2443,7 +2492,7 @@ sub ExitPlugin {
                 "ports=${gNumberOfInterfacesWithoutTrunk};;;; " .
                 "freeports=${gNumberOfFreeInterfaces};;;; " .
                 "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
-        unless ($ghOptions{'perfdatashort'}) {
+        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
             print "$gPerfdata\n";
         }
     }
@@ -2510,7 +2559,7 @@ sub print_usage () {
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
-        [--portperfunit <unit>] [--perfdatashort] [--outputshort] 
+        [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort] 
         
     * other usages:
       $PROGNAME [--help | -?]
@@ -2609,6 +2658,18 @@ sub print_usage () {
   Graphing options:
     -f, --enableperfdata (optional)
         Enable port performance data, default is port perfdata disabled
+    --perfdataformat (optional)
+        Define which performance data will be generated. 
+        Can be:
+         * full : generated performance data include plugin related stats, 
+                  interface status, interface load stats, and packet error stats 
+         * loadonly : generated performance data include plugin related stats, 
+                      interface status, and interface load stats 
+         * globalonly : generated performance data include only plugin related stats
+        Default is full.
+        'loadonly' should be used in case of too many interfaces and consequently too much performance
+        data which cannot fit in the nagios plugin output buffer. By default, its size is 8k and
+        can be extended by modifying MAX_PLUGIN_OUTPUT in the nagios sources.
     -g, --grapher (optional)
         Specify the used graphing solution. 
         Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
@@ -2722,10 +2783,8 @@ sub check_options () {
         'accessmethod=s',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'exclude|et=s@',                        # list of interfaces excluded from the load tracking
-        'include|it=s@',                        # list of interfaces included in the load tracking
-        'warning|wt=s',
-        'critical|ct=s',
+        'exclude|e=s@',                         # list of interfaces globally excluded
+        'include|i=s@',                         # list of interfaces globally included
         'community=s',                          # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
@@ -2735,22 +2794,27 @@ sub check_options () {
         'cisco',                                # Add cisco specific info in the info table
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
-        'track-property|tp=s@',                 # list of tracked properties
-        'exclude-property|ep=s@',               # list of interfaces excluded from the property tracking
-        'include-property|ip=s@',               # list of interfaces included in the property tracking
-        'warning-property|wp=i',
-        'critical-property|cp=i',
         'snapshot!',
         'version|V',
         'regexp|r',
         'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...). 
                                                 # By default, the plugin returns general counts (nb ports, nb changes,...) 
                                                 # + what changes has been detected
+        #------ traffic tracking --------#
+        'exclude-traffic|et=s@',                # list of interfaces excluded from the load tracking
+        'include-traffic|it=s@',                # list of interfaces included in the load tracking
+        'warning-traffic|warning|wt=s',
+        'critical-traffic|critical|ct=s',
+        #------ property tracking -------#
+        'track-property|tp=s@',                 # list of tracked properties
+        'exclude-property|ep=s@',               # list of interfaces excluded from the property tracking
+        'include-property|ip=s@',               # list of interfaces included in the property tracking
+        'warning-property|wp=i',
+        'critical-property|cp=i',
         #------- performance data -------#
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
         'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
-        'perfdatashort',                        # restrict the performance data to the global statistics. Statistics specific 
-                                                # to each interfaces will be not returned.
+        'perfdataformat=s',                     # define which performance data will be generated.
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
@@ -2792,8 +2856,6 @@ sub check_options () {
         'htmltableurl'              => "@htmlurl@/tables",
         'exclude'                   => undef,
         'include'                   => undef,
-        'warning'                   => "101,1000,1000",
-        'critical'                  => "101,5000,5000",
         'delta'                     => 600,
         'ifs'                       => ',',
         'cache'                     => 3600,
@@ -2803,18 +2865,24 @@ sub check_options () {
         'ifloadgradient'            => 1,
         'human'                     => 1,
         'snapshot'                  => 0,
+        'regexp'                    => 0,
+        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
+        'outputshort'               => 0,
+        #------ traffic tracking --------#
+        'exclude-traffic'           => undef,
+        'include-traffic'           => undef,
+        'warning-traffic'           => "101,1000,1000",
+        'critical-traffic'          => "101,5000,5000",
+        #------ property tracking -------#
         'track-property'            => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifDuplexStatus, ifVlanNames, IpInfo
         'exclude-property'          => undef,
         'include-property'          => undef,
         'warning-property'          => 0,
         'critical-property'         => 0,
-        'regexp'                    => 0,
-        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
-        'outputshort'               => 0,
         #------- performance data -------#
         'enableperfdata'            => 0,
         'portperfunit'              => "bit",
-        'perfdatashort',            => 0,
+        'perfdataformat',           => "full",
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
@@ -2848,6 +2916,8 @@ sub check_options () {
     
     ### mandatory commandline options: hostquery
     # applying commandline options
+    
+    #------- general options --------#
     if (exists $commandline{verbose}) {
         $ghOptions{'verbose'} = $commandline{verbose};
         setLoglevel($commandline{verbose});
@@ -2864,6 +2934,8 @@ sub check_options () {
         print_defaults();
         exit $ERRORS{OK};
     }
+    
+    #--- plugin specific options ----#
     if (exists $commandline{timeout}) {
         $ghOptions{'timeout'} = $commandline{timeout};
         $TIMEOUT = $ghOptions{'timeout'};
@@ -2896,13 +2968,7 @@ sub check_options () {
     if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
     }
-	if (exists $commandline{enableperfdata}) {
-        $ghOptions{'enableperfdata'} = 1;
-    }
-    if (exists $commandline{portperfunit} and ($commandline{portperfunit} eq "bit" or $commandline{portperfunit} eq "octet")) {
-        $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
-    }
-    # organizing excluded/included interfaces for load tracking
+    # organizing global interface exclusion/inclusion
     if (exists $commandline{'exclude'}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude'}}));
         $ghOptions{'exclude'} = \@tmparray;
@@ -2910,20 +2976,6 @@ sub check_options () {
     if (exists $commandline{'include'}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include'}}));
         $ghOptions{'include'} = \@tmparray;
-    }
-    # organizing tracked fields
-    if (exists $commandline{'track-property'}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'track-property'}}));
-        $ghOptions{'track-property'} = \@tmparray;
-    }
-    # organizing excluded/included interfaces for property(ies) tracking
-    if (exists $commandline{'exclude-property'}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-property'}}));
-        $ghOptions{'exclude-property'} = \@tmparray;
-    } 
-    if (exists $commandline{'include-property'}) {
-        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-property'}}));
-        $ghOptions{'include-property'} = \@tmparray;
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
@@ -2958,33 +3010,62 @@ sub check_options () {
     if (exists $commandline{snapshot}) {
         $ghOptions{'snapshot'} = $commandline{snapshot};
     }
-    if (exists $commandline{warning}) {
-        $ghOptions{'warning'} = "$commandline{warning}";
+    if (exists $commandline{outputshort}) {
+        $ghOptions{'outputshort'} = 1;
     }
-    my @tmparray2=split(/,/,$ghOptions{'warning'});
+    
+    #------ property tracking -------#
+    # organizing tracked fields
+    if (exists $commandline{'track-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'track-property'}}));
+        $ghOptions{'track-property'} = \@tmparray;
+    }
+    # organizing excluded/included interfaces for property(ies) tracking
+    if (exists $commandline{'exclude-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-property'}}));
+        $ghOptions{'exclude-property'} = \@tmparray;
+    } 
+    if (exists $commandline{'include-property'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-property'}}));
+        $ghOptions{'include-property'} = \@tmparray;
+    }
+    
+    #------ traffic tracking -------#
+    # organizing excluded/included interfaces for traffic tracking
+    if (exists $commandline{'exclude-traffic'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude-traffic'}}));
+        $ghOptions{'exclude-traffic'} = \@tmparray;
+    } 
+    if (exists $commandline{'include-traffic'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-traffic'}}));
+        $ghOptions{'include-traffic'} = \@tmparray;
+    }
+    if (exists $commandline{'warning-traffic'}) {
+        $ghOptions{'warning-traffic'} = "$commandline{'warning-traffic'}";
+    }
+    my @tmparray2=split(/,/,$ghOptions{'warning-traffic'});
     if ($#tmparray2 != 2) {
-        logger(0, "3 warning levels needed! (i.e. --warning 101,0,0)");
+        logger(0, "3 warning levels needed! (i.e. --warning-traffic 101,0,0)");
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'warning-load'} = $tmparray2[0];
     $ghOptions{'warning-load'} =~ s/%$//;
     $ghOptions{'warning-pkterr'} = $tmparray2[1];
     $ghOptions{'warning-pktdiscard'} = $tmparray2[2];
-    if (exists $commandline{critical}) {
-        $ghOptions{'critical'} = "$commandline{critical}";
+    if (exists $commandline{'critical-traffic'}) {
+        $ghOptions{'critical-traffic'} = "$commandline{'critical-traffic'}";
     }
-    my @tmparray3=split(/,/,$ghOptions{'critical'});
+    my @tmparray3=split(/,/,$ghOptions{'critical-traffic'});
     if ($#tmparray3 != 2) {
-        logger(0, "3 critical levels needed! (i.e. --critical 101,0,0)");
+        logger(0, "3 critical levels needed! (i.e. --critical-traffic 101,0,0)");
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'critical-load'} = $tmparray3[0];
     $ghOptions{'critical-load'} =~ s/%$//;
     $ghOptions{'critical-pkterr'} = $tmparray3[1];
     $ghOptions{'critical-pktdiscard'} = $tmparray3[2];
-    if (exists $commandline{outputshort}) {
-        $ghOptions{'outputshort'} = 1;
-    }
+    
+    #------- performance data -------#
     if (exists $commandline{grapher}) {
         if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$/i) {
             $ghOptions{'grapher'} = "$commandline{grapher}";
@@ -2993,13 +3074,30 @@ sub check_options () {
     if (exists $commandline{grapherurl}) {
         $ghOptions{'grapherurl'} = "$commandline{grapherurl}";
     }
-    
+	if (exists $commandline{enableperfdata}) {
+        $ghOptions{'enableperfdata'} = 1;
+    }
+    if (exists $commandline{portperfunit}) {
+        if ($commandline{portperfunit} =~ /^bit$|^octet$/i) {
+            $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
+        }
+    }
+    if (exists $commandline{perfdataformat}) {
+        if ($commandline{perfdataformat} =~ /^full$|^loadonly$|^generalonly$/i) {
+            $ghOptions{'perfdataformat'} = "$commandline{perfdataformat}";
+        }
+    } 
+            
+    #------- other features ---------#
     if (exists $commandline{css}) {
         $ghOptions{'css'} = "$commandline{css}";
     }
     if (! -e "$ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css") {
         logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/css/$ghOptions{'css'}.css");
         exit $ERRORS{"UNKNOWN"};
+    }    
+	if (exists $commandline{ifdetails}) {
+        $ghOptions{'ifdetails'} = 1;
     }
     
     #-------- SNMP related ----------#
