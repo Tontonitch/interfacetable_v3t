@@ -62,5 +62,8 @@
 #           regressions
 #         - replace repeated single snmp request by table snmp request / snmpwalk when 
 #           possible -> performance enhancement
+#         - an option to generate an anonymized debug report 
+#         - check/adapt the perfdata to make the <service_description>.xml and allow correct
+#           link for the nagios/icinga graph icon.
 #
 # ========================================================================
