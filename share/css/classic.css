@@ -1,12 +1,12 @@
 /***** GENERAL *****/
 
 body {
-	font-size: 1em;
-	font-family: Verdana Geneva Arial Helvetica sans-serif;
+    font-size: 1em;
+    font-family: Verdana Geneva Arial Helvetica sans-serif;
 }
 
 img {
-	border: 0;
+    border: 0;
     float: left;
     display: block;
 }
@@ -14,36 +14,36 @@ img {
 /***** TABLES *****/
 
 table {
-	border-width: 1px;
-	border-spacing: 2px;
-	border-style: outset;
-	border-color: gray;
-	border-collapse: separate;
-	font-size:8pt;
-	background-color: #D2D2D2;
+    border-width: 1px;
+    border-spacing: 2px;
+    border-style: outset;
+    border-color: gray;
+    border-collapse: separate;
+    font-size:8pt;
+    background-color: #D2D2D2;
 }
 
 tr {
-	background-color: rgb(220, 250, 201);
+    background-color: rgb(220, 250, 201);
 }
 
 th {
-	background-color: #D2D2D2;
-	border-width: 1px;
-	border-style: inset;
-	padding: 2px 5px 2px 5px;
+    background-color: #D2D2D2;
+    border-width: 1px;
+    border-style: inset;
+    padding: 2px 5px 2px 5px;
 }
 
 td {
-	border-width: 1px;
-	border-style: inset;
-	padding: 2px 5px 2px 5px;
+    border-width: 1px;
+    border-style: inset;
+    padding: 2px 5px 2px 5px;
 }
 
 /* Information table */ 
 
 .infotable tr {
-	background-color: #D2D2D2;
+    background-color: #D2D2D2;
 }
 
 /* Interface table */
@@ -53,17 +53,17 @@ td {
 }
 
 .cellTrackedOk {
-	background-color: #00CC33; 
-	color: #fff;
+    background-color: #00CC33; 
+    color: #fff;
 }
  
 .cellTrackedChange {
-	background-color: #FF3300; 
-	color: #fff;
+    background-color: #FF3300; 
+    color: #fff;
 }
 
 .cellNotTracked {
-/*	background-color: rgb(220, 250, 201);*/
+    background-color: #E5E5E5;
 }
 
 .cellExcluded {
@@ -74,5 +74,5 @@ td {
 /***** SPANS *****/
 
 span {
-	font-size: 8pt;
+    font-size: 8pt;
 }
