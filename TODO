@@ -65,5 +65,10 @@
 #         - an option to generate an anonymized debug report 
 #         - check/adapt the perfdata to make the <service_description>.xml and allow correct
 #           link for the nagios/icinga graph icon.
+#         - add a 3rd table in the html page, summarizing the following options: 
+#               * inclusions/exclusions of any kind
+#               * thresholds of any kind
+#         - detect incoherent load > if speed (in case of node restart, switch from v1 to 
+#           v2c,...)
 #
 # ========================================================================
