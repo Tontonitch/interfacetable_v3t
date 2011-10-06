@@ -824,11 +824,11 @@ sub GenerateHtmlTable {
             my $CellContent;
             my $CurrentFieldContent     = "";
             my $FileFieldContent        = "";
-            my $FieldType               = "";
+            my $FieldType               = ""; # 'property' or 'load'
             
             if ($FieldName =~ /^index$|^ifDescr$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifDuplexStatus$|^ifVlanNames$|^IpInfo$/i) {
                 $FieldType = "property";
-            } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^ifLastTraffic$/i ) {
+            } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^pktErrDiscard$|^ifLastTraffic$/i ) {
                 $FieldType = "load";
             }
             
@@ -856,13 +856,16 @@ sub GenerateHtmlTable {
             # data changes
             if ($gInitialRun)  {
                 $CompareThisField = 0;
-				$CellStyle = "cellInitialRun";
+                $CellStyle = "cellInitialRun";
             } elsif ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "true") {
                 $CompareThisField = 0;
-				$CellStyle = "cellExcluded";
-            } elsif (($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true") && ( $FieldType eq "property" )) {
+                $CellStyle = "cellExcluded";
+            } elsif (($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "true") && ( $FieldType eq "load" )) {
                 $CompareThisField = 0;
-				$CellStyle = "cellNotTracked";
+                $CellStyle = "cellNotTracked";
+            } elsif (($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} eq "true") && ( $FieldType eq "property" ) && ($CompareThisField == 1)) {
+                $CompareThisField = 0;
+                $CellStyle = "cellNotTracked";
             } elsif (defined $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"}) {
                 $CellBackgroundColor = $grefhCurrent->{If}->{$oid_ifDescr}->{$FieldName."OutOfRange"};
             }
@@ -2397,8 +2400,8 @@ sub Csv2Html {
                 if ( defined $Cell->{Background} ) {
                     $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
                 }
-				
-				# if style is defined ---------------------------------
+                
+                # if style is defined ---------------------------------
                 if ( defined $Cell->{Style} ) {
                     $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
                 }
@@ -2424,11 +2427,11 @@ sub Csv2Html {
 
                 # finally build the table line;
                 $HTMLTable .= "\n" . '<td ' . 
-				    $SpecialCellFormat . '>' .
+                    $SpecialCellFormat . '>' .
                     #$SpecialTextFormatHead . 
-					$Value .
+                	$Value .
                     #$SpecialTextFormatFoot . 
-					'</td>';
+                	'</td>';
             }
             # end table line -----------------------------------------------
             $HTMLTable .= "</tr>";
@@ -2525,7 +2528,7 @@ sub HtmlLinks {
         }
     }
 
-    $HTML.='</span>'."\n";
+    $HTML.='</span><span style="float: right; color: grey; font-style: italic">interface_table '.$REVISION.'</span>'."\n";
 
     return $HTML;
 }
@@ -2774,7 +2777,7 @@ sub check_options () {
         #------- general options --------#
         'help|?',
         'verbose|v+',
-        'showdefaults|D',						# print all option default values
+        'showdefaults|D',                		# print all option default values
         #--- plugin specific options ----#
         'hostquery|H=s',
         'hostdisplay|h=s',
