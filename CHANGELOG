@@ -10,7 +10,7 @@
 #    - change: pkt err thresholds now high by default
 #    - change: one digit precision for pkt err rates
 #    - add/enhancement: full use of perl's netsnmp and avoid use of Unix snmp 
-#      utils. Need more testing in real environment, so still experimental.
+#      utils. Need more testing in real environment, so still EXPERIMENTAL.
 #    - add: plugin version on html page
 #    - change: now 3 levels of inclusion/exclusion and a new traffic 
 #      tracking logic: 

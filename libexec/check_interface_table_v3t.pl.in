@@ -366,20 +366,35 @@ logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCur
 # Include / Exclude interfaces
 # ------------------------------------------------------------------------------
 
-# Save include/exclude information of each interface in the metadata
-# This includes:
-#  * include/exclude interface from traffic tracking. Traffic tracking consists in a 
-#    check of the bandwidth usage of the interface, and the error/discard packets. 
-#    By default, all the interfaces are included in this tracking. Excluding an interface 
-#    from that tracking is usually done for the interfaces that we don't want any tracking 
-#    (e.g. loopback interfaces)
-#  * include/exclude interface from property tracking. Property tracking consists in 
-#    the check of any changes in the properties of an interface, properties listed via 
-#    the --track-property option. By default, only the "operstatus" property is tracked. 
-#    You have the ability to exclude/include some interfaces from that check. This would 
-#    be done for exemple for ports on which printers are connected (indeed, some printers 
-#    going in standby mode has also their network interface going done, generating an 
-#    unwanted alert) 
+# Save inclusion/exclusion information of each interface in the metadata
+# 3 levels of inclusion/exclusion: 
+#  * global (exclude/include)
+#     + globally include/exclude interfaces to be monitored
+#     + excluded interfaces are represented by black overlayed rows in the  
+#       interface table
+#     + by default, all the interfaces are included in this tracking. Excluding 
+#       an interface from that tracking is usually done for the interfaces that 
+#       we don't want any tracking (e.g. loopback interfaces) 
+#  * traffic tracking (exclude-traffic/include-traffic)
+#     + include/exclude interfaces from traffic tracking
+#     + traffic tracking consists in a check of the bandwidth usage of the interface,
+#       and the error/discard packets. 
+#     + excluded interfaces are represented by a dark grey (css dependent) 
+#       cell style in the interface table
+#     + by default, all the interfaces are included in this tracking. Excluding 
+#       an interface from that tracking is usually done for the interfaces known as 
+#       problematic (high traffic load) and consequently for which we don't want 
+#       load tracking 
+#  * property tracking (exclude-property/include-property)
+#     + include/exclude interfaces from property tracking. 
+#     + property tracking consists in the check of any changes in the properties of 
+#       an interface, properties specified via the --track-property option.
+#     + excluded interfaces are represented by a dark grey (css dependent) 
+#       cell style in the interface table
+#     + by default, only the "operstatus" property is tracked. For the operstatus 
+#       property, the exclusion of an interface is usually done when the interface can 
+#       be down for normal reasons (ex: interfaces connected to printers sometime in 
+#       standby mode) 
     
 $grefhCurrent = EvaluateInterfaces (
     $ghOptions{'exclude'},
@@ -744,7 +759,7 @@ sub WriteHtmlTable {
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
-	<script type="text/javascript" src="../js/functions.js"></script>
+    <script type="text/javascript" src="../js/functions.js"></script>
   </head>
 <body>
 ';
@@ -821,7 +836,7 @@ sub GenerateHtmlTable {
             my $LastChangeInfo          = "";
             #my $CellColor;
             my $CellBackgroundColor;
-			my $CellStyle;
+            my $CellStyle;
             my $CellContent;
             my $CurrentFieldContent     = "";
             my $FileFieldContent        = "";
@@ -949,7 +964,7 @@ sub GenerateHtmlTable {
             # Change background color
             defined $CellBackgroundColor and
               $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Background} = $CellBackgroundColor;
-			# Change cell style
+            # Change cell style
             defined $CellStyle and
               $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Style} = $CellStyle;
 
@@ -1071,7 +1086,8 @@ sub EvaluateInterfaces {
         
         #----- Includes or excludes interfaces from traffic load tracking -----#
         
-        # For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
+        # For the interfaces included (for which the traffic load is tracked), enable property(ies) 
+        # tracking depending on the exclude and/or include property tracking port list
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
             
             # By default, don't exclude the interface
@@ -1112,7 +1128,8 @@ sub EvaluateInterfaces {
         
         #----- Includes or excludes interfaces from property change tracking -----#
         
-		# For the interfaces included (for which the traffic load is tracked), enable property(ies) tracking depending on the exclude and/or include property tracking port list
+        # For the interfaces included (for which the traffic load is tracked), enable property(ies) 
+        # tracking depending on the exclude and/or include property tracking port list
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
             
             # By default, track the properties of the interface
@@ -1487,7 +1504,9 @@ sub CalculateBps {
                             push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($oid_ifDescr));
                             $gIfLoadWarnCounter++;
                         }
-                    } 
+                    } else {
+                        logger(2, "  -> interface load exceeds interface speed, load will be ignored");
+                    }
                     $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
                     $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOutOutOfRange} = colorcode($ifLoadOut, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
                 }
@@ -1724,7 +1743,7 @@ sub Get_IpAddress_SubnetMask {
 
     # remove all invisible chars incl. \r and \n
     $grefhCurrent->{MD}->{SnmpIpInfo} =~ s/[\000-\037]|[\177-\377]//g;
-	
+    
     # # snmpwalk -Oqn -v 1 -c public router IP-MIB::ipAdEntNetMask
     # .1.3.6.1.2.1.4.20.1.3.172.31.92.91 255.255.255.255
     # .1.3.6.1.2.1.4.20.1.3.172.31.92.97 255.255.255.255
@@ -2357,8 +2376,8 @@ sub check_for_unused_interfaces {
 sub Csv2Html {
     my $refaHeader = shift;       # Header contains the HTML table header as scalar
     my $refaLines  = shift;       # Reference to array of table lines
-	my $cssClass   = shift;       # Css class to use for the table
-	
+    my $cssClass   = shift;       # Css class to use for the table
+    
     my $refaProperties;           # List of properties from each line
     my $HTML;                     # HTML Content back to the caller
     my $HTMLTable;                # HTML Table code only
@@ -2371,11 +2390,11 @@ sub Csv2Html {
         $HTML .= '<br>';
         $HTML .= '<span>'."\n";
         $HTML .= '<table '."class=$cssClass";
-		if ($cssClass eq "interfacetable") {
-			$HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
-		}
-		$HTML .= '>'."\n";
-		
+        if ($cssClass eq "interfacetable") {
+            $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
+        }
+        $HTML .= '>'."\n";
+        
         # Build html table title header
         #
         # - $Header looks like this:
@@ -2440,9 +2459,9 @@ sub Csv2Html {
                 $HTMLTable .= "\n" . '<td ' . 
                     $SpecialCellFormat . '>' .
                     #$SpecialTextFormatHead . 
-                	$Value .
+                    $Value .
                     #$SpecialTextFormatFoot . 
-                	'</td>';
+                    '</td>';
             }
             # end table line -----------------------------------------------
             $HTMLTable .= "</tr>";
@@ -2553,21 +2572,22 @@ sub print_usage () {
   Usage:
 
     * basic usage:
-      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] {-2] [-C <community string>] 
-        [--exclude <interface exclusion list>] [--include <interface inclusion list>] 
+      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+        [--exclude <globally excluded interface list>] [--include <globally included interface list>] 
         [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
         [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
-        [--track-property <property list>] [--include-property <interface inclusion list>] 
-        [--exclude-property <interface exclusion list>] [--warning-property <warning change counter>] 
-        [--critical-property <critical change counter>] [-r] [-f]
+        [--track-property <tracked property list>] [--include-property <property tracking interface inclusion list>] 
+        [--exclude-property <property tracking interface exclusion list>] [--warning-property <warning property change counter>] 
+        [--critical-property <critical property change counter>] [-r] [-f]
         
     * advanced usage:
-      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-C <community string>] 
-        [--et <interface exclusion list>] [--it <interface inclusion list>] 
+      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+        [-e <globally excluded interface list>] [-i <globally included interface list>] 
+        [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>] 
         [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
         [--ct <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
-        [--tp <property list>] [--ip <interface inclusion list>] [--ep <interface exclusion list>] 
-        [--wp <warning change counter>] [--cp <critical change counter>] [-r] [-f]
+        [--tp <property list>] [--ip <property tracking interface inclusion list>] [--ep <property tracking interface exclusion list>] 
+        [--wp <warning property change counter>] [--cp <critical property change counter>] [-r] [-f]
         [--cachedir <caching directory>] [--statedir <state files directory>] 
         [--vlan] [--cisco] [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
@@ -2604,28 +2624,50 @@ sub print_usage () {
         general counts (nb ports, nb changes,...). This is close to the way the 
         previous versions of the plugin was working.
         In this version of the plugin, by default the plugin returns 
-        + general counts (nb ports, nb changes,...) 
-        + what changes has been detected 
-        + what interface(s) suffer(s) from high load.
+         + general counts (nb ports, nb changes,...) 
+         + what changes has been detected 
+         + what interface(s) suffer(s) from high load.
+    
+  Global interface inclusions/exclusions
+    -e, --exclude (optional)
+        * Comma separated list of interfaces globally excluded from the monitoring.
+          Excluding an interface from that tracking is usually done for the interfaces that 
+          we don't want any tracking. For exemple:
+           + virtual interfaces
+           + loopback interfaces
+        * Excluded interfaces are represented by black overlayed rows in the interface table
+        * Excluding an interface globally will also exclude it from any tracking (traffic and
+          property tracking).
+    -i, --include (optional)
+        * Comma separated list of interfaces globally included in the monitoring.
+        * By default, all the interfaces are included. 
+        * There are some cases where you need to include an interface which is part 
+          of a group of previously excluded interfaces.
     
   Traffic checks (load & packet errors/discards)
-    --et, --exclude (optional)
-        Comma separated list of interfaces excluded from traffic checks 
-        (load & packet errors/discards). Can be used to exclude:
-        * virtual or loopback interfaces
-        * flapping interfaces
-        Excluding an interface from traffic checks will also exclude it from property 
-        checks.
-    --it, --include (optional)
-        Comma separated list of interfaces included for traffic checks 
-        (load & packet errors/discards). By default, all the interfaces are included. 
-        But there are some case where you need to include an interface which is part 
-        of a group of previously excluded interfaces.
-    --wt, --warning (optional)
-        Interface traffic load percentage leading to a warning alert 
-    --ct, --critical (optional)
-        Interface traffic load percentage leading to a critical alert 
-  
+    --et, --exclude-traffic (optional)
+        * Comma separated list of interfaces excluded from traffic checks 
+          (load & packet errors/discards). Can be used to exclude:
+           + interfaces known as problematic (high traffic load)
+        * Excluded interfaces are represented by a dark grey (css dependent) 
+          cell style in the interface table
+    --it, --include-traffic (optional)
+        * Comma separated list of interfaces included for traffic checks 
+          (load & packet errors/discards). 
+        * By default, all the interfaces are included. 
+        * There are some case where you need to include an interface which is part 
+          of a group of previously excluded interfaces.
+    --wt, --warning-traffic, --warning (optional)
+        * Interface traffic load percentage leading to a warning alert 
+        * Format: 
+           --warning-traffic <load%>,<pkterr/s>,<pktdiscard/s>
+           ex: --warning-traffic 70,100,100
+    --ct, --critical-traffic, --critical (optional)
+        * Interface traffic load percentage leading to a critical alert
+        * Format: 
+           --critical-traffic <load%>,<pkterr/s>,<pktdiscard/s>
+           ex: --critical-traffic 95,1000,1000
+
   Property checks (interface property changes)
     --tp, --track-property (optional)
         List of tracked properties. Values can be:
@@ -2636,15 +2678,18 @@ sub print_usage () {
         * 'ifVlanNames'        : the vlan on which the interface was associated
         * 'IpInfo'             : the ip configuration for the interface
         Default is 'ifOperStatus'
-        Note: interface traffic load(s) is not considered as a property, and is always 
-            monitored following defined thresholds. 
     --ep, --exclude-property (optional)
-        Comma separated list of interfaces excluded from the property tracking. 
+        * Comma separated list of interfaces excluded from the property tracking.
+        * For the 'ifOperStatus' property, the exclusion of an interface is usually 
+          done when the interface can be down for normal reasons (ex: interfaces 
+          connected to printers sometime in standby mode) 
+        * Excluded interfaces are represented by a dark grey (css dependent) 
+          cell style in the interface table
     --ip, --include-property (optional)
-        Comma separated list of interfaces included in the property tracking. 
-        By default, all the interfaces that are tracked are included. But there are some 
-        case where you need to include an interface which is part of a group of previously 
-        excluded interfaces.
+        * Comma separated list of interfaces included in the property tracking. 
+        * By default, all the interfaces that are tracked are included. 
+        * There are some case where you need to include an interface which is part 
+          of a group of previously excluded interfaces.
     --wp, --warning-property (optional)
         Number of property changes before leading to a warning alert
     --cp, --critical-property (optional)
@@ -2736,11 +2781,12 @@ sub print_usage () {
         Specify a config file to load.
         
   Notes:
-    - For options --exclude, --include, --track-property, --exclude-property, --include-property:
+    - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property, 
+      --exclude-property and --include-property:
        * These options can be used multiple times, the lists of interfaces/properties 
          will be concatenated.
        * The separator can be changed using the --ifs option.
-	- The manual is included in this plugin in pod format. To read it, use the perldoc
+    - The manual is included in this plugin in pod format. To read it, use the perldoc
       program (if not installed, just intall the perl-doc package):
       perldoc ./check_interface_table_v3t.pl
         
@@ -2788,7 +2834,7 @@ sub check_options () {
         #------- general options --------#
         'help|?',
         'verbose|v+',
-        'showdefaults|D',                		# print all option default values
+        'showdefaults|D',                        # print all option default values
         #--- plugin specific options ----#
         'hostquery|H=s',
         'hostdisplay|h=s',
@@ -2972,12 +3018,12 @@ sub check_options () {
     if (exists $commandline{cachedir}) {
         $ghOptions{'cachedir'} = "$commandline{cachedir}";
     }
-	$ghOptions{'cachedir'} = "$ghOptions{'cachedir'}/$commandline{hostquery}";
+    $ghOptions{'cachedir'} = "$ghOptions{'cachedir'}/$commandline{hostquery}";
     -d "$ghOptions{'cachedir'}" or MyMkdir ("$ghOptions{'cachedir'}");
     if (exists $commandline{statedir}) {
         $ghOptions{'statedir'} = "$commandline{statedir}";
     }
-	$ghOptions{'statedir'} = "$ghOptions{'statedir'}/$commandline{hostquery}";
+    $ghOptions{'statedir'} = "$ghOptions{'statedir'}/$commandline{hostquery}";
     -d "$ghOptions{'statedir'}" or MyMkdir ("$ghOptions{'statedir'}");
     if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
         $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
@@ -3088,7 +3134,7 @@ sub check_options () {
     if (exists $commandline{grapherurl}) {
         $ghOptions{'grapherurl'} = "$commandline{grapherurl}";
     }
-	if (exists $commandline{enableperfdata}) {
+    if (exists $commandline{enableperfdata}) {
         $ghOptions{'enableperfdata'} = 1;
     }
     if (exists $commandline{portperfunit}) {
@@ -3110,17 +3156,17 @@ sub check_options () {
         logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/css/$ghOptions{'css'}.css");
         exit $ERRORS{"UNKNOWN"};
     }    
-	if (exists $commandline{ifdetails}) {
+    if (exists $commandline{ifdetails}) {
         $ghOptions{'ifdetails'} = 1;
     }
     
     #-------- SNMP related ----------#
     if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
-	    logger(0, "Can't mix snmp v1,2c,3 protocols!\n"); 
+        logger(0, "Can't mix snmp v1,2c,3 protocols!\n"); 
         print_usage(); 
         exit $ERRORS{"UNKNOWN"};
     }
-	if (exists $commandline{v2c}) {
+    if (exists $commandline{v2c}) {
         $ghSNMPOptions{'version'} = "2";
     } elsif (exists $commandline{login}) {
         $ghSNMPOptions{'version'} = "3";
@@ -3160,7 +3206,7 @@ sub check_options () {
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
-	}
+    }
     if (exists $commandline{timeout}) {
         $ghSNMPOptions{'timeout'} = "$commandline{timeout}";
         $TIMEOUT = $ghSNMPOptions{'timeout'};
@@ -3199,10 +3245,31 @@ __END__
 
 =head1 SYNOPSIS
 
-  check_interface_table_v3t.pl -H <hostname/IP> [-h <host alias>] [-C <community string>] 
-        [-e <interface exclusion list>] [-i <interface inclusion list>] [-t <property list>] [-r]
-        [-w <warning change counter>] [-c <critical change counter>] [-w <warning load prct>] 
-        [-c <critical load prct>] [-f] [-g <grapher solution>] [--outputshort]
+=head2 Basic usage
+
+  check_interface_table_v3t.pl [-vvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+    [--exclude <globally excluded interface list>] [--include <globally included interface list>] 
+    [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
+    [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
+    [--track-property <tracked property list>] [--include-property <property tracking interface inclusion list>] 
+    [--exclude-property <property tracking interface exclusion list>] [--warning-property <warning property change counter>] 
+    [--critical-property <critical property change counter>] [-r] [-f]
+        
+=head2 Advanced usage
+
+  check_interface_table_v3t.pl [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+    [-e <globally excluded interface list>] [-i <globally included interface list>] 
+    [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>] 
+    [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
+    [--ct <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
+    [--tp <property list>] [--ip <property tracking interface inclusion list>] [--ep <property tracking interface exclusion list>] 
+    [--wp <warning property change counter>] [--cp <critical property change counter>] [-r] [-f]
+    [--cachedir <caching directory>] [--statedir <state files directory>] 
+    [--vlan] [--cisco] [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
+    [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
+    [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
+    [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
+    [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort] 
 
 =head1 DESCRIPTION
 
@@ -3231,8 +3298,14 @@ Each host (option -H) holds one text file:
   # ls /tmp/.ifState/*.txt
   /tmp/.ifState/server1-Interfacetable.txt
 
-When the program is called twice, three times, etc. it retreives new
+When the program is called twice, three times, etc. it retrieves new
 information from the network and compares it against this state file.
+
+
+B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
+B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
+B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
+
 
 =head1 PREREQUISITS
 
