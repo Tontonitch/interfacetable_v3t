@@ -661,7 +661,8 @@ sub perfdataout {
         my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
 
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
-            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}) {
+            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
+            and $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} eq "false") {
             my $port = sprintf("%03d", $InterfaceIndex);
             #my $servicename = "Port$port";
             my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
@@ -672,23 +673,23 @@ sub perfdataout {
             #Add interface status if available
             if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
                 if ($ghOptions{'portperfunit'} eq "octet") {
-                        $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
-                                "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
-                                "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
+                    $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                        "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                        "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
+                        "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
                 } else {
-                        $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
-                                "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
-                                "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
+                    $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                        "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                        "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
+                        "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
                 }
                 #Add pkt errors/discards if available and wanted
                 unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
                     if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
                         $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
-                                    "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
-                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
-                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                            "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
+                            "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
+                            "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
                     }
                 }
             }
@@ -1462,24 +1463,34 @@ sub CalculateBps {
         }
         
         # bandwidth usage in percent of (configured/negotiated) interface speed
+        $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} = "false";
         if ($grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed} > 0) {
             my $ifLoadIn  = 100 * $bpsIn  / $grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed};
             my $ifLoadOut = 100 * $bpsOut / $grefhCurrent->{If}->{$oid_ifDescr}->{ifSpeed};
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn}  = sprintf("%.2f", $ifLoadIn);
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
+            
+            if ($grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn} > 105 or $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOut} > 105) {
+                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} = "true";
+            }
+            
             # check interface utilization in percent
 
-            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ifLoadIn > 0 or $ifLoadOut > 0)) {
-                # just traffic light color codes for the lame
-                if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
-                    push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($oid_ifDescr));
-                    $gIfLoadCritCounter++;
-                } elsif ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'}) {
-                    push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($oid_ifDescr));
-                    $gIfLoadWarnCounter++;
-                } 
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
-                $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOutOutOfRange} = colorcode($ifLoadOut, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
+            if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false") {
+                if ($ifLoadIn > 0 or $ifLoadOut > 0) {
+                    if ($grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} eq "false") {
+                        # just traffic light color codes for the lame
+                        if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
+                            push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($oid_ifDescr));
+                            $gIfLoadCritCounter++;
+                        } elsif ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'}) {
+                            push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($oid_ifDescr));
+                            $gIfLoadWarnCounter++;
+                        }
+                    } 
+                    $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadInOutOfRange} = colorcode($ifLoadIn, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
+                    $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadOutOutOfRange} = colorcode($ifLoadOut, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
+                }
             }
         } else {
             $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadIn} = 0;
