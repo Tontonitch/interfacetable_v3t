@@ -5,7 +5,44 @@
 #   ----------------------------------------------------------------------
 # * 0.03b3 (in progress)
 #   ----------------------------------------------------------------------
-#
+#    - bugfix: added missing ifoperstatus possible values (reported by Michael Gumbinger)
+#    - enhancement: extended the non-tracking of ifoperstatusr: now from "xxx" to "up"
+#    - change: pkt err thresholds now high by default
+#    - change: one digit precision for pkt err rates
+#    - add/enhancement: full use of perl's netsnmp and avoid use of Unix snmp 
+#      utils. Need more testing in real environment, so still experimental.
+#    - add: plugin version on html page
+#    - change: now 3 levels of inclusion/exclusion and a new traffic 
+#      tracking logic: 
+#       * global
+#          + globally include/exclude interfaces to be monitored
+#          + excluded interfaces are represented by black overlayed rows in the  
+#            interface table 
+#       * traffic tracking
+#          + include/exclude interfaces for which the load and the packet 
+#            errors/discards will be tracked
+#          + excluded interfaces are represented by a dark grey (css dependent) 
+#            cell style in the interface table
+#       * property tracking
+#          + include/exclude interfaces for which the property changes will be 
+#            tracked
+#          + excluded interfaces are represented by a dark grey (css dependent) 
+#            cell style in the interface table
+#    - change: option perfdatashort moved to perfdataformat which permit 
+#      to choose the perfdata types to return
+#       * full (default) : generated performance data include plugin related stats, 
+#                          interface status, interface load stats, and packet error 
+#                          stats 
+#       * loadonly       : generated performance data include plugin related stats, 
+#                          interface status, and interface load stats 
+#       * globalonly     : generated performance data include only plugin related 
+#                          stats
+#      'loadonly' should be used in case of too many interfaces and consequently 
+#      too much performance data which cannot fit in the nagios plugin output buffer. 
+#      By default, its size is 8k and can be extended by modifying 
+#      MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources (icinga.h/nagios/h).
+#    - enhancement: detect incoherent load > if speed (in case of node restart, 
+#      switch from v1 to v2c,...) and avoid bad performance data
 #
 #   ----------------------------------------------------------------------
 # * 0.03b2

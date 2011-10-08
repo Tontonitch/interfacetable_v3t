@@ -2683,7 +2683,7 @@ sub print_usage () {
         Default is full.
         'loadonly' should be used in case of too many interfaces and consequently too much performance
         data which cannot fit in the nagios plugin output buffer. By default, its size is 8k and
-        can be extended by modifying MAX_PLUGIN_OUTPUT in the nagios sources.
+        can be extended by modifying MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources.
     -g, --grapher (optional)
         Specify the used graphing solution. 
         Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
