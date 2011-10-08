@@ -57,9 +57,7 @@
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 #         - better handling of counters cleared manually or via node restart
-#         - think about interface including/exclusion for load/traffic tracking, which 
-#           would be different from the global inclusion/exclusion, as it would only 
-#           prevent comparison to thresholds.
+#            -> check if enough now
 #         - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
 #         - replace repeated single snmp request by table snmp request / snmpwalk when 
