@@ -426,7 +426,7 @@ if (defined $basetime) {
 # ------------------------------------------------------------------------------
 # write perfdata stdout and files
 # ------------------------------------------------------------------------------
-if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and $ghOptions{'enableperfdata'}) {
+if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory and $ghOptions{'enableperfdata'}) {
     perfdataout();
 }
 
