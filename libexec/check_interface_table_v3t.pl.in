@@ -1048,7 +1048,21 @@ sub EvaluateInterfaces {
         
         # By default, don't exclude the interface
         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "false";
-        
+        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
+        $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
+
+        # Exclude "temporary interfaces"
+        # After a reboot of a node, the ifDescr of some interfaces seems to have the following format for 
+        # a short duration: <ifDescr>_0x<MAC address>
+        # Don't know yet if this is related to the script logic of if this is really what is returned by
+        # the snmp request. Nothing about that in the RFC (RFC1213)... Need some tests.
+        # Anyway, skipping these interfaces...
+        if ("$oid_ifDescrReadable" =~ /_0x/) {
+            logger(1, "-- exclude \"temporary interface\" \"$oid_ifDescrReadable\"");
+            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "true";
+            next;
+        }
+                
         # Process the interface exclusion list
         for my $ExcludeString (@$ExcludeTrackList) {
             if ($ghOptions{regexp}) {
@@ -1090,9 +1104,6 @@ sub EvaluateInterfaces {
         # tracking depending on the exclude and/or include property tracking port list
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
             
-            # By default, don't exclude the interface
-            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
-            
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
@@ -1131,9 +1142,6 @@ sub EvaluateInterfaces {
         # For the interfaces included (for which the traffic load is tracked), enable property(ies) 
         # tracking depending on the exclude and/or include property tracking port list
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false") {
-            
-            # By default, track the properties of the interface
-            $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
             
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludePropertyTrackList) {
