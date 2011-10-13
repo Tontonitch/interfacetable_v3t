@@ -30,11 +30,15 @@ function nodename( $filename ) {
 
 $dirname = './';
 $dir = opendir($dirname);
-
 while($file = readdir($dir)) {
     if($file != '.' && $file != 'index.php' && $file != '.index.php.swp' && $file != '..' && !is_dir($dirname.$file)) {
-        echo '<option value='.$file.'>'.nodename($file).'</option>';
+        #echo '<option value='.$file.'>'.nodename($file).'</option>';
+        $array_files[$file] = nodename($file);
     }
+}
+asort($array_files);
+foreach ($array_files as $key => $val) {
+    echo '<option value='.$key.'>'.$val.'</option>';
 }
 
 closedir($dir);
