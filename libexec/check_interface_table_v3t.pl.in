@@ -256,7 +256,7 @@ if ($useUnixSnmpUtils) {
     $grefaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaOperStatusLines < 0 ) {
-    logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp.\nCheck the access to the oid $oid_ifOperStatus\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -276,7 +276,7 @@ if ($useUnixSnmpUtils) {
     $grefaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaOctetInLines < 0 ) {
-    logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_octet_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -287,7 +287,7 @@ if ($useUnixSnmpUtils) {
     $grefaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaOctetOutLines < 0 ) {
-    logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_octet_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -298,7 +298,7 @@ if ($useUnixSnmpUtils) {
     $grefaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaInErrorsLines < 0 ) {
-    logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_error_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -309,7 +309,7 @@ if ($useUnixSnmpUtils) {
     $grefaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaOutErrorsLines < 0 ) {
-    logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_error_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -320,7 +320,7 @@ if ($useUnixSnmpUtils) {
     $grefaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaInDiscardsLines < 0 ) {
-    logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_discard_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -331,7 +331,7 @@ if ($useUnixSnmpUtils) {
     $grefaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
 }
 if ($#$grefaOutDiscardLines < 0 ) {
-    logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\n");
+    logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_discard_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
@@ -348,6 +348,10 @@ if ($useUnixSnmpUtils) {
     $grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
 } else {
     $grefaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
+}
+if ($#$grefaIPLines < 0 ) {
+    logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
+    exit $ERRORS{"UNKNOWN"};
 }
 
 # extract ifIndex and ifOperStatus out of the lines and get the
