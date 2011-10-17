@@ -59,7 +59,7 @@ my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
 # NOT USED - my $refhPath = {};
-my $useUnixSnmpUtils = 1;
+my $ghSNMPOptions{'unixsnmp'} = 1;
 
 # ------------------------------------------------------------------------
 # OIDs definitions
@@ -250,7 +250,7 @@ if ($ghOptions{'cisco'}) {
 }    
 
 # get lines with interface oper status - no caching !
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 } else {
     $grefaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
@@ -270,7 +270,7 @@ if ($ghSNMPOptions{'64bits'}) {
 }
 
 # -> Octets in
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
@@ -281,7 +281,7 @@ if ($#$grefaOctetInLines < 0 ) {
 }
 
 # -> Octets out
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
@@ -292,7 +292,7 @@ if ($#$grefaOctetOutLines < 0 ) {
 }
 
 # -> Packet errors in
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
@@ -303,7 +303,7 @@ if ($#$grefaInErrorsLines < 0 ) {
 }
 
 # -> Packet errors out
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
@@ -314,7 +314,7 @@ if ($#$grefaOutErrorsLines < 0 ) {
 }
 
 # -> Packet discards in
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
@@ -325,7 +325,7 @@ if ($#$grefaInDiscardsLines < 0 ) {
 }
 
 # -> Packet discards out
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
 } else {
     $grefaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
@@ -344,7 +344,7 @@ Get_IfDiscardInOut ($grefaOutDiscardLines, "PktsOutDiscard");
 
 
 # get lines with ip addresses - no caching !
-if ($useUnixSnmpUtils) {
+if ($ghSNMPOptions{'unixsnmp'}) {
     $grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
 } else {
     $grefaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
@@ -1763,13 +1763,13 @@ sub Get_IpAddress_SubnetMask {
     # read the subnet masks with caching 0 only if the ip addresses
     # have changed
     if (defined $grefhFile->{MD}->{SnmpIpInfo} and $grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
-        if ($useUnixSnmpUtils) {
+        if ($ghSNMPOptions{'unixsnmp'}) {
             $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer); 
         } else {
             $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
         }
     } else {
-        if ($useUnixSnmpUtils) {
+        if ($ghSNMPOptions{'unixsnmp'}) {
             $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0); 
         } else {
             $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
@@ -1994,17 +1994,17 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         my $VlanPortHP;
         my $VlanPortCisco;
         
-        if ($useUnixSnmpUtils) {
+        if ($ghSNMPOptions{'unixsnmp'}) {
             $VlanNames = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
         } else {
             $VlanNames = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
         }
-        if ($useUnixSnmpUtils) {
+        if ($ghSNMPOptions{'unixsnmp'}) {
             $VlanPortHP = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
         } else {
             $VlanPortHP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
         }
-        if ($useUnixSnmpUtils) {
+        if ($ghSNMPOptions{'unixsnmp'}) {
             $VlanPortCisco = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
         } else {
             $VlanPortCisco = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
@@ -2899,6 +2899,7 @@ sub check_options () {
         'protocols|L=s',                        # Format: <authproto>,<privproto>; 
         'timeout|t=i',
         '64bits',                               # Use 64 bits counters
+        'unixsnmp!',                            # Use unix snmp utilities in some cases, in place of perl bindings
         #------- other features ---------#
         'config=s',                             # Configuration file
         'css=s',                                # Used css stylesheet
@@ -2973,7 +2974,8 @@ sub check_options () {
         'authproto'                 => "md5",       # md5, sha
         'privproto'                 => "des",       # des, aes
         'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
-        '64bits'                    => 0
+        '64bits'                    => 0,
+        'unixsnmp'                  => 1
     );
     
     # process config file first, as command line options overwrite them
@@ -3240,6 +3242,9 @@ sub check_options () {
             print_usage(); 
             exit $ERRORS{"UNKNOWN"}
         }
+    }
+    if (exists $commandline{'unixsnmp'}) {
+        $ghSNMPOptions{'unixsnmp'} = $commandline{'unixsnmp'};
     }
     
     # print the options in command line, and the resulting full option hash
