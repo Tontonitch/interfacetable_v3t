@@ -59,7 +59,6 @@ my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                                      # time of program start
 # NOT USED - my $refhPath = {};
-my $ghSNMPOptions{'unixsnmp'} = 1;
 
 # ------------------------------------------------------------------------
 # OIDs definitions
