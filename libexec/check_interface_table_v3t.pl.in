@@ -767,7 +767,8 @@ sub WriteHtmlTable {
 <body>
 ';
         print OUT '<center><pre><a href="' . $ghOptions{'accessmethod'} . '://',$ghOptions{'hostquery'},'">',$ghOptions{'hostquery'},'</a>',
-            ' updated: ',scalar localtime $EndTime,' (',$EndTime-$STARTTIME,' sec.)</pre>';
+            ' updated: ',scalar localtime $EndTime,' (',$EndTime-$STARTTIME,' sec.)';
+        print OUT '<span style="float: right;"><a href="' . $ghOptions{htmltableurl} . '" target="_blank">[ go to node selector ]</a></span></pre>';
         print OUT $refhStruct->{Header};
         print OUT $refhStruct->{Body};
         print OUT $Footer;
