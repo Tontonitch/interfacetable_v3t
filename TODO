@@ -68,5 +68,6 @@
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
+#         - lighter css for users tracking multiple properties
 #
 # ========================================================================
