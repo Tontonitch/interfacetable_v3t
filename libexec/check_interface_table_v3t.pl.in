@@ -2430,7 +2430,7 @@ sub Csv2Html {
                 #my $SpecialTextFormatFoot  = "";
 
                 if ( defined $Cell->{InterfaceGraphURL} ) {
-                    if($ghOptions{'enableperfdata'}){         # thd
+                    if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
                         $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
                     }
                     $trTagclose = '';
@@ -2741,6 +2741,9 @@ sub print_usage () {
         'loadonly' should be used in case of too many interfaces and consequently too much performance
         data which cannot fit in the nagios plugin output buffer. By default, its size is 8k and
         can be extended by modifying MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources.
+    --perfdatadir (optional)
+        When specified, the performance data are also written directly to a file, in the specified 
+        location. Used by the Netways nagiosgrapher v1 graphing solution.
     -g, --grapher (optional)
         Specify the used graphing solution. 
         Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
@@ -2887,6 +2890,7 @@ sub check_options () {
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
         'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
         'perfdataformat=s',                     # define which performance data will be generated.
+        'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
@@ -2956,6 +2960,7 @@ sub check_options () {
         'enableperfdata'            => 0,
         'portperfunit'              => "bit",
         'perfdataformat',           => "full",
+        'perfdatadir',              => undef,
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
@@ -3160,7 +3165,10 @@ sub check_options () {
         if ($commandline{perfdataformat} =~ /^full$|^loadonly$|^generalonly$/i) {
             $ghOptions{'perfdataformat'} = "$commandline{perfdataformat}";
         }
-    } 
+    }
+    if (exists $commandline{perfdatadir}) {
+        $ghOptions{'perfdatadir'} = "$commandline{perfdatadir}";
+    }
             
     #------- other features ---------#
     if (exists $commandline{css}) {
