@@ -3167,7 +3167,7 @@ sub check_options () {
         $ghOptions{'css'} = "$commandline{css}";
     }
     if (! -e "$ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css") {
-        logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/css/$ghOptions{'css'}.css");
+        logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css");
         exit $ERRORS{"UNKNOWN"};
     }    
     if (exists $commandline{ifdetails}) {
