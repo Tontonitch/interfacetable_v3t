@@ -1070,7 +1070,7 @@ sub EvaluateInterfaces {
         # Process the interface exclusion list
         for my $ExcludeString (@$ExcludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                     logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "true";
                 }
@@ -1086,7 +1086,7 @@ sub EvaluateInterfaces {
         # subset of a group of interfaces which were excluded previously
         for my $IncludeString (@$IncludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                     logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                     $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} = "false";
                 }
@@ -1111,7 +1111,7 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                    if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                         logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "true";
                     }
@@ -1127,7 +1127,7 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                    if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                         logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} = "false";
                     }
@@ -1150,7 +1150,7 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("$oid_ifDescrReadable" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                    if ("$oid_ifDescrReadable_${oid_ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                         logger(1, "-- exclude ($ExcludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "true";
                     }
@@ -1166,7 +1166,7 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${oid_ifDescrReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                    if ("${oid_ifDescrReadable}_${oid_ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                         logger(1, "++ include ($IncludeString) interface \"$oid_ifDescrReadable\"");
                         $grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedPropertyTrack} = "false";
                     }
