@@ -40,6 +40,7 @@
 #           useful in case of normal high load on some interfaces
 # DONE    - detect incoherent load > if speed (in case of node restart, switch from v1 to 
 #           v2c,...)
+# DONE    - lighter css for users tracking multiple properties
 # 
 # ----------------------------------------------------------------------
 # Todo for 0.04
@@ -68,6 +69,5 @@
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
-#         - lighter css for users tracking multiple properties
 #
 # ========================================================================

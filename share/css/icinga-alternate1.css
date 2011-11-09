@@ -1,0 +1,76 @@
+/***** GENERAL *****/
+
+body {
+	color: #000000;
+	font-family: Verdana Geneva Arial Helvetica sans-serif;
+}
+
+img {
+	border: 0;
+    float: left;
+    display: block;
+}
+    
+/***** TABLES *****/
+
+table {
+	background-color: #fff; 
+	padding: 2px; 
+	border: 0;
+}
+
+tr {
+	background-color: #E7E7E7;
+}
+
+th {
+	font-size: 10pt; 
+	background-color: #707677; 
+	color: #fff; 
+	border: 0;
+	padding: 2px 5px 2px 5px;
+}
+
+td {
+	border: 0 none;
+    font-size: 8pt;
+	padding: 2px 5px 2px 5px;
+}
+
+/* Information table */ 
+
+.infotable tr {
+	background-color: #D2D2D2;
+}
+
+/* Interface table */
+
+.cellInitialRun {
+    color: #808000;
+}
+
+.cellTrackedOk {
+    color: #000;
+    border: 1 solid #00CC33;
+}
+
+.cellTrackedChange {
+    font-weight: bold;
+    color: #FF3300;
+    border: 1 solid #FF3300;
+}
+
+.cellNotTracked {
+    background-color: #CCCCCC;
+}
+
+.cellExcluded {
+    background-image: url(../img/overlay.png);
+}
+
+/***** SPANS *****/
+
+span {
+	font-size: 8pt;
+}
+
