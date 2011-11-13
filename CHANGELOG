@@ -3,6 +3,18 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
+# * 0.03rc1 (in progress)
+#   ----------------------------------------------------------------------
+#    - add: link to node selector
+#    - bugfix: bad path in log message for missing css file (Birger Schmidt)
+#    - add/enhancement: reinsert alias matching on in-/exclude regexmatching (Birger Schmidt)
+#    - add/enhancement: changes to support netways grapher v1 (nagiosgrapher) again
+#    - add: new alternate css, more adapted to multiple properties tracking. Also to give
+#      an example of custom css.
+#    - bugfix: blanks removed from property comparaison only from current value (from 
+#      bugfix release 0.02-4)
+#
+#   ----------------------------------------------------------------------
 # * 0.03b3 (in progress)
 #   ----------------------------------------------------------------------
 #    - bugfix: added missing ifoperstatus possible values (reported by Michael Gumbinger)

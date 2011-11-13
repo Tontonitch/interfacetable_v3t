@@ -862,6 +862,9 @@ sub GenerateHtmlTable {
             }
             if (defined $refhInterFaceDataFile->{"$FieldName"}) {
                 $FileFieldContent = $refhInterFaceDataFile->{"$FieldName"};
+                # Delete the first and last "blank"
+                $FileFieldContent =~ s/^ //;
+                $FileFieldContent =~ s/ $//;
             }
 
             # Flag if the current status of this field should be compared with the
