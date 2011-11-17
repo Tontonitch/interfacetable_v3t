@@ -3,7 +3,7 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
-# * 0.03rc1 (in progress)
+# * 0.03
 #   ----------------------------------------------------------------------
 #    - add: link to node selector
 #    - bugfix: bad path in log message for missing css file (Birger Schmidt)
@@ -15,7 +15,7 @@
 #      bugfix release 0.02-4)
 #
 #   ----------------------------------------------------------------------
-# * 0.03b3 (in progress)
+# * 0.03b3
 #   ----------------------------------------------------------------------
 #    - bugfix: added missing ifoperstatus possible values (reported by Michael Gumbinger)
 #    - enhancement: extended the non-tracking of ifoperstatusr: now from "xxx" to "up"
