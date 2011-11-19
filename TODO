@@ -29,5 +29,7 @@
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
+#         - handle ASA interfaces
+#         - -1 for err/disc pkt tracking disactivation
 #
 # ========================================================================
