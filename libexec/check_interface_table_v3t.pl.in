@@ -1216,7 +1216,7 @@ sub Get_OperStatus_Description_Index {
             $Desc = "($MacAddress)";
             logger(2, "Interface with index $Index has no description.\nSet it to $Desc");
         }
-
+        
         # normalize the interface description to not get into trouble
         # with special characters and how Config::General handles blanks
         $Desc = normalize ($Desc);
@@ -1302,6 +1302,16 @@ sub Get_OperStatus_Description_Index {
         }
         # ifOperstatus has changed to up, no alert
         elsif ("$OperStatusNow" eq "up") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$Desc"}->{ifOperStatus} = "$OperStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$Desc"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$Desc"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$Desc"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed from 'empty'
+        elsif ("$OperStatusFile" eq "") {
             # update the state in the status file
             $grefhFile->{If}->{"$Desc"}->{ifOperStatus} = "$OperStatusNow";
             # delete the changed flag and reset the time when it was changed
