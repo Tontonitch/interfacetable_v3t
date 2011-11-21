@@ -685,7 +685,7 @@ sub perfdataout {
             #my $servicename = "Port$port";
             my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
             $servicename =~ s/[: ]/_/g;
-            $servicename =~ s/[()]//g;
+            $servicename =~ s/[()']//g;
             #my $servicename = 'Interface - ' . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
             my $perfdata = "";
             #Add interface status if available
@@ -938,7 +938,7 @@ sub GenerateHtmlTable {
                         my $servicename = "If_" . trim(denormalize($oid_ifDescr));
                         $servicename =~ s/#/%23/g;
                         $servicename =~ s/:/_/g;
-                        $servicename =~ s/[()]//g;
+                        $servicename =~ s/[()']//g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
                             $CellContent .= '<a href="' . 
                                            $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
