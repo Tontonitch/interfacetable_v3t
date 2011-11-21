@@ -7,6 +7,7 @@
 #   ----------------------------------------------------------------------
 #    - add/enhancement: interface coming from 'empty' operstatus to another operstatus 
 #      does not trigger an alert of operstatus change (ex: newly added interface)
+#    - add/enhancement: better Cisco ASA nodes support, with an ifdescr preformating
 #
 #   ----------------------------------------------------------------------
 # * 0.03
