@@ -437,6 +437,11 @@ if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory a
 # write interface information file
 # ------------------------------------------------------------------------------
 
+# remember the counted interfaces
+$grefhCurrent->{MD}->{ports} = ${gNumberOfInterfacesWithoutTrunk};
+$grefhCurrent->{MD}->{freeports} = ${gNumberOfFreeInterfaces};
+$grefhCurrent->{MD}->{adminupfree} = ${gNumberOfFreeUpInterfaces};
+
 # first run - the hash from the file is empty because we had no file before
 # fill it up with all interface intormation and with the index tables
 #
@@ -451,10 +456,6 @@ if (not $grefhFile->{TableReset}) {
 # Fill up the MD tree (MD = MetaData) - here we store all variable
 # settings
 $grefhFile->{MD} = $grefhCurrent->{MD};
-
-# ------------------------------------------------------------------------------
-# write interface information file
-# ------------------------------------------------------------------------------
 
 WriteConfigFileNew ("$gInterfaceInformationFile",$grefhFile);
 
