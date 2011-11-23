@@ -9,6 +9,7 @@
 #      does not trigger an alert of operstatus change (ex: newly added interface)
 #    - add/enhancement: better Cisco ASA nodes support, with an ifdescr preformating
 #    - bugfix: remove single quote from perfdata names and url to pnp
+#    - bugfix: fixed major bug - config option -wp and -cp now honored (Birger Schmidt)
 #
 #   ----------------------------------------------------------------------
 # * 0.03

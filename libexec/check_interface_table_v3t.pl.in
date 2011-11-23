@@ -3127,6 +3127,12 @@ sub check_options () {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include-property'}}));
         $ghOptions{'include-property'} = \@tmparray;
     }
+    if (exists $commandline{'warning-property'}) {
+        $ghOptions{'warning-property'} = $commandline{'warning-property'};
+    }
+    if (exists $commandline{'critical-property'}) {
+        $ghOptions{'critical-property'} = $commandline{'critical-property'};
+    }
     
     #------ traffic tracking -------#
     # organizing excluded/included interfaces for traffic tracking
