@@ -1,0 +1,144 @@
+###########################################################################################
+#  
+#  NagiosGrapher Template for check_interface_table_v2.pl
+#  Author: Birger Schmidt (Netways GmbH)
+#  
+#  Rewrite in progress for check_interface_table_v3t.pl (Yannick Charton)
+#
+###########################################################################################
+
+
+# Port
+define ngraph{
+    service_name        Port
+    graph_perf_regex    OctetsIn=(\d+)c
+    graph_value         in
+    graph_units
+    graph_legend        bandwidth usage (in)
+    rrd_plottype        AREA
+    rrd_color           00CC00
+    rrd_type            COUNTER
+    hide                yes
+}
+    
+define ngraph{
+    service_name        Port
+    type                CDEF
+    graph_value         innice
+    graph_calc          in,8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (in)
+    rrd_plottype        AREA
+    rrd_color           00CC00
+    print_eol           left
+    page                1 traffic
+    hide                no
+}
+    
+define ngraph{
+    service_name        Port
+    graph_perf_regex    OctetsOut=(\d+)c
+    graph_value         out
+    graph_units
+    graph_legend        bandwidth usage (out)
+    rrd_plottype        LINE1
+    rrd_color           0000FF
+    rrd_type            COUNTER
+    hide                yes
+}
+
+define ngraph{
+    service_name        Port
+    type                CDEF
+    graph_value         outnice
+    graph_calc          out,8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (out)
+    rrd_plottype        LINE1
+    rrd_color           0000FF
+    page                1 traffic
+    hide                no
+}
+    
+#define ngraph{
+#    service_name        Port
+#    type                CDEF
+#    graph_value         cdef_out
+#    graph_units
+#    graph_legend
+#    graph_calc          outnice
+#    rrd_plottype        LINE1
+#    rrd_color           3F6800
+#    page                1 traffic
+#}
+#    
+#define ngraph{
+#    service_name        Port
+#    type                CDEF
+#    graph_value         cdef_in
+#    graph_units
+#    graph_legend
+#    graph_calc          innice
+#    rrd_plottype        LINE1
+#    rrd_color           3650C9
+#    page                1 traffic
+#}
+
+define ngraph{
+    service_name        Port
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                1 traffic
+}
+
+define ngraph{
+    service_name        Port
+    type                CDEF
+    graph_value         mysum
+    graph_calc          out,in,+,8,*
+    graph_units
+    graph_legend        bandwidth usage (total)
+    rrd_plottype        LINE1
+    rrd_color           FF0000
+    page                2 traffic
+    hide                no
+}
+
+define ngraph{
+    service_name        Port
+    type                CDEF
+    graph_value         inmrtg
+    graph_calc          in,8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (in)
+    rrd_plottype        AREA
+    rrd_color           00CC00
+    print_eol           left
+    page                2 traffic
+    hide                no
+}
+
+define ngraph{
+    service_name        Port
+    type                CDEF
+    graph_value         outmrtg
+    graph_calc          out,-8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (out)
+    rrd_plottype        AREA
+    rrd_color           0000FF
+    page                2 traffic
+    hide                no
+}
+
+define ngraph{
+    service_name        Port
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                2 traffic
+    hide                no
+}
+
+# [EOF]
