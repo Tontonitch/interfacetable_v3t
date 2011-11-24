@@ -1222,6 +1222,13 @@ sub Get_OperStatus_Description_Index {
         # Cisco ASA 55xx series
         if ($Desc =~ /^Adaptive Security Appliance '(.*)' interface$/) {
             $Desc="$1";
+            logger(2, "Interface description matching Cisco ASA interface pattern, description reduced to \"$Desc\"");
+        }
+        
+        # Detect long description, which may be reduced for a cleaner interface table
+        my $description_warning_length = 30;
+        if (length($Desc) > $description_warning_length) {
+            logger(2, "Interface description quite long! (> $description_warning_length).\nDesc: \"$Desc\"");
         }
         
         # normalize the interface description to not get into trouble
