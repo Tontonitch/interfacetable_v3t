@@ -938,7 +938,7 @@ sub GenerateHtmlTable {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($oid_ifDescr));
                         $servicename =~ s/#/%23/g;
-                        $servicename =~ s/:/_/g;
+                        $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()']//g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
                             $CellContent .= '<a href="' . 
