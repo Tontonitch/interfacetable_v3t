@@ -1720,11 +1720,11 @@ sub EvaluatePackets {
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsErrOut} = sprintf("%.2f", $ppsErrOut);
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ppsErrIn > 0 or $ppsErrOut > 0)) {
             # just traffic light color codes for the lame
-            if ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'}) {
+            if ($ghOptions{'critical-pkterr'} >= 0 and ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'})) {
                 push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($oid_ifDescr));
                 $gPktErrCritCounter++;
                 $pcrit++;
-            } elsif ($ppsErrIn > $ghOptions{'warning-pkterr'} or $ppsErrOut > $ghOptions{'warning-pkterr'}) {
+            } elsif ($ghOptions{'warning-pkterr'} >= 0 and ($ppsErrIn > $ghOptions{'warning-pkterr'} or $ppsErrOut > $ghOptions{'warning-pkterr'})) {
                 push @{$grefhListOfChanges->{'warning-pkterr'}}, trim(denormalize($oid_ifDescr));
                 $gPktErrWarnCounter++;
                 $pwarn++;
@@ -1736,11 +1736,11 @@ sub EvaluatePackets {
         $grefhCurrent->{If}->{$oid_ifDescr}->{ppsDiscardOut} = sprintf("%.2f", $ppsDiscardOut);
         if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedLoadTrack} eq "false" and ($ppsDiscardIn > 0 or $ppsDiscardOut > 0)) {
             # just traffic light color codes for the lame
-            if ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'}) {
+            if ($ghOptions{'critical-pktdiscard'} >= 0 and ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'})) {
                 push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($oid_ifDescr));
                 $gPktDiscardCritCounter++;
                 $pcrit++;
-            } elsif ($ppsDiscardIn > $ghOptions{'warning-pktdiscard'} or $ppsDiscardOut > $ghOptions{'warning-pktdiscard'}) {
+            } elsif ($ghOptions{'warning-pktdiscard'} >= 0 and ($ppsDiscardIn > $ghOptions{'warning-pktdiscard'} or $ppsDiscardOut > $ghOptions{'warning-pktdiscard'})) {
                 push @{$grefhListOfChanges->{'warning-pktdiscard'}}, trim(denormalize($oid_ifDescr));
                 $gPktDiscardWarnCounter++;
                 $pwarn++;
