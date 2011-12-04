@@ -427,13 +427,6 @@ if (defined $basetime) {
 }
 
 # ------------------------------------------------------------------------------
-# write perfdata stdout and files
-# ------------------------------------------------------------------------------
-if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory and $ghOptions{'enableperfdata'}) {
-    perfdataout();
-}
-
-# ------------------------------------------------------------------------------
 # write interface information file
 # ------------------------------------------------------------------------------
 
@@ -649,6 +642,11 @@ WriteHtmlTable ({
     FileName    => "$ghOptions{'htmltabledir'}/$gFile".'.html'
 });
 
+# Write perfdata
+if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory and $ghOptions{'enableperfdata'}) {
+    perfdataout();
+}
+
 # Print Text and exit with the correct exitcode
 ExitPlugin ({
     ExitCode    =>  $ExitCode,
@@ -666,69 +664,160 @@ exit $ERRORS{"UNKNOWN"};
 # ------------------------------------------------------------------------
 # write performance data
 # perfdataout ();
+# --------------------------------------------------------------------
+# Grapher: pnp4nagios, nagiosgrapher, netwaysgrapherv2
+# Format: 
+#    * full : generated performance data include plugin related stats, 
+#             interface status, interface load stats, and packet error stats 
+#    * loadonly : generated performance data include plugin related stats, 
+#                 interface status, and interface load stats 
+#    * globalonly : generated performance data include only plugin related stats
 # ------------------------------------------------------------------------
 sub perfdataout {
-    if ($ghOptions{perfdatadir}) { # perfdata to file
+
+    #------  Pnp4nagios and (for the moment) Netwaysgrapherv2  ------# 
+    if ( $ghOptions{'grapher'} eq  "pnp4nagios" ) {
+    
+        # plugin related stats
+        $gPerfdata .= "Interface_global::check_interface_table_global::".
+            "time=${TimeDiff}s;;;; ".
+            "uptime=$grefhCurrent->{MD}->{sysUpTime}s;;;; ".
+            "watched=${gNumberOfPerfdataInterfaces};;;; ".
+            "useddelta=${gUsedDelta}s;;;; ".
+            "ports=${gNumberOfInterfacesWithoutTrunk};;;; ".
+            "freeports=${gNumberOfFreeInterfaces};;;; ".
+            "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
+        
+        # interface status, and interface load stats
+        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
+        
+            # $grefaAllIndizes is a indexed and sorteted list of all interfaces
+            for my $InterfaceIndex (@$grefaAllIndizes) {
+                # Get normalized interface name (key for If data structure)
+                my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
+        
+                if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
+                    and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
+                    and $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} eq "false") {
+                    my $port = sprintf("%03d", $InterfaceIndex);
+                    #my $servicename = "Port$port";
+                    my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
+                    $servicename =~ s/[: ]/_/g;
+                    $servicename =~ s/[()']//g;
+                    #my $servicename = 'Interface - ' . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
+                    my $perfdata = "";
+                    #Add interface status if available
+                    if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
+                        if ($ghOptions{'portperfunit'} eq "octet") {
+                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                                "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
+                                "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
+                        } else {
+                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                                "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
+                                "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
+                        }
+                        #Add pkt errors/discards if available and wanted
+                        unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                            if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
+                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                            }
+                        }
+                    }
+                    
+                    logger(2, "collected perfdata: $oid_ifDescr\t$perfdata");
+                    $gPerfdata .= "$perfdata";
+                }
+            }
+        }
+        
+    #------  Nagiosgrapher  ------#
+    } elsif ( $ghOptions{'grapher'} eq  "nagiosgrapher" ) {
+        
+        # Set the perfdata file
         my $filename = $ghOptions{perfdatadir} . "/service-perfdata.$STARTTIME";
         umask "$UMASK";
         open (OUT,">>$filename") or die "cannot open $filename $!";
         flock (OUT, 2) or die "cannot flock $filename ($!)"; # get exclusive lock;
-        }
-    # $grefaAllIndizes is a indexed and sorteted list of all interfaces
-    for my $InterfaceIndex (@$grefaAllIndizes) {
-        # Get normalized interface name (key for If data structure)
-        my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
-
-        if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
-            and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
-            and $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} eq "false") {
-            my $port = sprintf("%03d", $InterfaceIndex);
-            #my $servicename = "Port$port";
-            my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
-            $servicename =~ s/[: ]/_/g;
-            $servicename =~ s/[()']//g;
-            #my $servicename = 'Interface - ' . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
-            my $perfdata = "";
-            #Add interface status if available
-            if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
-                if ($ghOptions{'portperfunit'} eq "octet") {
-                    $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                        "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
-                        "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
-                        "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
-                } else {
-                    $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                        "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
-                        "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
-                        "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
-                }
-                #Add pkt errors/discards if available and wanted
-                unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                    if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
-                        $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
-                            "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
-                            "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
-                            "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
-                    }
-                }
-            }
+        
+        # plugin related stats
+        print OUT "$grefhCurrent->{MD}->{sysName}\t";  # hostname
+        print OUT "Interface_global";                  # servicename
+        if (defined $grefhFile->{If}->{$oid_ifDescr}->{ifAlias} and $grefhFile->{If}->{$oid_ifDescr}->{ifAlias} ne '') {
+            print OUT ' ' . trim(denormalize($grefhFile->{If}->{$oid_ifDescr}->{ifAlias}));}
+        print OUT "\t\t";                              # pluginoutput
+        print OUT "time=${TimeDiff}s;;;; ";            # performancedata
+        print OUT "uptime=$grefhCurrent->{MD}->{sysUpTime}s;;;; ";
+        print OUT "watched=${gNumberOfPerfdataInterfaces};;;; ";
+        print OUT "useddelta=${gUsedDelta}s;;;; ";
+        print OUT "ports=${gNumberOfInterfacesWithoutTrunk};;;; ";
+        print OUT "freeports=${gNumberOfFreeInterfaces};;;; ";
+        print OUT "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
+        print OUT "\t$STARTTIME\n";                    # unix timestamp
+        
+        # interface status, and interface load stats
+        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
+        
+            # $grefaAllIndizes is a indexed and sorteted list of all interfaces
+            for my $InterfaceIndex (@$grefaAllIndizes) {
+                # Get normalized interface name (key for If data structure)
+                my $oid_ifDescr = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex};
+        
+                if ($grefhCurrent->{MD}->{If}->{$oid_ifDescr}->{ExcludedTrack} eq "false" 
+                    and defined $grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}
+                    and $grefhCurrent->{If}->{$oid_ifDescr}->{ifLoadExceedIfSpeed} eq "false") {
             
-            logger(2, "collected perfdata: $oid_ifDescr\t$perfdata");
-            if ($ghOptions{perfdatadir}) { # perfdata to file
-                #TODO: make it atomic (ie rename after write) and use a save filename
-                print OUT "$grefhCurrent->{MD}->{sysName}\t";  # hostname
-                print OUT "$servicename";                      # servicename
-                print OUT "\t\t";                              # pluginoutput
-                print OUT "$perfdata";                         # performancedata
-                print OUT "\t$STARTTIME\n";                   # unix timestamp
-                        }
+                    my $servicename = "If_" . trim(denormalize($grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$InterfaceIndex}));
+                    $servicename =~ s/[: ]/_/g;
+                    $servicename =~ s/[()']//g;
 
-            if($ghOptions{'enableperfdata'}){$gPerfdata .= "$perfdata"; }      # thd collect performancedata
+                    my $perfdata = "";
+                    #Add interface status if available
+                    if (defined $grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}) {
+                        if ($ghOptions{'portperfunit'} eq "octet") {
+                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                                "OctetsIn=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsIn}->{$InterfaceIndex}c;;;0; " .
+                                "OctetsOut=$grefhCurrent->{MD}->{IfIndexTable}->{OctetsOut}->{$InterfaceIndex}c;;;0; ";
+                        } else {
+                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{MD}->{IfIndexTable}->{OperStatus}->{$InterfaceIndex}").";;;0; " .
+                                "BitsIn=$grefhCurrent->{MD}->{IfIndexTable}->{BitsIn}->{$InterfaceIndex}c;;;0; " .
+                                "BitsOut=$grefhCurrent->{MD}->{IfIndexTable}->{BitsOut}->{$InterfaceIndex}c;;;0; ";
+                        }
+                        #Add pkt errors/discards if available and wanted
+                        unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                            if (defined $grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}) {
+                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutErr=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutErr}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsInDiscard}->{$InterfaceIndex}c;;;0; " .
+                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfIndexTable}->{PktsOutDiscard}->{$InterfaceIndex}c;;;0; ";
+                            }
+                        }
+                    }
+                    
+                    # Print into perfdata output file
+                    logger(2, "collected perfdata: $oid_ifDescr\t$perfdata");
+                    print OUT "$grefhCurrent->{MD}->{sysName}\t";  # hostname
+                    print OUT "$servicename";                      # servicename
+                    print OUT "\t\t";                              # pluginoutput
+                    if ($grefhFile->{If}->{$oid_ifDescr}->{ifAlias} ne '') {
+                        print OUT ' ' . trim(denormalize($grefhFile->{If}->{$oid_ifDescr}->{ifAlias}));
+                    }
+                    print OUT "$perfdata";                         # performancedata
+                    print OUT "\t$STARTTIME\n";                    # unix timestamp       
+                }
+            } # for $InterfaceIndex
         }
-    } # for $InterfaceIndex
-    if (defined $ghOptions{perfdatadir}) { # perfdata to file
+        
+        # close the perfdata output file
         close (OUT);
-        }
+    }
     return 0;
 }
 
@@ -2556,17 +2645,7 @@ sub ExitPlugin {
     print $refhStruct->{Text};
     print "|";
     if ($ghOptions{'enableperfdata'} and $basetime) {
-        print "Interface_global::check_interface_table_global::" .
-                "time=${TimeDiff}s;;;; " .
-                "uptime=$grefhCurrent->{MD}->{sysUpTime}s;;;; " .
-                "watched=${gNumberOfPerfdataInterfaces};;;; " .
-                "useddelta=${gUsedDelta}s;;;; " .
-                "ports=${gNumberOfInterfacesWithoutTrunk};;;; " .
-                "freeports=${gNumberOfFreeInterfaces};;;; " .
-                "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
-        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
-            print "$gPerfdata\n";
-        }
+        print "$gPerfdata\n";
     }
 
     exit $refhStruct->{ExitCode};
@@ -3181,6 +3260,9 @@ sub check_options () {
     if (exists $commandline{grapher}) {
         if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$/i) {
             $ghOptions{'grapher'} = "$commandline{grapher}";
+        } else {
+            logger(0, "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2.");
+            exit $ERRORS{"UNKNOWN"};
         }
     }
     if (exists $commandline{grapherurl}) {
@@ -3201,6 +3283,11 @@ sub check_options () {
     }
     if (exists $commandline{perfdatadir}) {
         $ghOptions{'perfdatadir'} = "$commandline{perfdatadir}";
+    }
+
+    if ($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq "nagiosgrapher" and not defined $ghOptions{'perfdatadir'}) {
+        logger(0, "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir");
+        exit $ERRORS{"UNKNOWN"};
     }
             
     #------- other features ---------#
