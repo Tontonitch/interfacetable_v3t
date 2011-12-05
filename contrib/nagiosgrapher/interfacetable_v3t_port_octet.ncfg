@@ -1,14 +1,14 @@
 ###########################################################################################
-#  
+#
 #  NagiosGrapher Template for Interfacetable_v3t (draft in progress)
 #  Author: Yannick Charton
 #
 #  Performance data sample:
 #   * Interface_global
-#       time=1s;;;; uptime=87436447s;;;; watched=1;;;; useddelta=600s;;;; ports=1;;;; 
-#       freeports=0;;;; adminupfree=0;;;; 
+#       time=1s;;;; uptime=87436447s;;;; watched=1;;;; useddelta=600s;;;; ports=1;;;;
+#       freeports=0;;;; adminupfree=0;;;;
 #   * If_<interface description>
-#       OperStatus=1;;;0; OctetsIn=4187043890720c;;;0; OctetsOut=5523360449272c;;;0; 
+#       OperStatus=1;;;0; OctetsIn=4187043890720c;;;0; OctetsOut=5523360449272c;;;0;
 #       PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
 #
 ###########################################################################################
@@ -32,6 +32,54 @@ define ngraph{
     rrd_color           00CC00
     rrd_type            GAUGE
     print_eol           left
+    hide                yes
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         up
+    graph_calc          operstatus,0.33,GT,operstatus,1.1,LT,0.2,0,IF,0,IF
+    graph_units
+    graph_legend        up
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           00ff00
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         down
+    graph_calc          operstatus,0.33,LT,0.2,0,IF
+    graph_units
+    graph_legend        down
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           ff0000
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         unknown
+    graph_calc          operstatus,1.1,GT,0.2,0,IF
+    graph_units
+    graph_legend        unknown
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           ff8c00
+    print_eol           left
     hide                no
 }
 
@@ -40,7 +88,7 @@ define ngraph{
     type                HRULE
     hrule_value         0
     rrd_color           000000
-    page                [0]  Operational status
+    page                [0] Operational status
     hide                no
 }
 
@@ -53,17 +101,17 @@ define ngraph{
     graph_perf_regex    OctetsIn=(\d+)c
     graph_value         in
     graph_units
-    graph_legend        
+    graph_legend
     rrd_type            COUNTER
     hide                yes
 }
-    
+
 define ngraph{
     service_name        If_
     graph_perf_regex    OctetsOut=(\d+)c
     graph_value         out
     graph_units
-    graph_legend        
+    graph_legend
     rrd_type            COUNTER
     hide                yes
 }
@@ -80,21 +128,22 @@ define ngraph{
     print_eol           left
     page                [1] Interface traffic
     hide                no
-}    
+}
 
 define ngraph{
     service_name        If_
     type                CDEF
     graph_value         outnice
-    graph_calc          out,8,*
+    graph_calc          out,-8,*
     graph_units         Bits/s
     graph_legend        bandwidth usage (out)
-    rrd_plottype        LINE1
+    rrd_plottype        AREA
     rrd_color           0000CD
+    print_eol           left
     page                [1] Interface traffic
     hide                no
 }
-    
+
 define ngraph{
     service_name        If_
     type                CDEF
@@ -121,7 +170,7 @@ define ngraph{
 #     page                [1] Interface traffic
 #     hide                no
 # }
-# 
+#
 # define ngraph{
 #     service_name        If_
 #     type                CDEF
@@ -155,7 +204,7 @@ define ngraph{
     graph_units         pkt/s
     graph_legend        in_err
     graph_lower_limit   0
-    rrd_plottype        STACK
+    rrd_plottype        AREA
     rrd_color           FFD700
     rrd_type            COUNTER
     print_eol           left

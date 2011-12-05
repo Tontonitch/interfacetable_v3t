@@ -32,6 +32,54 @@ define ngraph{
     rrd_color           00CC00
     rrd_type            GAUGE
     print_eol           left
+    hide                yes
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         up
+    graph_calc          operstatus,0.33,GT,operstatus,1.1,LT,0.2,0,IF,0,IF
+    graph_units
+    graph_legend        up
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           00ff00
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         down
+    graph_calc          operstatus,0.33,LT,0.2,0,IF
+    graph_units
+    graph_legend        down
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           ff0000
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         unknown
+    graph_calc          operstatus,1.1,GT,0.2,0,IF
+    graph_units
+    graph_legend        unknown
+    graph_lower_limit   10
+    graph_lower_limit   0
+    page                [0] Operational status
+    rrd_plottype        AREA
+    rrd_color           ff8c00
+    print_eol           left
     hide                no
 }
 
@@ -40,7 +88,7 @@ define ngraph{
     type                HRULE
     hrule_value         0
     rrd_color           000000
-    page                [0]  Operational status
+    page                [0] Operational status
     hide                no
 }
 
@@ -50,28 +98,28 @@ define ngraph{
 
 define ngraph{
     service_name        If_
-    graph_perf_regex    OctetsIn=(\d+)c
+    graph_perf_regex    BitsIn=(\d+)c
     graph_value         in
     graph_units         Bits/s
     graph_legend        bandwidth usage (in)
+    page                [1] Interface traffic
     rrd_plottype        AREA
     rrd_color           32CD32
     rrd_type            COUNTER
     print_eol           left
-    page                [1] Interface traffic
     hide                no
 }
     
 define ngraph{
     service_name        If_
-    graph_perf_regex    OctetsOut=(\d+)c
+    graph_perf_regex    BitsOut=(\d+)c
     graph_value         out
     graph_units         Bits/s
     graph_legend        bandwidth usage (out)
+    page                [1] Interface traffic
     rrd_plottype        LINE1
     rrd_color           0000CD
     rrd_type            COUNTER
-    page                [1] Interface traffic
     hide                no
 }  
     
@@ -82,9 +130,9 @@ define ngraph{
     graph_calc          out,in,+
     graph_units
     graph_legend        bandwidth usage (total)
+    page                [1] Interface traffic
     rrd_plottype        LINE1
     rrd_color           FF0000
-    page                [1] Interface traffic
     hide                no
 }
 
@@ -92,8 +140,8 @@ define ngraph{
     service_name        If_
     type                HRULE
     hrule_value         0
-    rrd_color           000000
     page                [1] Interface traffic
+    rrd_color           000000
     hide                no
 }
 
@@ -108,11 +156,11 @@ define ngraph{
     graph_units         pkt/s
     graph_legend        in_err
     graph_lower_limit   0
-    rrd_plottype        STACK
+    page                [2] Error/discard packets
+    rrd_plottype        AREA
     rrd_color           FFD700
     rrd_type            COUNTER
     print_eol           left
-    page                [2] Error/discard packets
     hide                no
 }
 
@@ -123,11 +171,11 @@ define ngraph{
     graph_units         pkt/s
     graph_legend        out_err
     graph_lower_limit   0
+    page                [2] Error/discard packets
     rrd_plottype        STACK
     rrd_color           FF8C00
     rrd_type            COUNTER
     print_eol           left
-    page                [2] Error/discard packets
     hide                no
 }
 
