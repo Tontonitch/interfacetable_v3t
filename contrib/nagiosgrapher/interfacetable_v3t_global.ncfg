@@ -1,0 +1,129 @@
+###########################################################################################
+#  
+#  NagiosGrapher Template for Interfacetable_v3t (draft in progress)
+#  Author: Yannick Charton
+#
+#  Performance data sample:
+#   * Interface_global
+#       time=1s;;;; uptime=87436447s;;;; watched=1;;;; useddelta=600s;;;; ports=1;;;; 
+#       freeports=0;;;; adminupfree=0;;;; 
+#   * If_<interface description>
+#       OperStatus=1;;;0; OctetsIn=4187043890720c;;;0; OctetsOut=5523360449272c;;;0; 
+#       PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
+#
+###########################################################################################
+
+
+# -----------------------------------------------------------------
+# Plugin related stats (Interface_global)
+# -----------------------------------------------------------------
+
+#
+# [0] plugin stats
+#
+
+define ngraph{
+    service_name        Interface_global
+    graph_perf_regex    time=(\d+)
+    graph_value         time
+    graph_units         seconds
+    graph_legend        time
+    graph_lower_limit   0
+    rrd_plottype        AREA
+    rrd_color           8470FF
+    rrd_type            GAUGE
+    page                [0] Interface statistics gathering time
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        Interface_global
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                [0] Interface statistics gathering time
+    hide                no
+}
+
+#
+# [1] Interface status
+#
+
+define ngraph{
+    service_name        Interface_global
+    graph_perf_regex    ports=(\d+)
+    graph_value         ports
+    graph_units         
+    graph_legend        
+    rrd_type            GAUGE
+    hide                yes
+}
+
+define ngraph{
+    service_name        Interface_global
+    graph_perf_regex    freeports=(\d+)
+    graph_value         freeports
+    graph_units
+    graph_legend        
+    rrd_type            GAUGE
+    hide                yes
+}
+
+define ngraph{
+    service_name        Interface_global
+    graph_perf_regex    adminupfree=(\d+)
+    graph_value         adminupfree
+    graph_units
+    graph_legend        adminupfree
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           90EE90
+    rrd_type            GAUGE
+    page                [1] Interface status
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        Interface_global
+    type                CDEF
+    graph_value         admindownfree
+    graph_calc          freeports,adminupfree,-
+    graph_units
+    graph_legend        admindownfree
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           A52A2A
+    page                [1] Interface status
+    rrd_type            GAUGE
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        Interface_global
+    type                CDEF
+    graph_value         usedports
+    graph_calc          ports,freeports,-
+    graph_units         
+    graph_legend        usedports
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           8470FF
+    rrd_type            GAUGE
+    page                [1] Interface status
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        Interface_global
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                [1] Interface status
+    hide                no
+}
+
+# [EOF]

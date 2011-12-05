@@ -1,0 +1,220 @@
+###########################################################################################
+#  
+#  NagiosGrapher Template for Interfacetable_v3t (draft in progress)
+#  Author: Yannick Charton
+#
+#  Performance data sample:
+#   * Interface_global
+#       time=1s;;;; uptime=87436447s;;;; watched=1;;;; useddelta=600s;;;; ports=1;;;; 
+#       freeports=0;;;; adminupfree=0;;;; 
+#   * If_<interface description>
+#       OperStatus=1;;;0; OctetsIn=4187043890720c;;;0; OctetsOut=5523360449272c;;;0; 
+#       PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
+#
+###########################################################################################
+
+
+# -----------------------------------------------------------------
+# Interface load & error/discard packets (If_<interface description>)
+# -----------------------------------------------------------------
+
+#
+# [0] Operational status
+#
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    OperStatus=(\d+)
+    graph_value         operstatus
+    graph_units         status
+    graph_legend        status
+    rrd_plottype        AREA
+    rrd_color           00CC00
+    rrd_type            GAUGE
+    print_eol           left
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                [0]  Operational status
+    hide                no
+}
+
+#
+# [1] Interface traffic
+#
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    OctetsIn=(\d+)c
+    graph_value         in
+    graph_units
+    graph_legend        
+    rrd_type            COUNTER
+    hide                yes
+}
+    
+define ngraph{
+    service_name        If_
+    graph_perf_regex    OctetsOut=(\d+)c
+    graph_value         out
+    graph_units
+    graph_legend        
+    rrd_type            COUNTER
+    hide                yes
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         innice
+    graph_calc          in,8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (in)
+    rrd_plottype        AREA
+    rrd_color           32CD32
+    print_eol           left
+    page                [1] Interface traffic
+    hide                no
+}    
+
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         outnice
+    graph_calc          out,8,*
+    graph_units         Bits/s
+    graph_legend        bandwidth usage (out)
+    rrd_plottype        LINE1
+    rrd_color           0000CD
+    page                [1] Interface traffic
+    hide                no
+}
+    
+define ngraph{
+    service_name        If_
+    type                CDEF
+    graph_value         mysum
+    graph_calc          out,in,+,8,*
+    graph_units
+    graph_legend        bandwidth usage (total)
+    rrd_plottype        LINE1
+    rrd_color           FF0000
+    page                [1] Interface traffic
+    hide                no
+}
+
+# define ngraph{
+#     service_name        If_
+#     type                CDEF
+#     graph_value         inmrtg
+#     graph_calc          in,8,*
+#     graph_units         Bits/s
+#     graph_legend        bandwidth usage (in)
+#     rrd_plottype        AREA
+#     rrd_color           00CC00
+#     print_eol           left
+#     page                [1] Interface traffic
+#     hide                no
+# }
+# 
+# define ngraph{
+#     service_name        If_
+#     type                CDEF
+#     graph_value         outmrtg
+#     graph_calc          out,-8,*
+#     graph_units         Bits/s
+#     graph_legend        bandwidth usage (out)
+#     rrd_plottype        AREA
+#     rrd_color           0000FF
+#     page                [1] Interface traffic
+#     hide                no
+# }
+
+define ngraph{
+    service_name        If_
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                [1] Interface traffic
+    hide                no
+}
+
+#
+# [2] interface error/discarded packets
+#
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    PktsInErr=(\d+)c
+    graph_value         pktsinerr
+    graph_units         pkt/s
+    graph_legend        in_err
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           FFD700
+    rrd_type            COUNTER
+    print_eol           left
+    page                [2] Error/discard packets
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    PktsOutErr=(\d+)c
+    graph_value         pktsouterr
+    graph_units         pkt/s
+    graph_legend        out_err
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           FF8C00
+    rrd_type            COUNTER
+    print_eol           left
+    page                [2] Error/discard packets
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    PktsInDiscard=(\d+)c
+    graph_value         pktsindiscard
+    graph_units         pkt/s
+    graph_legend        in_discard
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           7B68EE
+    rrd_type            COUNTER
+    print_eol           left
+    page                [2] Error/discard packets
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    graph_perf_regex    PktsOutDiscard=(\d+)c
+    graph_value         pktsoutdiscard
+    graph_units         pkt/s
+    graph_legend        out_discard
+    graph_lower_limit   0
+    rrd_plottype        STACK
+    rrd_color           BA55D3
+    rrd_type            COUNTER
+    print_eol           left
+    page                [2] Error/discard packets
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                HRULE
+    hrule_value         0
+    rrd_color           000000
+    page                [2] Error/discard packets
+    hide                no
+}
+
+# [EOF]
