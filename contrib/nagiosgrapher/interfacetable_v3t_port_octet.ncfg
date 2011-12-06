@@ -1,7 +1,8 @@
 ###########################################################################################
 #
-#  NagiosGrapher Template for Interfacetable_v3t (draft in progress)
+#  NagiosGrapher Template for Interfacetable_v3t
 #  Author: Yannick Charton
+#  Version: 0.1
 #
 #  Performance data sample:
 #   * Interface_global
@@ -38,8 +39,19 @@ define ngraph{
 define ngraph{
     service_name        If_
     type                CDEF
+    graph_value         blank
+    graph_calc          operstatus,operstatus,/,4,+
+    rrd_plottype        AREA
+    rrd_color           ffffff
+    page                [0] Operational status
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                CDEF
     graph_value         up
-    graph_calc          operstatus,0.33,GT,operstatus,1.1,LT,0.2,0,IF,0,IF
+    graph_calc          operstatus,0.33,GT,operstatus,1.1,LT,1,0,IF,0,IF
     graph_units
     graph_legend        up
     graph_lower_limit   10
@@ -55,7 +67,7 @@ define ngraph{
     service_name        If_
     type                CDEF
     graph_value         down
-    graph_calc          operstatus,0.33,LT,0.2,0,IF
+    graph_calc          operstatus,1.1,GT,operstatus,2.1,LT,1,0,IF,0,IF
     graph_units
     graph_legend        down
     graph_lower_limit   10
@@ -70,10 +82,10 @@ define ngraph{
 define ngraph{
     service_name        If_
     type                CDEF
-    graph_value         unknown
-    graph_calc          operstatus,1.1,GT,0.2,0,IF
+    graph_value         other
+    graph_calc          operstatus,2.1,GT,1,0,IF
     graph_units
-    graph_legend        unknown
+    graph_legend        other
     graph_lower_limit   10
     graph_lower_limit   0
     page                [0] Operational status
@@ -88,6 +100,15 @@ define ngraph{
     type                HRULE
     hrule_value         0
     rrd_color           000000
+    page                [0] Operational status
+    hide                no
+}
+
+define ngraph{
+    service_name        If_
+    type                HRULE
+    hrule_value         10
+    rrd_color           FFFFFF
     page                [0] Operational status
     hide                no
 }

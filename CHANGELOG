@@ -3,7 +3,7 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
-# * 0.03-1 (in progress)
+# * 0.03-1
 #   ----------------------------------------------------------------------
 #    - add/enhancement: interface coming from 'empty' operstatus to another operstatus 
 #      does not trigger an alert of operstatus change (ex: newly added interface)
@@ -13,6 +13,7 @@
 #    - add/enhancement: negative value for err/disc pkt tracking disable the 
 #      specific tracking. Ex: --warning 50,0,-1 --critical 80,100,-1 disable discard
 #      packet tracking
+#    - add/enhancement: new nagiosgrapher templates and better nagiosgrapher support
 #
 #   ----------------------------------------------------------------------
 # * 0.03

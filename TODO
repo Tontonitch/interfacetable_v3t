@@ -30,6 +30,6 @@
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
 #         - handle ASA interfaces
-#         - -1 for err/disc pkt tracking disactivation
+#         - review the netwaysgrapherv2 support + create templates
 #
 # ========================================================================

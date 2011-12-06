@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.03';
+$REVISION       = '0.03-1';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -1035,9 +1035,19 @@ sub GenerateHtmlTable {
                                            '"><img src="' .
                                            '../img/chart.png' .
                                            '" alt="Trends" /></a>&nbsp';
-                        } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher" or $ghOptions{'grapher'} eq  "netwaysgrapherv2") {
-                            $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{InterfaceGraphURL} = 
-                                $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $grefhCurrent->{MD}->{sysName} . '&service=' . $servicename . '&page_act=1+traffic';
+                        } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
+                            $CellContent .= '<a href="' . 
+                                           #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '&page_act=[1]+Interface+traffic' .
+                                           $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
+                                           '"><img src="' .
+                                           '../img/chart.png' .
+                                           '" alt="Trends" /></a>&nbsp';
+                        } elsif ($ghOptions{'grapher'} eq  "netwaysgrapherv2") {
+                            $CellContent .= '<a href="' . 
+                                           $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
+                                           '"><img src="' .
+                                           '../img/chart.png' .
+                                           '" alt="Trends" /></a>&nbsp';
                         }
                 }
                 # Retrieve detailed interface info via snmp link
