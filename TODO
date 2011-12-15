@@ -3,6 +3,14 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
+# Todo for 0.03-2 (bugfix release)
+# ----------------------------------------------------------------------
+#         - correctly handle devices where interfaces have the same ifdescr
+#         - when interfaces have the same ifdescr, give the suffix choice between 
+#           idx or mac addr
+#         - update supported nodes list
+#
+# ----------------------------------------------------------------------
 # Todo for 0.04
 # ----------------------------------------------------------------------
 #         - info table (first table) building way review for more flexibility
@@ -31,5 +39,7 @@
 #               * thresholds of any kind
 #         - handle ASA interfaces
 #         - review the netwaysgrapherv2 support + create templates
+#         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
+#         - update supported nodes list
 #
 # ========================================================================
