@@ -1318,10 +1318,18 @@ sub Get_OperStatus_Description_Index {
         }
 
         # Interface description reformating with specific node types
+        # -----------------------------------------------------------
         # Cisco ASA 55xx series
         if ($Desc =~ /^Adaptive Security Appliance '(.*)' interface$/) {
             $Desc="$1";
             logger(2, "Interface description matching Cisco ASA interface pattern, description reduced to \"$Desc\"");
+        }
+        # Workaround for (at least) Dell Powerconnect Switches 53xx, 54xx, 60xx and 62xx: same interface name 'Ethernet Interface'
+        # Waiting for ifDescr and other snmp requests to be optimized (planned for 0.04), 
+        # then it will be possible to detect duplicates
+        if ($Desc =~ /^Ethernet Interface$/) {
+            $Desc="Ethernet Interface ($Index)";
+            logger(2, "Interface description matching a common name generally used on switches and... generally duplicate, description reduced to \"$Desc\"");
         }
         
         # Detect long description, which may be reduced for a cleaner interface table
