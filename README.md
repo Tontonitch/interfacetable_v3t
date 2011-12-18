@@ -12,6 +12,7 @@ info on the monitored node and a table of all interfaces/ports and their status.
 
 Interfacetable_v3t (or check_interface_table_v3t.pl, which is the name of the plugin 
 script) comes from:
+
 * `check_interface_table.pl`: plugin released by ITdesign Software Projects & Consulting. 
 this is the first version of the plugin, extracted from the commercial suite proposed 
 by ITdesign.
@@ -19,6 +20,7 @@ by ITdesign.
 data related to bandwidth usage.
 
 This new version, called `Interfacetable_v3t`, provides some enhancements:
+
 * externalization of the html page design in css stylesheets and js files
 * extended interface inclusion/exclusion system
 * full documentation
@@ -27,6 +29,7 @@ This new version, called `Interfacetable_v3t`, provides some enhancements:
 * snmp v2c/v3 and 64bits counters support
 * error/discard packet tracking, duplex status tracking
 * and much more ! (see changelogs)
+
 See the TODO file for coming features.
 
 Support the check of the following node types: Brocade fiberchannel switches, Cisco routers and switches, Linux hosts, Windows hosts, Solaris hosts, Netapp filers
@@ -35,4 +38,5 @@ documentation
 -------------
 
 Complete documentation: [html](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation) | pdf
+
 Changelog: [summary](http://www.tontonitch.com/tiki/tiki-index.php?page=interfacetable_v3t+changelog+-+summary) | [details](http://www.tontonitch.com/tiki/tiki-index.php?page=interfacetable_v3t+changelog+-+details)
