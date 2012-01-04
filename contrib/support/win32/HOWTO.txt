@@ -1,0 +1,7 @@
+Syntax: take_record.bat xxx.xxx.xxx.xxx community device_type
+
+Example:
+
+D:\win32>take_record.bat 192.168.1.1 public cisco6500
+..........Done!
+D:\win32>
