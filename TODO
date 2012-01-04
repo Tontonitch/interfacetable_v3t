@@ -37,9 +37,13 @@
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
-#         - handle ASA interfaces
 #         - review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
 #         - update supported nodes list
+#         - better non regression testing 
+#            -> test phase would include tests on simulated type of monitored nodes
+#         - convert network masks to quad-dotted decimal representation (*/[0-32])
+#           to free space in the interface table
+#         - option to show mac addresses in the interface table
 #
 # ========================================================================
