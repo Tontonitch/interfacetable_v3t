@@ -3,12 +3,12 @@
 
 # ------------------------------------------------------------------------
 # Program: @PKG_NAME@-@PKG_VERSION@
-# License: GPLv2
-# Copyright (c) 2009-2011 Yannick Charton (@PKG_HOME_URL@)
+# License: GPLv3
+# Copyright (c) 2009-2012 Yannick Charton (@PKG_HOME_URL@)
 
 # COPYRIGHT:
 # This software and the additional scripts provided with this software are
-# Copyright (c) 2011 Yannick Charton (tontonitch-pro@yahoo.fr)
+# Copyright (c) 2009-2012 Yannick Charton (tontonitch-pro@yahoo.fr)
 # (Except where explicitly superseded by other copyright notices)
 #
 # LICENSE:
@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.03-1';
+$REVISION       = '0.03-2';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -57,7 +57,7 @@ my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT
 my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
-my $STARTTIME   = time ();                                      # time of program start
+my $STARTTIME   = time ();                      # time of program start
 # NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
@@ -68,14 +68,14 @@ my $oid_sysDescr        = ".1.3.6.1.2.1.1.1.0";
 my $oid_sysName         = ".1.3.6.1.2.1.1.5.0";
 my $oid_sysUpTime       = ".1.3.6.1.2.1.1.3.0";
 
-my $oid_ifDescr         = ".1.3.6.1.2.1.2.2.1.2";   # + ".<index>"
-my $oid_ifSpeed         = ".1.3.6.1.2.1.2.2.1.5";   # + ".<index>"
+my $oid_ifDescr         = ".1.3.6.1.2.1.2.2.1.2";     # + ".<index>"
+my $oid_ifSpeed         = ".1.3.6.1.2.1.2.2.1.5";     # + ".<index>"
 my $oid_ifSpeed_64      = ".1.3.6.1.2.1.31.1.1.1.15"; # + ".<index>"
 
-my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";   # + ".<index>"
-my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";   # + ".<index>"
-my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";   # + ".<index>"
-my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";   # + ".<index>", not used
+my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";     # + ".<index>"
+my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";     # + ".<index>"
+my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";     # + ".<index>"
+my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";     # + ".<index>", not used
 my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
 
 # RFC1213 - Extracts about in/out stats
@@ -191,7 +191,9 @@ my $gNumberOfPerfdataInterfaces      = 0;            # in "EvaluateInterfaces" c
 my $gPerfdata                        = "";           # performancedata
         # This is the base for the short and long cache timer.
 
+my $grefaDescrLines;                                 # Lines returned from snmpwalk storing interface descriptions
 my $grefaIPLines;                                    # Lines returned from snmpwalk storing ip addresses
+my $grefaPhysAddressLines;                           # Lines returned from snmpwalk storing physical addresses
 my $grefaOperStatusLines;                            # Lines returned from snmpwalk storing ifOperStatus
 my $grefaOctetInLines;                               # Lines returned from snmpwalk storing ifOctetsIn
 my $grefaOctetOutLines;                              # Lines returned from snmpwalk storing ifOctetsOut
@@ -221,7 +223,7 @@ if ($ghOptions{'snapshot'}) {
 }
 
 # ------------------------------------------------------------------------------
-# Read data
+# Check host and snmp service reachability
 # ------------------------------------------------------------------------------
 
 # get uptime of the host - no caching !
@@ -231,9 +233,19 @@ if (!defined $grefhCurrent->{MD}->{sysUpTime} or $grefhCurrent->{MD}->{sysUpTime
     exit $ERRORS{"CRITICAL"};
 }
 
-# read all interfaces and its properties into the hash
+# ------------------------------------------------------------------------------
+# Read historical data (from state file)
+# ------------------------------------------------------------------------------
+
+# read all interfaces and their properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
 logger(3, "Data from files -> grefhFile:".Dumper($grefhFile));
+
+# ------------------------------------------------------------------------------
+# Read current data (from snmp/cache)
+# ------------------------------------------------------------------------------
+
+# ---- node related ---- #
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 if ($ghOptions{'cisco'}) { 
@@ -248,92 +260,62 @@ if ($ghOptions{'cisco'}) {
     $grefhCurrent->{MD}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
 }    
 
-# get lines with interface oper status - no caching !
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaOperStatusLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
-} else {
-    $grefaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
-}
+# ---- interface related ---- #
+
+# get all interface operstatus - no caching !
+$grefaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
 if ($#$grefaOperStatusLines < 0 ) {
     logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp.\nCheck the access to the oid $oid_ifOperStatus\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
-# -----------------------------------------------------------------
-# Get lines with interface octet counters - no caching !
-
-# Change to 64 bit counters if option is set : 
+# change to 64 bit counters if option is set : 
 if ($ghSNMPOptions{'64bits'}) {
   $oid_out_octet_table  = $oid_out_octet_table_64;
   $oid_in_octet_table   = $oid_in_octet_table_64;
 }
 
+# get all interface in/out traffic octet counters - no caching !
 # -> Octets in
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaOctetInLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
-}
+$grefaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetInLines < 0 ) {
     logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_octet_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
-
 # -> Octets out
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaOctetOutLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
-}
+$grefaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOctetOutLines < 0 ) {
     logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_octet_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
+# get all interface in/out packet error/discarded octet counters - no caching !
 # -> Packet errors in
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaInErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
-}
+$grefaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInErrorsLines < 0 ) {
     logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_error_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
-
 # -> Packet errors out
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaOutErrorsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
-}
+$grefaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutErrorsLines < 0 ) {
     logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_error_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
-
 # -> Packet discards in
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaInDiscardsLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
-}
+$grefaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaInDiscardsLines < 0 ) {
     logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_discard_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
-
 # -> Packet discards out
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaOutDiscardLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
-} else {
-    $grefaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
-}
+$grefaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
 if ($#$grefaOutDiscardLines < 0 ) {
     logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_discard_table\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
+# post-processing interface octet counters
 Get_TraficInOut ($grefaOctetInLines, "OctetsIn", "BitsIn");
 Get_TraficInOut ($grefaOctetOutLines, "OctetsOut", "BitsOut");
 Get_IfErrInOut ($grefaInErrorsLines, "PktsInErr");
@@ -342,20 +324,33 @@ Get_IfDiscardInOut ($grefaInDiscardsLines, "PktsInDiscard");
 Get_IfDiscardInOut ($grefaOutDiscardLines, "PktsOutDiscard");
 
 
-# get lines with ip addresses - no caching !
-if ($ghSNMPOptions{'unixsnmp'}) {
-    $grefaIPLines = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
-} else {
-    $grefaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
+# get all interface descriptions
+$grefaDescrLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDescr,$ghOptions{'cachedir'},$gLongCacheTimer);
+if ($#$grefaDescrLines < 0 ) {
+    logger(0, "Could not read ifDescr information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifDescr\n");
+    exit $ERRORS{"UNKNOWN"};
 }
+
+# get all interface mac addresses
+$grefaPhysAddressLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},$gShortCacheTimer);
+if ($#$grefaPhysAddressLines < 0 ) {
+    logger(0, "Could not read ifPhysAddress information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifPhysAddress\n");
+    exit $ERRORS{"UNKNOWN"};
+}
+
+# get all interface ip addresses
+$grefaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
 if ($#$grefaIPLines < 0 ) {
     logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
     exit $ERRORS{"UNKNOWN"};
 }
 
+# post-process interface descriptions
+Get_Description_PhysAddress_Index ($grefaDescrLines, $grefaPhysAddressLines);
+
 # extract ifIndex and ifOperStatus out of the lines and get the
 # ifDescription from the net or from cache
-Get_OperStatus_Description_Index ($grefaOperStatusLines);
+Get_OperStatus ($grefaOperStatusLines);
 
 # get IP Address and SubnetMask from the net or from cache
 Get_IpAddress_SubnetMask ($grefaIPLines);
@@ -1289,9 +1284,125 @@ sub EvaluateInterfaces {
 }
 
 # ------------------------------------------------------------------------
-# get ifOperStatus, ifDescr and ifIndex
+# pre-process descriptions
 # ------------------------------------------------------------------------
-sub Get_OperStatus_Description_Index {
+sub Get_Description_PhysAddress_Index {
+
+    my $refaIfDescriptionLines = shift;
+    my $refaIfPhysAddressLines = shift;
+    my $refhIfDescriptionCounts = {};   # For duplicates counting
+    my $refhIfPhysAddressCounts = {};   # For duplicates counting
+    my $refhIfPhysAddressIndex = {};    # For mapping the physical address to the index. 
+                                        # Used only when appending the mac address to the interface description
+    
+    # Look for duplicate values
+    #------------------------------------------
+    
+    # Find interface description duplicates
+    for (@$refaIfDescriptionLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        unless(defined $refhIfDescriptionCounts->{"$Value"}){
+            $refhIfDescriptionCounts->{"$Value"} = 0;
+        }
+        $refhIfDescriptionCounts->{"$Value"}++;
+    }
+    
+    # Find physical address duplicates
+    for (@$refaIfPhysAddressLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        unless(defined $refhIfPhysAddressCounts->{"$Value"}){
+            $refhIfPhysAddressCounts->{"$Value"} = 0;
+        }
+        $refhIfPhysAddressCounts->{"$Value"}++;
+        $refhIfPhysAddressIndex->{"$Index"} = "$Value";
+    }
+    
+    # 
+    #------------------------------------------
+    
+    # Example of $refaIfDescriptionLines
+    #    TOADD
+    for (@$refaIfDescriptionLines) {
+        my ($Index,$Desc) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Desc =~ s/\s+$//g;             # remove invisible chars from the end
+        my $MacAddr = (defined $refhIfPhysAddressIndex->{$Index}) ? "$refhIfPhysAddressIndex->{$Index}" : "";
+        
+        logger(2, "Index=$Index (long cache: $gLongCacheTimer)");
+        
+        # Interface description reformating
+        # -----------------------------------------------------------
+        
+        # 1. check an empty interface description and add a new description
+        # this occurs on some devices (e.g. HP procurve switches)
+        if ("$Desc" eq "") {
+            # Change the description from empty to "Port $index"
+            # read the MAC address of the interface - independend if it has one or not
+            $Desc = "Port $Index";
+            logger(2, "Interface with index $Index has no description.\nSet it to $Desc");
+        } else {
+
+            # 2. append the index to duplicate interface descriptions. Index is better than mac address as in lots of cases the 
+            # same mac address can be used for multiples interfaces (if there is a mac address...)
+            # Example of nodes in that case: Dell Powerconnect Switches 53xx, 54xx, 60xx and 62xx: same interface name 'Ethernet Interface'
+            # However, be sure to fix the interface index (see the node type documentation). If not fixed, this could lead to problems 
+            # where index is changed during reboot and duplicate interface names
+            if ($refhIfDescriptionCounts->{"$Desc"} > 1) {
+                if ($ghOptions{usemacaddr}) {
+                    logger(2, "Duplicate interface description detected. Option \"usemacaddr\" used, checking mac address unicity...");
+                    # check if we got a unique MAC Address associated to the interface
+                    if ($refhIfPhysAddressCounts->{"$MacAddr"} < 2) {
+                        $Desc = "$Desc ($MacAddr)";
+                        logger(2, "Mac address is unique. Appending the mac address. Description will be now \"$Desc\"");
+                    } else {
+                        # overwise take the index
+                        $Desc = "$Desc ($Index)";
+                        logger(2, "Mac address is NOT unique. Appending the index. Description will be now \"$Desc\"");
+                    }
+                } else {
+                    $Desc = "$Desc ($Index)";
+                    logger(2, "Duplicate interface description detected. Appending the index. Description will be now \"$Desc\"");
+                }
+            }
+            
+            # 3. Cisco ASA 55xx series
+            if ($Desc =~ /^Adaptive Security Appliance '(.*)' interface$/) {
+                $Desc="$1";
+                logger(2, "Interface description matching Cisco ASA interface pattern, description reduced to \"$Desc\"");
+            }
+            
+            # Detect long description, which may be reduced for a cleaner interface table
+            my $description_warning_length = 30;
+            if (length($Desc) > $description_warning_length) {
+                logger(2, "Interface description quite long! (> $description_warning_length).\nDesc: \"$Desc\"");
+            }
+        }
+        
+        # normalize the interface description to not get into trouble
+        # with special characters and how Config::General handles blanks
+        $Desc = normalize ($Desc);
+
+        # create new trees in the MetaData hash & the Interface hash, which 
+        # store interface index, description and mac address. 
+        # This is used later for displaying the html table
+        $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"} = "$Desc";
+        $grefhCurrent->{MD}->{IfIndexTable}->{ByName}->{"$Desc"} = "$Index";
+        $grefhCurrent->{If}->{$Desc}->{index}   = "$Index";
+        $grefhCurrent->{If}->{$Desc}->{ifDescr} = "$Desc";
+        $grefhCurrent->{If}->{$Desc}->{MacAddr} = "$MacAddr";
+        
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# get ifOperStatus
+# ------------------------------------------------------------------------
+sub Get_OperStatus {
 
     my $refaOperStatusLines = shift;
 
@@ -1303,68 +1414,9 @@ sub Get_OperStatus_Description_Index {
         $Index =~ s/^.*\.//g;           # remove all but the index
         $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
         $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow"); 
+        my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"};
         
-        logger(2, "Index=$Index (long cache: $gLongCacheTimer)");
-        # read the interface description with the index extracted above
-        my $Desc = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr.$Index" ],$ghOptions{'cachedir'},$gLongCacheTimer);
-
-        # check an empty interface description and add a new description
-        # this occurs on some devices (e.g. HP procurve switches)
-        if ("$Desc" eq "") {
-            # read the MAC address of the interface - independend if it has one or not
-            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
-            $Desc = "($MacAddress)";
-            logger(2, "Interface with index $Index has no description.\nSet it to $Desc");
-        }
-
-        # Interface description reformating with specific node types
-        # -----------------------------------------------------------
-        # Cisco ASA 55xx series
-        if ($Desc =~ /^Adaptive Security Appliance '(.*)' interface$/) {
-            $Desc="$1";
-            logger(2, "Interface description matching Cisco ASA interface pattern, description reduced to \"$Desc\"");
-        }
-        # Workaround for (at least) Dell Powerconnect Switches 53xx, 54xx, 60xx and 62xx: same interface name 'Ethernet Interface'
-        # Waiting for ifDescr and other snmp requests to be optimized (planned for 0.04), 
-        # then it will be possible to detect duplicates
-        if ($Desc =~ /^Ethernet Interface$/) {
-            $Desc="Ethernet Interface ($Index)";
-            logger(2, "Interface description matching a common name generally used on switches and... generally duplicate, description reduced to \"$Desc\"");
-        }
-        
-        # Detect long description, which may be reduced for a cleaner interface table
-        my $description_warning_length = 30;
-        if (length($Desc) > $description_warning_length) {
-            logger(2, "Interface description quite long! (> $description_warning_length).\nDesc: \"$Desc\"");
-        }
-        
-        # normalize the interface description to not get into trouble
-        # with special characters and how Config::General handles blanks
-        $Desc = normalize ($Desc);
-
-        # on some operating systems there could be interfaces with
-        # the same name - check this out - append uniq text at the end to
-        # get a uniq interface name
-        if ($grefhCurrent->{If}->{"$Desc"}) {
-            my $Text; # dummy text for uniq if description
-
-            # read the MAC address of the interface
-            my $MacAddress = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifPhysAddress.$Index" ],$ghOptions{'cachedir'},$gShortCacheTimer);
-
-            # check if we got back a MAC Address - otherwise take the interface
-            # index - this could only lead to problems where index is changed
-            # during reboot and duplicate interface names
-            if ($MacAddress) {
-                $Text = "(${MacAddress})";
-            } else {
-                $Text = "(${Index})";
-            }
-            logger(2, "Duplicate if ($Index) name - \"$Text\"");
-
-            # append a blank (normalized) the MAC Address or the index
-            # to the end of the description
-            $Desc = "${Desc}Q20".normalize($Text);
-        }
+        logger(2, "Index=$Index ($Desc)");
 
         # Store the oper status as property of the current interface
         $grefhCurrent->{If}->{"$Desc"}->{ifOperStatus} = "$OperStatusNow";
@@ -1453,18 +1505,6 @@ sub Get_OperStatus_Description_Index {
             $grefhCurrent->{MD}->{If}->{"$Desc"}->{ifOperStatusChangeText} =
                 "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
         }
-
-
-        # create another tree in the MetaData hash which stores interface index
-        # and description. This is used later wehen getting the ip address
-        # and for displaying the html table
-        $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"} = "$Desc";
-        $grefhCurrent->{MD}->{IfIndexTable}->{ByName}->{"$Desc"} = "$Index";
-
-         # Store Index und Description in MD. This is needed for displaying the
-         # Html table. lukas2
-         $grefhCurrent->{If}->{$Desc}->{index}   = "$Index";
-         $grefhCurrent->{If}->{$Desc}->{ifDescr} = "$Desc";
 
     }
     return 0;
@@ -1897,17 +1937,9 @@ sub Get_IpAddress_SubnetMask {
     # read the subnet masks with caching 0 only if the ip addresses
     # have changed
     if (defined $grefhFile->{MD}->{SnmpIpInfo} and $grefhCurrent->{MD}->{SnmpIpInfo} eq $grefhFile->{MD}->{SnmpIpInfo}) {
-        if ($ghSNMPOptions{'unixsnmp'}) {
-            $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer); 
-        } else {
-            $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
-        }
+        $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
     } else {
-        if ($ghSNMPOptions{'unixsnmp'}) {
-            $refaNetMask = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0); 
-        } else {
-            $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
-        }
+        $refaNetMask = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},0);
     }
 
     # Example lines:
@@ -2092,6 +2124,9 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
             ConvertIfStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
 
         # Get the speed in normal or highperf speed counters
+        if ($refhSNMP->{"$oid_ifSpeed.$Index"} eq ""){
+            $refhSNMP->{"$oid_ifSpeed.$Index"} = -1;
+        }
         if ($refhSNMP->{"$oid_ifSpeed.$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
             if ($ghSNMPOptions{'64bits'} && $refhSNMP->{"$oid_ifSpeed_64.$Index"} != 0) {
                 $refhSNMP->{"$oid_ifSpeed.$Index"} = $refhSNMP->{"$oid_ifSpeed_64.$Index"} * 1000000;
@@ -2128,22 +2163,10 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         my $VlanPortHP;
         my $VlanPortCisco;
         
-        if ($ghSNMPOptions{'unixsnmp'}) {
-            $VlanNames = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
-        } else {
-            $VlanNames = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
-        }
-        if ($ghSNMPOptions{'unixsnmp'}) {
-            $VlanPortHP = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
-        } else {
-            $VlanPortHP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
-        }
-        if ($ghSNMPOptions{'unixsnmp'}) {
-            $VlanPortCisco = GetDataWithUnixSnmpWalk ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
-        } else {
-            $VlanPortCisco = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
-        }
-
+        $VlanNames = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
+        $VlanPortHP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
+        $VlanPortCisco = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
+        
         # store Vlan names in a hash
         my %vlanname;
         foreach my $tmp ( @$VlanNames ) {
@@ -2694,7 +2717,7 @@ sub HtmlLinks {
         }
     }
 
-    $HTML.='</span><span style="float: right; color: grey; font-style: italic">interface_table '.$REVISION.'</span>'."\n";
+    $HTML.='</span><span style="float: right; color: grey; font-style: italic">interfacetable_v3t '.$REVISION.'</span>'."\n";
 
     return $HTML;
 }
@@ -2941,7 +2964,7 @@ sub print_defaults () {
   print Dumper(\%ghSNMPOptions);
 }
 sub print_help () {
-  print "Copyright (c) 2011 Yannick Charton\n\n";
+  print "Copyright (c) 2009-2012 Yannick Charton\n\n";
   print "\n";
   print "  Check various statistics of network interfaces \n";
   print "\n";
@@ -2987,6 +3010,7 @@ sub check_options () {
         'community=s',                          # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
+        'usemacaddr',                           # use mac address (if unique) instead of index when reformatting duplicate interface description
         'cache=s',                              # cache timer
         'reseturl=s',                           # URL to tablereset program
         'vlan',                                 # Add vlan attribution info for each interface
@@ -3059,6 +3083,7 @@ sub check_options () {
         'include'                   => undef,
         'delta'                     => 600,
         'ifs'                       => ',',
+        'usemacaddr'                => 0,
         'cache'                     => 3600,
         'reseturl'                  => "@cgiurl@",
         'vlan'                      => 0,
@@ -3145,6 +3170,9 @@ sub check_options () {
     }
     if (exists $commandline{ifs}) {
         $ghOptions{'ifs'} = "$commandline{ifs}";
+    }
+    if (exists $commandline{usemacaddr}) {
+        $ghOptions{'usemacaddr'} = "$commandline{usemacaddr}";
     }
     if (! exists $commandline{'hostquery'}) {
         logger(0, "host to query not defined (-H)\n");
@@ -3902,7 +3930,7 @@ to the v2 version. See the README and CHANGELOG files for more information.
 
 Copyright (C) [2007]  [ITdesign Software Projects & Consulting GmbH]
 Copyright (C) [2009]  [Netways GmbH]
-Copyright (C) [2011]  [Yannick Charton]
+Copyright (C) [2009-2012]  [Yannick Charton]
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
