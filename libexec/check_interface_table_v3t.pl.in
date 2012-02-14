@@ -140,35 +140,146 @@ sub check_options();
 # Get command line options and adapt default values in %ghOptions
 check_options();
 
-my $gInfoTable;                                      # Generated HTML code of the Info table
-my $grefaInfoTableHeader = [                         # Header for the colomns of the Info table
-    'Name','Uptime','System Information','Ports',
-    'delta seconds used for bandwidth calculations'
-    ];
+# ------------------------------------------------------------------------
+# Info table initializations
+# ------------------------------------------------------------------------
+my $gInfoTableHTML;                                      # Generated HTML code of the Info table
+my $grefAoHInfoTableHeader = [                         # Header for the colomns of the Info table
+    {   Title => 'Name',
+        #Tip => 'Tip Test',
+        Enabled => 1,
+    },
+    {   Title => 'Uptime',
+        Enabled => 1,
+    },
+    {   Title => 'System Information',
+        Enabled => 1,
+    },
+    {   Title => 'Type',
+        #Link => 'Link Test',
+        Enabled => 0,
+    },
+    {   Title => 'Serial',
+        Enabled => 0,
+    },
+    {   Title => 'Ports',
+        Enabled => 1,
+    },
+    {   Title => 'delta seconds used for bandwidth calculations',
+        Enabled => 1,
+    },
+];
 if ($ghOptions{'cisco'}) { 
     # show some specific cisco info in the info table: type and serial
-    splice(@$grefaInfoTableHeader,3,0,'Type');
-    splice(@$grefaInfoTableHeader,4,0,'Serial');
+    $grefAoHInfoTableHeader->[3]{Enabled} = "1";
+    $grefAoHInfoTableHeader->[4]{Enabled} = "1";
 }
-    
-my $grefaInfoTableData;                              # Contents of the Info table (Uptime, SysDescr, ...)
+my $grefAoHInfoTableData;                              # Contents of the Info table (Uptime, SysDescr, ...)
 
-my $gInterfaceTable;                                 # Html code of the interface table
-my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
-    'Index','Description','Alias','Admin status','Oper status','Speed','Duplex',
-    'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
-    ];
-my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
-    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable','ifDuplexStatus',
-    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','pktErrDiscard','ifLastTraffic','actions'
-    ];
+#my $grefaInfoTableHeader = [                         # Header for the colomns of the Info table
+#    'Name','Uptime','System Information','Ports',
+#    'delta seconds used for bandwidth calculations'
+#    ];
+#if ($ghOptions{'cisco'}) { 
+#    # show some specific cisco info in the info table: type and serial
+#    splice(@$grefaInfoTableHeader,3,0,'Type');
+#    splice(@$grefaInfoTableHeader,4,0,'Serial');
+#}
+
+# ------------------------------------------------------------------------
+# Interface table initializations
+# ------------------------------------------------------------------------
+my $gInterfaceTableHTML;                                 # Html code of the interface table
+my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
+    {   Title => 'Index',
+        Dataname => 'index',
+        Enabled => 1,
+    },
+    {   Title => 'Description',
+        Dataname => 'ifDescr',
+        Enabled => 1,
+    },
+    {   Title => 'Alias',
+        Dataname => 'ifAlias',
+        Enabled => 1,
+    },
+    {   Title => 'Admin status',
+        Dataname => 'ifAdminStatus',
+        Enabled => 1,
+    },
+    {   Title => 'Oper status',
+        Dataname => 'ifOperStatus',
+        Enabled => 1,
+    },
+    {   Title => 'Speed',
+        Dataname => 'ifSpeedReadable',
+        Enabled => 1,
+    },
+    {   Title => 'Duplex',
+        Dataname => 'ifDuplexStatus',
+        Enabled => 1,
+    },
+    {   Title => 'Vlan',
+        Dataname => 'ifVlanNames',
+        Enabled => 0,
+    },
+    {   Title => 'Load In',
+        Dataname => 'ifLoadIn',
+        Enabled => 1,
+    },
+    {   Title => 'Load Out',
+        Dataname => 'ifLoadOut',
+        Enabled => 1,
+    },
+    {   Title => 'IP',
+        Dataname => 'IpInfo',
+        Enabled => 1,
+    },
+    {   Title => 'bpsIn',
+        Dataname => 'bpsIn',
+        Enabled => 1,
+    },
+    {   Title => 'bpsOut',
+        Dataname => 'bpsOut',
+        Enabled => 1,
+    },
+    {   Title => 'Pkt errors',
+        Dataname => 'pktErrDiscard',
+        Tip => 'TipTest',
+        Enabled => 1,
+    },
+    {   Title => 'Last traffic',
+        Dataname => 'ifLastTraffic',
+        Enabled => 1,
+    },
+    {   Title => 'Actions',
+        Dataname => 'actions',
+        Enabled => 1,
+    },
+];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
-    splice(@$grefaInterfaceTableHeader,7,0,'Vlan');
-    splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
+    $grefAoHInterfaceTableHeader->[7]->{Enabled} = "1";
 }
+my $grefAoHInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
 
-my $grefaInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
+#my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
+#    'Index','Description','Alias','Admin status','Oper status','Speed','Duplex',
+#    'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
+#    ];
+#my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
+#    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable','ifDuplexStatus',
+#    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','pktErrDiscard','ifLastTraffic','actions'
+#    ];
+#if ($ghOptions{'vlan'}) { 
+#    # show VLANs per port
+#    splice(@$grefaInterfaceTableHeader,7,0,'Vlan');
+#    splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
+#}
+
+# ------------------------------------------------------------------------
+# Other global initializations
+# ------------------------------------------------------------------------
 
 my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
 my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
@@ -483,21 +594,21 @@ if ( $gNumberOfPerfdataInterfaces > 0 and $ghOptions{'enableperfdata'}) {
 # Create host information table data
 # ------------------------------------------------------------------------------
 
-$grefaInfoTableData->[0]->[0]->{Value} = "$grefhCurrent->{MD}->{sysName}";
-$grefaInfoTableData->[0]->[1]->{Value} = TimeDiff (1,$grefhCurrent->{MD}->{sysUpTime} / 100); # start at 1 because else we get "NoData"
-$grefaInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{sysDescr}";
+$grefAoHInfoTableData->[0]->[0]->{Value} = "$grefhCurrent->{MD}->{sysName}";
+$grefAoHInfoTableData->[0]->[1]->{Value} = TimeDiff (1,$grefhCurrent->{MD}->{sysUpTime} / 100); # start at 1 because else we get "NoData"
+$grefAoHInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{sysDescr}";
 if ($ghOptions{'cisco'}) {
-    $grefaInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
-    $grefaInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
-    $grefaInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-    $grefaInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($ghOptions{'delta'}) {$grefaInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
-    else { $grefaInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
+    $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{cisco_type}";
+    $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{cisco_serial}";
+    $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+    $grefAoHInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
+    else { $grefAoHInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
 } else {
-    $grefaInfoTableData->[0]->[3]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-    $grefaInfoTableData->[0]->[3]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($ghOptions{'delta'}) {$grefaInfoTableData->[0]->[4]->{Value} = "$ghOptions{'delta'}" }
-    else { $grefaInfoTableData->[0]->[4]->{Value} =  'no data to compare with'; }
+    $grefAoHInfoTableData->[0]->[3]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+    $grefAoHInfoTableData->[0]->[3]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[4]->{Value} = "$ghOptions{'delta'}" }
+    else { $grefAoHInfoTableData->[0]->[4]->{Value} =  'no data to compare with'; }
 }
 
 #
@@ -505,7 +616,15 @@ if ($ghOptions{'cisco'}) {
 # do not compare ifDescr and ifIndex because they can change during reboot
 # Field list: index,ifDescr,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifDuplexStatus,ifVlanNames,ifLoadIn,ifLoadOut,IpInfo,bpsIn,bpsOut,ifLastTraffic
 #
-$grefaInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{'track-property'});
+my $grefaInterfaceTableFields;
+foreach my $Cell ( @$grefAoHInterfaceTableHeader ) {
+#    foreach my $Cell ( @$Line ) {
+        if ($Cell->{'Enabled'}) {
+            push(@$grefaInterfaceTableFields,$Cell->{'Dataname'});
+        }
+#    }
+}
+$grefAoHInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{'track-property'});
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -541,10 +660,10 @@ if ( $gInitialRun ) {
 }
 
 # Create "small" information table
-$gInfoTable = Csv2Html ($grefaInfoTableHeader,$grefaInfoTableData,"infotable");
+$gInfoTableHTML = Convert2Html (1,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
 
 # Create "big" interface table
-$gInterfaceTable   = Csv2Html ($grefaInterfaceTableHeader,$grefaInterfaceTableData,"interfacetable");
+$gInterfaceTableHTML   = Convert2Html (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -631,8 +750,8 @@ if ($ghOptions{'cisco'} and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent-
 
 # Write Html Table
 WriteHtmlTable ({
-    Header      => $gInfoTable,
-    Body        => $gInterfaceTable,
+    Header      => $gInfoTableHTML,
+    Body        => $gInterfaceTableHTML,
     Dir         => $ghOptions{'htmltabledir'},
     FileName    => "$ghOptions{'htmltabledir'}/$gFile".'.html'
 });
@@ -821,8 +940,8 @@ sub perfdataout {
 # This file will be visible on the browser
 #
 # WriteHtmlTable ({
-#    Header      => $gInfoTable,
-#    Body        => $gInterfaceTable,
+#    Header      => $gInfoTableHTML,
+#    Body        => $gInterfaceTableHTML,
 #    FileName    => $gHtmlFileName
 # });
 #
@@ -891,7 +1010,7 @@ sub GenerateHtmlTable {
     my $refaFields               = shift;               # Array of the fields for the table
     my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
-    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to csv2htmlnew
+    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2Htmlnew
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
@@ -2536,111 +2655,354 @@ sub check_for_unused_interfaces {
 }
 
 # ------------------------------------------------------------------------------
-# Csv2Html
+# Convert2Html
 # This function generates a html table
-#
-# Function call:
-# $gHtml   = Csv2Html ($refaHeader,$refaLines,$cssClass);
 # ------------------------------------------------------------------------------
-sub Csv2Html {
-    my $refaHeader = shift;       # Header contains the HTML table header as scalar
+# Function call:
+#  $gHtml = Convert2Html ($tableType, $refaHeader,$refaLines,$cssClass);
+# Arguments:
+#  0 : integrer corresponding to the table type to generate:
+#      1=horizontal headers (default)
+#      2=vertical headers 
+#  1 : ref to an array containing the headers of the table 
+#  2 : ref to an array of array of hashes. Each subarray corresponds to an interface 
+#      (a table row) and contains a hash for each column
+#      hash keys can be:
+#        * InterfaceGraphURL
+#        * Background
+#        * Style
+#        * Value
+#  3 : css class to use for the table
+#      available ones are: infotable, interfacetable
+# Output:
+#  0 : string containing all the html code corresponding to a table
+# ------------------------------------------------------------------------------
+# Exemple 1: InfoTable 
+# 
+# refaHeader:
+# $VAR1 = [ 'Name', 'Uptime', 'System Information', 'Ports', 'delta seconds used for bandwidth calculations' ];
+# 
+# refaLines:
+# $VAR1 = [
+#           [
+#             { 'Value' => 'snoopy.localdomain' },
+#             { 'Value' => '0d&nbsp;2h&nbsp;39m' },
+#             { 'Value' => 'Linux snoopy.localdomain 2.6.32-220.2.1.el6.x86_64 #1 SMP Fri Dec 23 02:21:33 CST 2011 x86_64' },
+#             { 'Value' => 'ports:&nbsp;1 free:&nbsp;0 AdminUpFree:&nbsp;0' },
+#             { 'Value' => '600' }
+#           ]
+#         ];
+#
+# HTML:
+#<a name=top></a>
+#<br><span>
+#<table class=infotable>
+#<th>Name</th><th>Uptime</th><th>System Information</th><th>Ports</th><th>delta seconds used for bandwidth calculations</th><tr>
+#<td >snoopy.localdomain</td>
+#<td >0d&nbsp;1h&nbsp;39m</td>
+#<td >Linux snoopy.localdomain 2.6.32-220.2.1.el6.x86_64 #1 SMP Fri Dec 23 02:21:33 CST 2011 x86_64</td>
+#<td >ports:&nbsp;1 free:&nbsp;0 AdminUpFree:&nbsp;0</td>
+#<td >600</td></tr></table></td></tr><br>
+# ------------------------------------------------------------------------------
+# Exemple 2: InterfaceTable 
+# 
+# refaHeader:
+# $VAR1 = [ 'Index', 'Description', 'Alias', 'Admin status', 'Oper status', 'Speed', 'Duplex', 'Load In', 
+#  'Load Out', 'IP', 'bpsIn', 'bpsOut', 'Pkt errors', 'Last traffic', 'Actions' ];
+# 
+# refaLines:
+# $VAR1 = [
+#           [
+#             { 'Value' => '1' },
+#             { 'Value' => 'lo' },
+#             { 'Value' => '&nbsp' },
+#             { 'Value' => 'up' },
+#             { 'Style' => 'cellTrackedOk', 'Value' => 'up' },
+#             { 'Value' => '10.00 Mbit' },
+#             { 'Value' => '&nbsp' },
+#             { 'Background' => '00ff00', 'Value' => '0.01' },
+#             { 'Background' => '00ff00', 'Value' => '0.01' },
+#             { 'Value' => '127.0.0.1/255.0.0.0' },
+#             { 'Value' => '939.46 bps' },
+#             { 'Value' => '939.46 bps' },
+#             { 'Value' => '0.0/0.0/0.0/0.0' },
+#             { 'Value' => '0d&nbsp;0h&nbsp;0m' },
+#             { 'Value' => '&nbsp<a href="/pnp4nagios/graph?host=127.0.0.1&srv=If_lo"><img src="../img/chart.png" alt="Trends" /></a>&nbsp' }
+#           ],
+#           [
+#             { 'Value' => '2' },
+#             { 'Value' => 'eth0' },
+#             { 'Value' => '&nbsp' },
+#             { 'Value' => 'up' },
+#             { 'Style' => 'cellTrackedOk', 'Value' => 'up' },
+#             { 'Value' => '100.00 Mbit' },
+#             { 'Value' => 'full' },
+#             { 'Background' => '00ff00', 'Value' => '0.00' },
+#             { 'Background' => '00ff00', 'Value' => '0.00' },
+#             { 'Value' => '192.168.1.92/255.255.255.0' },
+#             { 'Value' => '1.80 Kbps' },
+#             { 'Value' => '1.60 Kbps' },
+#             { 'Value' => '0.0/0.0/0.0/0.0' },
+#             { 'Value' => '0d&nbsp;0h&nbsp;0m' },
+#             { 'Value' => '&nbsp<a href="/pnp4nagios/graph?host=127.0.0.1&srv=If_eth0"><img src="../img/chart.png" alt="Trends" /></a>&nbsp' }
+#           ]
+#         ];
+#
+# HTML:
+#<a name=top></a>
+#<br><span>
+#<table class=interfacetable onMouseOver="javascript:trackTableHighlight(event, '#81BEF7');" onMouseOut="javascript:highlightTableRow(0);">
+#<th>Index</th><th>Description</th><th>Alias</th><th>Admin status</th><th>Oper status</th><th>Speed</th><th>Duplex</th><th>Load In</th><th>Load Out</th><th>IP</th><th>bpsIn</th><th>bpsOut</th><th>Pkt errors</th><th>Last traffic</th><th>Actions</th><tr>
+#<td >1</td>
+#<td >lo</td>
+#<td >&nbsp</td>
+#<td >up</td>
+#<td  class="cellTrackedOk">up</td>
+#<td >10.00 Mbit</td>
+#<td >&nbsp</td>
+#<td  bgcolor="00ff00">0.02</td>
+#<td  bgcolor="00ff00">0.02</td>
+#<td >127.0.0.1/255.0.0.0</td>
+#<td >2.26 Kbps</td>
+#<td >2.26 Kbps</td>
+#<td >0.0/0.0/0.0/0.0</td>
+#<td >0d&nbsp;0h&nbsp;0m</td>
+#<td >&nbsp<a href="/pnp4nagios/graph?host=127.0.0.1&srv=If_lo"><img src="../img/chart.png" alt="Trends" /></a>&nbsp</td></tr><tr>
+#<td >2</td>
+#<td >eth0</td>
+#<td >&nbsp</td>
+#<td >up</td>
+#<td  class="cellTrackedOk">up</td>
+#<td >10.00 Mbit</td>
+#<td >half</td>
+#<td  bgcolor="00ff00">0.02</td>
+#<td  bgcolor="00ff00">0.02</td>
+#<td >192.168.1.92/255.255.255.0</td>
+#<td >2.09 Kbps</td>
+#<td >2.08 Kbps</td>
+#<td >0.0/0.0/0.0/0.0</td>
+#<td >0d&nbsp;0h&nbsp;0m</td>
+#<td >&nbsp<a href="/pnp4nagios/graph?host=127.0.0.1&srv=If_eth0"><img src="../img/chart.png" alt="Trends" /></a>&nbsp</td></tr></table></td></tr><br>
+# ------------------------------------------------------------------------------
+sub Convert2Html {
+    my $tableType  = shift;       # Type of table to generate
+    my $refaHeader = shift;       # Header contains the HTML table header as array
     my $refaLines  = shift;       # Reference to array of table lines
     my $cssClass   = shift;       # Css class to use for the table
+    my $highlightColor = shift;   # Color used to highlight. Disactivated if no color
     
     my $refaProperties;           # List of properties from each line
     my $HTML;                     # HTML Content back to the caller
     my $HTMLTable;                # HTML Table code only
-    my $FS = ';';
+    
+    logger(2, "x"x50);
+    logger(3, "refaHeader: " . Dumper ($refaHeader));
+    logger(3, "refaLines: " . Dumper ($refaLines));
 
-    if ($#$refaLines >= 0) {
-
-        # Build HTML format and table header
-        $HTML .= '<a name=top></a>'."\n";
-        $HTML .= '<br>';
-        $HTML .= '<span>'."\n";
-        $HTML .= '<table '."class=$cssClass";
-        if ($cssClass eq "interfacetable") {
-            $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
-        }
-        $HTML .= '>'."\n";
-        
-        # Build html table title header
-        #
-        # - $Header looks like this:
-        # index;Description;Alias;AdminStatus;OperStatus;Speed;IP
-        #
-        # - It will be transformed to:
-        # <th>index</th><th>Description</th><th>Alias</th> ...
-        $HTML .= "<th>$_</th>" for ( @$refaHeader );
-
-        foreach my $Line ( @$refaLines ) {
-            #logger(3, "CSVline: " . Dumper ($Line));
-            # start table line ---------------------------------------------
-            $HTMLTable .= "<tr";
-            my $trTagclose = '>';
-
-            foreach my $Cell ( @$Line ) {
-
-                my $Value;
-                my $SpecialCellFormat      = "";
-                #my $SpecialTextFormatHead  = "";
-                #my $SpecialTextFormatFoot  = "";
-
-                if ( defined $Cell->{InterfaceGraphURL} ) {
-                    if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
-                        $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
-                    }
-                    $trTagclose = '';
-                }
-                $HTMLTable .= $trTagclose;
-                $trTagclose = '';
-                #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
-                # if background is defined ---------------------------------
-                if ( defined $Cell->{Background} ) {
-                    $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
-                }
-                
-                # if style is defined ---------------------------------
-                if ( defined $Cell->{Style} ) {
-                    $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
-                }
-
-                # if a special font is indicated ---------------------------
-                #if ( defined $Cell->{Font} ) {
-                #    $SpecialTextFormatHead .= $Cell->{Font};
-                #    $SpecialTextFormatFoot .= '</font>';
-                #}
-
-                # if we got a value write into cell ------------------------
-                if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
-                    $Value = $Cell->{Value};
-                } else {
-                # otherwise create a empty cell ----------------------------
-                    $Value = "&nbsp;";
-                }
-
-                # if a link is indicated -----------------------------------
-                if ( defined $Cell->{Link} ) {
-                    $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
-                }
-
-                # finally build the table line;
-                $HTMLTable .= "\n" . '<td ' . 
-                    $SpecialCellFormat . '>' .
-                    #$SpecialTextFormatHead . 
-                    $Value .
-                    #$SpecialTextFormatFoot . 
-                    '</td>';
+    if ($tableType == 0) { 
+        if ($#$refaLines >= 0) {
+    
+            # Build HTML format and table header
+            $HTML .= '<a name=top></a>'."\n";
+            $HTML .= '<br>';
+            $HTML .= '<span>'."\n";
+            $HTML .= '<table '."class=$cssClass";
+            if ($highlightColor ne "") {
+                $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'" . $highlightColor . "'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
             }
-            # end table line -----------------------------------------------
+            $HTML .= '>'."\n";
+            
+            # Build html table title header
+            $HTMLTable .= "<tr";
+            my $trTagclose = '>';    
+            foreach my $Cell ( @$refaHeader ) {    
+                if ($Cell->{'Enabled'}) {
+                    my $Title;
+                    my $SpecialCellFormat      = "";
+        
+                    $HTMLTable .= $trTagclose;
+                    $trTagclose = '';
+                    
+                    # Tips
+                    if ( defined $Cell->{Tip} and $ghOptions{'enabletips'}) {
+                            #TODO 
+                            #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
+                    }
+                    
+                    # if we got a title write into cell ------------------------
+                    if ( defined $Cell->{Title} and  $Cell->{Title} ne " ") {
+                        $Title = $Cell->{Title};
+                    } else {
+                    # otherwise print the error ----------------------------
+                        $Title = "ERROR: No name!";
+                    }
+        
+                    # if a link is indicated -----------------------------------
+                    if ( defined $Cell->{Link} ) {
+                        $Title = '<a href="' . $Cell->{Link} . '">' . $Title . '</a>';
+                    }
+        
+                    # finally build the table line;
+                    $HTMLTable .= "\n" . '<th ' . $SpecialCellFormat . '>' . $Title . '</th>';
+                }
+            }
             $HTMLTable .= "</tr>";
+            
+            # Build html table content
+            foreach my $Line ( @$refaLines ) {
+                #logger(3, "Line: " . Dumper ($Line));
+                # start table line ---------------------------------------------
+                $HTMLTable .= "<tr";
+                my $trTagclose = '>';
+    
+                foreach my $Cell ( @$Line ) {
+    
+                    my $Value;
+                    my $SpecialCellFormat      = "";
+                    #my $SpecialTextFormatHead  = "";
+                    #my $SpecialTextFormatFoot  = "";
+    
+                    if ( defined $Cell->{InterfaceGraphURL} ) {
+                        if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
+                            $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
+                        }
+                        $trTagclose = '';
+                    }
+                    $HTMLTable .= $trTagclose;
+                    $trTagclose = '';
+                    #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
+                    # if background is defined ---------------------------------
+                    if ( defined $Cell->{Background} ) {
+                        $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
+                    }
+                    
+                    # if style is defined ---------------------------------
+                    if ( defined $Cell->{Style} ) {
+                        $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
+                    }
+    
+                    # if a special font is indicated ---------------------------
+                    #if ( defined $Cell->{Font} ) {
+                    #    $SpecialTextFormatHead .= $Cell->{Font};
+                    #    $SpecialTextFormatFoot .= '</font>';
+                    #}
+    
+                    # if we got a value write into cell ------------------------
+                    if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
+                        $Value = $Cell->{Value};
+                    } else {
+                    # otherwise create a empty cell ----------------------------
+                        $Value = "&nbsp;";
+                    }
+    
+                    # if a link is indicated -----------------------------------
+                    if ( defined $Cell->{Link} ) {
+                        $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
+                    }
+    
+                    # finally build the table line;
+                    $HTMLTable .= "\n" . '<td ' . 
+                        $SpecialCellFormat . '>' .
+                        #$SpecialTextFormatHead . 
+                        $Value .
+                        #$SpecialTextFormatFoot . 
+                        '</td>';
+                }
+                # end table line -----------------------------------------------
+                $HTMLTable .= "</tr>";
+            }
+            $HTMLTable .= "</table>";
+            $HTML .= "$HTMLTable</td></tr><br>";
+        } else {
+            $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
         }
-         $HTMLTable .= "</table>";
-         $HTML .= "$HTMLTable</td></tr><br>";
-    } else {
-        $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
-    }
-
+    } elsif ($tableType == 1) { 
+        if ($#$refaLines >= 0) {
+    
+            # Build HTML format and table header
+            $HTML .= '<a name=top></a>'."\n";
+            $HTML .= '<br>';
+            $HTML .= '<span>'."\n";
+            $HTML .= '<table '."class=$cssClass";
+            if ($cssClass eq "interfacetable") {
+                $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
+            }
+            $HTML .= '>'."\n";
+            
+            # Build html table title header
+            $HTML .= "<th>$_</th>" for ( @$refaHeader );
+    
+            # Build html table content
+            foreach my $Line ( @$refaLines ) {
+                #logger(3, "Line: " . Dumper ($Line));
+                # start table line ---------------------------------------------
+                $HTMLTable .= "<tr";
+                my $trTagclose = '>';
+    
+                foreach my $Cell ( @$Line ) {
+    
+                    my $Value;
+                    my $SpecialCellFormat      = "";
+                    #my $SpecialTextFormatHead  = "";
+                    #my $SpecialTextFormatFoot  = "";
+    
+                    if ( defined $Cell->{InterfaceGraphURL} ) {
+                        if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
+                            $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
+                        }
+                        $trTagclose = '';
+                    }
+                    $HTMLTable .= $trTagclose;
+                    $trTagclose = '';
+                    #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
+                    # if background is defined ---------------------------------
+                    if ( defined $Cell->{Background} ) {
+                        $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
+                    }
+                    
+                    # if style is defined ---------------------------------
+                    if ( defined $Cell->{Style} ) {
+                        $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
+                    }
+    
+                    # if a special font is indicated ---------------------------
+                    #if ( defined $Cell->{Font} ) {
+                    #    $SpecialTextFormatHead .= $Cell->{Font};
+                    #    $SpecialTextFormatFoot .= '</font>';
+                    #}
+    
+                    # if we got a value write into cell ------------------------
+                    if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
+                        $Value = $Cell->{Value};
+                    } else {
+                    # otherwise create a empty cell ----------------------------
+                        $Value = "&nbsp;";
+                    }
+    
+                    # if a link is indicated -----------------------------------
+                    if ( defined $Cell->{Link} ) {
+                        $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
+                    }
+    
+                    # finally build the table line;
+                    $HTMLTable .= "\n" . '<td ' . 
+                        $SpecialCellFormat . '>' .
+                        #$SpecialTextFormatHead . 
+                        $Value .
+                        #$SpecialTextFormatFoot . 
+                        '</td>';
+                }
+                # end table line -----------------------------------------------
+                $HTMLTable .= "</tr>";
+            }
+            $HTMLTable .= "</table>";
+            $HTML .= "$HTMLTable</td></tr><br>";
+        } else {
+            $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
+        }
+    } 
+    logger(2, "x"x50);
+    
     return $HTML;
 }
 
