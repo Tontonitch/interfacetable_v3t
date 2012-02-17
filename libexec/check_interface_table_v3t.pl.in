@@ -2029,8 +2029,8 @@ sub Get_IpAddress_SubnetMask {
 
         my ($Tmp,$NetMask) = split (" ",join ("",grep /$IpAddress /,@$refaNetMask),2);
         $NetMask =~ s/\s+$//;    # remove invisible chars from the end
-        
         logger(3, "Index: $Index, IpAddress: $IpAddress, Netmask: $NetMask");
+        defined $quadmask2dec{"$NetMask"} && $NetMask = $quadmask2dec{"$NetMask"};        
         
         # get the interface description stored before from the index table
         my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"};
