@@ -64,11 +64,14 @@ my $STARTTIME   = time ();                      # time of program start
 # OIDs definitions
 # ------------------------------------------------------------------------
 
+# Standard OIDs
+# ------------------------------------------------------------------------
 my $oid_sysDescr        = ".1.3.6.1.2.1.1.1.0";
 my $oid_sysName         = ".1.3.6.1.2.1.1.5.0";
 my $oid_sysUpTime       = ".1.3.6.1.2.1.1.3.0";
 
 my $oid_ifDescr         = ".1.3.6.1.2.1.2.2.1.2";     # + ".<index>"
+my $oid_ifAlias         = ".1.3.6.1.2.1.31.1.1.1.18"; # + ".<index>"
 my $oid_ifSpeed         = ".1.3.6.1.2.1.2.2.1.5";     # + ".<index>"
 my $oid_ifSpeed_64      = ".1.3.6.1.2.1.31.1.1.1.15"; # + ".<index>"
 
@@ -77,9 +80,11 @@ my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";     # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";     # + ".<index>"
 my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";     # + ".<index>", not used
 my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
+my $oid_ipAdEntIfIndex  = ".1.3.6.1.2.1.4.20.1.2";
+my $oid_ipAdEntNetMask  = ".1.3.6.1.2.1.4.20.1.3";
+my $oid_ifVlanName      = '.1.3.6.1.2.1.47.1.2.1.1.2'; # + ".<index>"
 
 # RFC1213 - Extracts about in/out stats
-# ------------------------------------------------------------------------
 # in_octet:     The total number of octets received on the interface, including framing characters.
 # in_error:     The number of inbound packets that contained errors preventing them from being deliverable to a
 #               higher-layer protocol.
@@ -91,7 +96,6 @@ my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
 # out_discard:  The number of outbound packets which were chosen to be discarded even though no errors had been
 #               detected to prevent their being transmitted. One possible reason for discarding such a packet could
 #               be to free up buffer space.
-# ------------------------------------------------------------------------
 my $oid_in_octet_table          = '1.3.6.1.2.1.2.2.1.10';    # + ".<index>"
 my $oid_in_error_table          = '1.3.6.1.2.1.2.2.1.14';    # + ".<index>"
 my $oid_in_discard_table        = '1.3.6.1.2.1.2.2.1.13';    # + ".<index>"
@@ -101,26 +105,23 @@ my $oid_out_discard_table       = '1.3.6.1.2.1.2.2.1.19';    # + ".<index>"
 my $oid_in_octet_table_64       = '1.3.6.1.2.1.31.1.1.1.6';  # + ".<index>"
 my $oid_out_octet_table_64      = '1.3.6.1.2.1.31.1.1.1.10'; # + ".<index>"
 
-# Cisco Specific
+# Cisco specific OIDs
+# ------------------------------------------------------------------------
 my $oid_cisco_type              = '.1.3.6.1.4.1.9.5.1.2.16.0'; # ex: WS-C3550-48-SMI
 my $oid_cisco_serial            = '.1.3.6.1.4.1.9.5.1.2.19.0'; # ex: CAT0645Z0HB
 # NOT USED - my $oid_locIfIntBitsSec = '1.3.6.1.4.1.9.2.2.1.1.6';   # need to append integer for specific interface
 # NOT USED - my $oid_locIfOutBitsSec = '1.3.6.1.4.1.9.2.2.1.1.8';   # need to append integer for specific interface
 # NOT USED - my $cisco_ports         = '.1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
-
-my $oid_ifAlias                 = ".1.3.6.1.2.1.31.1.1.1.18"; # + ".<index>"
-
-# Vlan oid per manufacturer
-# ------------------------------------------------------------------------
-# Cisco: ifVlan = ".1.3.6.1.4.1.9.9.68.1.2.2.1.2";
-# HP:    ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1";
-# ------------------------------------------------------------------------
-my $oid_ifVlanName              = '.1.3.6.1.2.1.47.1.2.1.1.2'; # + ".<index>"
-my $oid_ifVlanPortHP            = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2'; # + ".<index>"
 my $oid_ifVlanPortCisco         = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'; # + ".?.<index>"
 
-my $oid_ipAdEntIfIndex          = ".1.3.6.1.2.1.4.20.1.2";
-my $oid_ipAdEntNetMask          = ".1.3.6.1.2.1.4.20.1.3";
+# HP specific OIDs
+# ------------------------------------------------------------------------
+my $oid_ifVlanPortHP            = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2'; # + ".<index>"
+# Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1";
+
+# Juniper specific OIDs
+# ------------------------------------------------------------------------
+
 
 # ------------------------------------------------------------------------
 # Other global variables
@@ -179,138 +180,49 @@ check_options();
 # Info table initializations
 # ------------------------------------------------------------------------
 my $gInfoTableHTML;                                      # Generated HTML code of the Info table
-my $grefAoHInfoTableHeader = [                         # Header for the colomns of the Info table
-    {   Title => 'Name',
-        #Tip => 'Tip Test',
-        Enabled => 1,
-    },
-    {   Title => 'Uptime',
-        Enabled => 1,
-    },
-    {   Title => 'System Information',
-        Enabled => 1,
-    },
-    {   Title => 'Type',
-        #Link => 'Link Test',
-        Enabled => 0,
-    },
-    {   Title => 'Serial',
-        Enabled => 0,
-    },
-    {   Title => 'Ports',
-        Enabled => 1,
-    },
-    {   Title => 'delta seconds used for bandwidth calculations',
-        Enabled => 1,
-    },
+my $grefAoHInfoTableHeader = [                           # Header for the colomns of the Info table
+    {   Title => 'Name', Enabled => 1 },
+    {   Title => 'Uptime', Enabled => 1 },
+    {   Title => 'System Information', Enabled => 1 },
+    {   Title => 'Type', Enabled => 0 },
+    {   Title => 'Serial', Enabled => 0 },
+    {   Title => 'Ports', Enabled => 1 },
+    {   Title => 'Delta seconds used for bandwidth calculations', Enabled => 1 },
 ];
 if ($ghOptions{'cisco'}) { 
     # show some specific cisco info in the info table: type and serial
-    $grefAoHInfoTableHeader->[3]{Enabled} = "1";
-    $grefAoHInfoTableHeader->[4]{Enabled} = "1";
+    $grefAoHInfoTableHeader->[3]{Enabled} = 1;
+    $grefAoHInfoTableHeader->[4]{Enabled} = 1;
 }
-my $grefAoHInfoTableData;                              # Contents of the Info table (Uptime, SysDescr, ...)
-
-#my $grefaInfoTableHeader = [                         # Header for the colomns of the Info table
-#    'Name','Uptime','System Information','Ports',
-#    'delta seconds used for bandwidth calculations'
-#    ];
-#if ($ghOptions{'cisco'}) { 
-#    # show some specific cisco info in the info table: type and serial
-#    splice(@$grefaInfoTableHeader,3,0,'Type');
-#    splice(@$grefaInfoTableHeader,4,0,'Serial');
-#}
+my $grefAoHInfoTableData;                                # Contents of the Info table (Uptime, SysDescr, ...)
 
 # ------------------------------------------------------------------------
 # Interface table initializations
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    {   Title => 'Index',
-        Dataname => 'index',
-        Enabled => 1,
-    },
-    {   Title => 'Description',
-        Dataname => 'ifDescr',
-        Enabled => 1,
-    },
-    {   Title => 'Alias',
-        Dataname => 'ifAlias',
-        Enabled => 1,
-    },
-    {   Title => 'Admin status',
-        Dataname => 'ifAdminStatus',
-        Enabled => 1,
-    },
-    {   Title => 'Oper status',
-        Dataname => 'ifOperStatus',
-        Enabled => 1,
-    },
-    {   Title => 'Speed',
-        Dataname => 'ifSpeedReadable',
-        Enabled => 1,
-    },
-    {   Title => 'Duplex',
-        Dataname => 'ifDuplexStatus',
-        Enabled => 1,
-    },
-    {   Title => 'Vlan',
-        Dataname => 'ifVlanNames',
-        Enabled => 0,
-    },
-    {   Title => 'Load In',
-        Dataname => 'ifLoadIn',
-        Enabled => 1,
-    },
-    {   Title => 'Load Out',
-        Dataname => 'ifLoadOut',
-        Enabled => 1,
-    },
-    {   Title => 'IP',
-        Dataname => 'IpInfo',
-        Enabled => 1,
-    },
-    {   Title => 'bpsIn',
-        Dataname => 'bpsIn',
-        Enabled => 1,
-    },
-    {   Title => 'bpsOut',
-        Dataname => 'bpsOut',
-        Enabled => 1,
-    },
-    {   Title => 'Pkt errors',
-        Dataname => 'pktErrDiscard',
-        Tip => 'TipTest',
-        Enabled => 1,
-    },
-    {   Title => 'Last traffic',
-        Dataname => 'ifLastTraffic',
-        Enabled => 1,
-    },
-    {   Title => 'Actions',
-        Dataname => 'actions',
-        Enabled => 1,
-    },
+    {   Title => 'Index', Dataname => 'index', Enabled => 1 },
+    {   Title => 'Description', Dataname => 'ifDescr', Enabled => 1 },
+    {   Title => 'Alias', Dataname => 'ifAlias', Enabled => 1 },
+    {   Title => 'Admin status', Dataname => 'ifAdminStatus', Enabled => 1 },
+    {   Title => 'Oper status', Dataname => 'ifOperStatus', Enabled => 1 },
+    {   Title => 'Speed', Dataname => 'ifSpeedReadable', Enabled => 1 },
+    {   Title => 'Duplex', Dataname => 'ifDuplexStatus', Enabled => 1 },
+    {   Title => 'Vlan', Dataname => 'ifVlanNames', Enabled => 0 },
+    {   Title => 'Load In', Dataname => 'ifLoadIn', Enabled => 1 },
+    {   Title => 'Load Out', Dataname => 'ifLoadOut', Enabled => 1 },
+    {   Title => 'IP', Dataname => 'IpInfo', Enabled => 1 },
+    {   Title => 'bpsIn', Dataname => 'bpsIn', Enabled => 1 },
+    {   Title => 'bpsOut', Dataname => 'bpsOut', Enabled => 1 },
+    {   Title => 'Pkt errors', Dataname => 'pktErrDiscard', Enabled => 1 },
+    {   Title => 'Last traffic', Dataname => 'ifLastTraffic', Enabled => 1 },
+    {   Title => 'Actions', Dataname => 'actions', Enabled => 1 },
 ];
 if ($ghOptions{'vlan'}) { 
     # show VLANs per port
-    $grefAoHInterfaceTableHeader->[7]->{Enabled} = "1";
+    $grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;
 }
-my $grefAoHInterfaceTableData;                         # Contents of the interface table (Uptime, OperStatus, ...)
-
-#my $grefaInterfaceTableHeader = [                    # Header for the cols of the html table
-#    'Index','Description','Alias','Admin status','Oper status','Speed','Duplex',
-#    'Load In','Load Out','IP','bpsIn','bpsOut','Pkt errors','Last traffic','Actions'
-#    ];
-#my $grefaInterfaceTableFields = [                    # Hash keys for the content of the html table
-#    'index','ifDescr','ifAlias','ifAdminStatus','ifOperStatus','ifSpeedReadable','ifDuplexStatus',
-#    'ifLoadIn','ifLoadOut','IpInfo','bpsIn','bpsOut','pktErrDiscard','ifLastTraffic','actions'
-#    ];
-#if ($ghOptions{'vlan'}) { 
-#    # show VLANs per port
-#    splice(@$grefaInterfaceTableHeader,7,0,'Vlan');
-#    splice(@$grefaInterfaceTableFields,7,0,'ifVlanNames');
-#}
+my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
 # ------------------------------------------------------------------------
 # Other global initializations
@@ -2116,8 +2028,8 @@ sub Get_IpAddress_SubnetMask {
         #        ];
 
         my ($Tmp,$NetMask) = split (" ",join ("",grep /$IpAddress /,@$refaNetMask),2);
-        $NetMask    =~ s/\s+$//;    # remove invisible chars from the end
-
+        $NetMask =~ s/\s+$//;    # remove invisible chars from the end
+        
         logger(3, "Index: $Index, IpAddress: $IpAddress, Netmask: $NetMask");
         
         # get the interface description stored before from the index table
