@@ -3,18 +3,10 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.03-2 (bugfix release)
-# ----------------------------------------------------------------------
-#         - correctly handle devices where interfaces have the same ifdescr
-#         - when interfaces have the same ifdescr, give the suffix choice between 
-#           idx or mac addr
-#         - update supported nodes list
-#
-# ----------------------------------------------------------------------
 # Todo for 0.04
 # ----------------------------------------------------------------------
-#         - info table (first table) building way review for more flexibility
-#         - review general structure of the plugin
+# DONE    - review table building method for more flexibility
+# IN PROG - review general structure of the plugin
 #         - add STP info
 #         - add a feature to anonymize the info in debug reports (script or option?)
 #         - extend debug if needed
@@ -29,7 +21,7 @@
 #            -> check if enough now
 #         - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
-#         - replace repeated single snmp request by table snmp request / snmpwalk when 
+# DONE    - replace repeated single snmp request by table snmp request / snmpwalk when 
 #           possible -> performance enhancement
 #         - an option to generate an anonymized debug report 
 #         - check/adapt the perfdata to make the <service_description>.xml and allow correct
@@ -37,13 +29,21 @@
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
-#         - review the netwaysgrapherv2 support + create templates
-#         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
-#         - update supported nodes list
 #         - better non regression testing 
 #            -> test phase would include tests on simulated type of monitored nodes
-#         - convert network masks to quad-dotted decimal representation (*/[0-32])
+# IN PROG - convert network masks to quad-dotted decimal representation (*/[0-32])
 #           to free space in the interface table
 #         - option to show mac addresses in the interface table
+# DONE    - correctly handle devices where interfaces have the same ifdescr
+# DONE    - when interfaces have the same ifdescr, give the suffix choice between 
+#           idx or mac addr
+#         - update supported nodes list
+#         - add Juniper Netscreen support (+ special columns)
+#
+# ----------------------------------------------------------------------
+# Todo for 0.05
+# ----------------------------------------------------------------------
+#         - review the netwaysgrapherv2 support + create templates
+#         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
 #
 # ========================================================================
