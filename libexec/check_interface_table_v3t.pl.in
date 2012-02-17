@@ -660,10 +660,10 @@ if ( $gInitialRun ) {
 }
 
 # Create "small" information table
-$gInfoTableHTML = Convert2Html (1,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
+$gInfoTableHTML = Convert2Html (0,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
 
 # Create "big" interface table
-$gInterfaceTableHTML   = Convert2Html (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
+$gInterfaceTableHTML   = Convert2Html (0,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -1010,7 +1010,7 @@ sub GenerateHtmlTable {
     my $refaFields               = shift;               # Array of the fields for the table
     my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
-    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2Htmlnew
+    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2Html
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
@@ -2659,13 +2659,15 @@ sub check_for_unused_interfaces {
 # This function generates a html table
 # ------------------------------------------------------------------------------
 # Function call:
-#  $gHtml = Convert2Html ($tableType, $refaHeader,$refaLines,$cssClass);
+#  $gHtml = Convert2Html ($tableType, $refAoHHeader,$refAoAoHLines,$cssClass);
 # Arguments:
 #  0 : integrer corresponding to the table type to generate:
-#      1=horizontal headers (default)
-#      2=vertical headers 
-#  1 : ref to an array containing the headers of the table 
-#  2 : ref to an array of array of hashes. Each subarray corresponds to an interface 
+#      0=horizontal headers (default)
+#      1=vertical headers 
+#  1 : ref to an AoH. Each hash correspond to a header of the table
+#        * Link
+#        * Tip 
+#  2 : ref to an AoAoH. Each subarray corresponds to an interface 
 #      (a table row) and contains a hash for each column
 #      hash keys can be:
 #        * InterfaceGraphURL
@@ -2679,10 +2681,18 @@ sub check_for_unused_interfaces {
 # ------------------------------------------------------------------------------
 # Exemple 1: InfoTable 
 # 
-# refaHeader:
-# $VAR1 = [ 'Name', 'Uptime', 'System Information', 'Ports', 'delta seconds used for bandwidth calculations' ];
-# 
-# refaLines:
+# refAoHHeader:
+# $VAR1 = [
+#          { 'Enabled' => 1, 'Tip' => 'Tip Test', 'Title' => 'Name' },
+#          { 'Enabled' => 1, 'Title' => 'Uptime' },
+#          { 'Enabled' => 1, 'Title' => 'System Information' },
+#          { 'Enabled' => 0, 'Link' => 'Link Test', 'Title' => 'Type' },
+#          { 'Enabled' => 0, 'Title' => 'Serial' },
+#          { 'Enabled' => 1, 'Title' => 'Ports' },
+#          { 'Enabled' => 1, 'Title' => 'delta seconds used for bandwidth calculations' }
+#        ];
+#
+# refAoAoHLines:
 # $VAR1 = [
 #           [
 #             { 'Value' => 'snoopy.localdomain' },
@@ -2706,11 +2716,28 @@ sub check_for_unused_interfaces {
 # ------------------------------------------------------------------------------
 # Exemple 2: InterfaceTable 
 # 
-# refaHeader:
-# $VAR1 = [ 'Index', 'Description', 'Alias', 'Admin status', 'Oper status', 'Speed', 'Duplex', 'Load In', 
-#  'Load Out', 'IP', 'bpsIn', 'bpsOut', 'Pkt errors', 'Last traffic', 'Actions' ];
+# refAoHHeader:
+# $VAR1 = [
+#          { 'Dataname' => 'index', 'Enabled' => 1, 'Title' => 'Index' },
+#          { 'Dataname' => 'ifDescr', 'Enabled' => 1, 'Title' => 'Description' },
+#          { 'Dataname' => 'ifAlias', 'Enabled' => 1, 'Title' => 'Alias' },
+#          { 'Dataname' => 'ifAdminStatus', 'Enabled' => 1, 'Title' => 'Admin status' },
+#          { 'Dataname' => 'ifOperStatus', 'Enabled' => 1, 'Title' => 'Oper status' },
+#          { 'Dataname' => 'ifSpeedReadable', 'Enabled' => 1, 'Title' => 'Speed' },
+#          { 'Dataname' => 'ifDuplexStatus', 'Enabled' => 1, 'Title' => 'Duplex' },
+#          { 'Dataname' => 'ifVlanNames', 'Enabled' => 0, 'Title' => 'Vlan' },
+#          { 'Dataname' => 'ifLoadIn', 'Enabled' => 1, 'Title' => 'Load In' },
+#          { 'Dataname' => 'ifLoadOut', 'Enabled' => 1, 'Title' => 'Load Out' },
+#          { 'Dataname' => 'IpInfo', 'Enabled' => 1, 'Title' => 'IP' },
+#          { 'Dataname' => 'bpsIn', 'Enabled' => 1, 'Title' => 'bpsIn' },
+#          { 'Dataname' => 'bpsOut', 'Enabled' => 1, 'Title' => 'bpsOut' },
+#          { 'Dataname' => 'pktErrDiscard', 'Enabled' => 1, 'Tip' => 'TipTest', 'Title' => 'Pkt errors' },
+#          { 'Dataname' => 'ifLastTraffic', 'Enabled' => 1, 'Title' => 'Last traffic' },
+#          { 'Dataname' => 'actions', 'Enabled' => 1, 'Title' => 'Actions' }
+#        ];
+#
 # 
-# refaLines:
+# refAoAoHLines:
 # $VAR1 = [
 #           [
 #             { 'Value' => '1' },
@@ -2786,8 +2813,8 @@ sub check_for_unused_interfaces {
 # ------------------------------------------------------------------------------
 sub Convert2Html {
     my $tableType  = shift;       # Type of table to generate
-    my $refaHeader = shift;       # Header contains the HTML table header as array
-    my $refaLines  = shift;       # Reference to array of table lines
+    my $refAoHHeader = shift;       # Header contains the HTML table header as array
+    my $refAoAoHLines  = shift;       # Reference to array of table lines
     my $cssClass   = shift;       # Css class to use for the table
     my $highlightColor = shift;   # Color used to highlight. Disactivated if no color
     
@@ -2796,12 +2823,13 @@ sub Convert2Html {
     my $HTMLTable;                # HTML Table code only
     
     logger(2, "x"x50);
-    logger(3, "refaHeader: " . Dumper ($refaHeader));
-    logger(3, "refaLines: " . Dumper ($refaLines));
+    logger(3, "refAoHHeader: " . Dumper ($refAoHHeader));
+    logger(3, "refAoAoHLines: " . Dumper ($refAoAoHLines));
 
     if ($tableType == 0) { 
-        if ($#$refaLines >= 0) {
+        if ($#$refAoAoHLines >= 0) {
     
+            # ------------------------------------------------------------------
             # Build HTML format and table header
             $HTML .= '<a name=top></a>'."\n";
             $HTML .= '<br>';
@@ -2812,10 +2840,11 @@ sub Convert2Html {
             }
             $HTML .= '>'."\n";
             
+            # ------------------------------------------------------------------
             # Build html table title header
             $HTMLTable .= "<tr";
             my $trTagclose = '>';    
-            foreach my $Cell ( @$refaHeader ) {    
+            foreach my $Cell ( @$refAoHHeader ) {    
                 if ($Cell->{'Enabled'}) {
                     my $Title;
                     my $SpecialCellFormat      = "";
@@ -2829,15 +2858,15 @@ sub Convert2Html {
                             #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
                     }
                     
-                    # if we got a title write into cell ------------------------
+                    # if we got a title write into cell
                     if ( defined $Cell->{Title} and  $Cell->{Title} ne " ") {
                         $Title = $Cell->{Title};
                     } else {
-                    # otherwise print the error ----------------------------
+                    # otherwise print the error
                         $Title = "ERROR: No name!";
                     }
         
-                    # if a link is indicated -----------------------------------
+                    # if a link is indicated
                     if ( defined $Cell->{Link} ) {
                         $Title = '<a href="' . $Cell->{Link} . '">' . $Title . '</a>';
                     }
@@ -2848,10 +2877,11 @@ sub Convert2Html {
             }
             $HTMLTable .= "</tr>";
             
+            # ------------------------------------------------------------------
             # Build html table content
-            foreach my $Line ( @$refaLines ) {
-                #logger(3, "Line: " . Dumper ($Line));
-                # start table line ---------------------------------------------
+            foreach my $Line ( @$refAoAoHLines ) {
+                logger(3, "Line: " . Dumper ($Line));
+                # start table line
                 $HTMLTable .= "<tr";
                 my $trTagclose = '>';
     
@@ -2871,31 +2901,31 @@ sub Convert2Html {
                     $HTMLTable .= $trTagclose;
                     $trTagclose = '';
                     #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
-                    # if background is defined ---------------------------------
+                    # if background is defined
                     if ( defined $Cell->{Background} ) {
                         $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
                     }
                     
-                    # if style is defined ---------------------------------
+                    # if style is defined
                     if ( defined $Cell->{Style} ) {
                         $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
                     }
     
-                    # if a special font is indicated ---------------------------
+                    # if a special font is indicated
                     #if ( defined $Cell->{Font} ) {
                     #    $SpecialTextFormatHead .= $Cell->{Font};
                     #    $SpecialTextFormatFoot .= '</font>';
                     #}
     
-                    # if we got a value write into cell ------------------------
+                    # if we got a value write into cell
                     if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
                         $Value = $Cell->{Value};
                     } else {
-                    # otherwise create a empty cell ----------------------------
+                    # otherwise create a empty cell
                         $Value = "&nbsp;";
                     }
     
-                    # if a link is indicated -----------------------------------
+                    # if a link is indicated
                     if ( defined $Cell->{Link} ) {
                         $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
                     }
@@ -2908,7 +2938,7 @@ sub Convert2Html {
                         #$SpecialTextFormatFoot . 
                         '</td>';
                 }
-                # end table line -----------------------------------------------
+                # end table line
                 $HTMLTable .= "</tr>";
             }
             $HTMLTable .= "</table>";
@@ -2917,7 +2947,7 @@ sub Convert2Html {
             $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
         }
     } elsif ($tableType == 1) { 
-        if ($#$refaLines >= 0) {
+        if ($#$refAoAoHLines >= 0) {
     
             # Build HTML format and table header
             $HTML .= '<a name=top></a>'."\n";
@@ -2930,10 +2960,10 @@ sub Convert2Html {
             $HTML .= '>'."\n";
             
             # Build html table title header
-            $HTML .= "<th>$_</th>" for ( @$refaHeader );
+            $HTML .= "<th>$_</th>" for ( @$refAoHHeader );
     
             # Build html table content
-            foreach my $Line ( @$refaLines ) {
+            foreach my $Line ( @$refAoAoHLines ) {
                 #logger(3, "Line: " . Dumper ($Line));
                 # start table line ---------------------------------------------
                 $HTMLTable .= "<tr";
