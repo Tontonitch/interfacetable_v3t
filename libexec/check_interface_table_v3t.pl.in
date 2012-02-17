@@ -78,11 +78,16 @@ my $oid_ifSpeed_64      = ".1.3.6.1.2.1.31.1.1.1.15"; # + ".<index>"
 my $oid_ifPhysAddress   = ".1.3.6.1.2.1.2.2.1.6";     # + ".<index>"
 my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";     # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";     # + ".<index>"
-my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";     # + ".<index>", not used
+#my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";     # + ".<index>", not used
 my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
-my $oid_ipAdEntIfIndex  = ".1.3.6.1.2.1.4.20.1.2";
-my $oid_ipAdEntNetMask  = ".1.3.6.1.2.1.4.20.1.3";
+my $oid_ipAdEntIfIndex  = ".1.3.6.1.2.1.4.20.1.2";    # + ".<index>"
+my $oid_ipAdEntNetMask  = ".1.3.6.1.2.1.4.20.1.3";    # + ".<index>"
 my $oid_ifVlanName      = '.1.3.6.1.2.1.47.1.2.1.1.2'; # + ".<index>"
+my $oid_ifSTP           = '.1.3.6.1.2.1.17.2.15.1.3'; # + ".<index>"
+
+my $oid_stp_ifindex_map = '1.3.6.1.2.1.17.1.4.1.2';	  # map from dot1base port table to SNMP ifindex table
+my $oid_stp_portstate   = '1.3.6.1.2.1.17.2.15.1.3.'; # stp port states
+my %stp_portstate       = (0=>'unknown',1=>'disabled',2=>'blocking',3=>'listening',4=>'learning',5=>'forwarding',6=>'broken');
 
 # RFC1213 - Extracts about in/out stats
 # in_octet:     The total number of octets received on the interface, including framing characters.
@@ -112,16 +117,63 @@ my $oid_cisco_serial            = '.1.3.6.1.4.1.9.5.1.2.19.0'; # ex: CAT0645Z0HB
 # NOT USED - my $oid_locIfIntBitsSec = '1.3.6.1.4.1.9.2.2.1.1.6';   # need to append integer for specific interface
 # NOT USED - my $oid_locIfOutBitsSec = '1.3.6.1.4.1.9.2.2.1.1.8';   # need to append integer for specific interface
 # NOT USED - my $cisco_ports         = '.1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
-my $oid_ifVlanPortCisco         = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'; # + ".?.<index>"
+my $oid_cisco_ifVlanPort         = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'; # + ".?.<index>"
+
+# For use in Cisco CATOS special hacks
+my $oid_cisco_port_name_table               = '.1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
+my $oid_cisco_port_ifindex_map              = '.1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
+my $oid_cisco_port_linkfaultstatus_table    = '.1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
+my $oid_cisco_port_operstatus_table         = '.1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
+my $oid_cisco_port_addoperstatus_table      = '.1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
+my %cisco_port_linkfaultstatus = (1=>'up',2=>'nearEndFault',3=>'nearEndConfigFail',4=>'farEndDisable',5=>'farEndFault',6=>'farEndConfigFail',7=>'otherFailure');
+my %cisco_port_operstatus      = (0=>'operstatus:unknown',1=>'operstatus:other',2=>'operstatus:ok',3=>'operstatus:minorFault',4=>'operstatus:majorFault');
+my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'faulty',4=>'notConnected',5=>'inactive',6=>'shutdown',7=>'dripDis',8=>'disable',9=>'monitor',10=>'errdisable',11=>'linkFaulty',12=>'onHook',13=>'offHook',14=>'reflector');
 
 # HP specific OIDs
 # ------------------------------------------------------------------------
-my $oid_ifVlanPortHP            = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2'; # + ".<index>"
+my $oid_hp_ifVlanPort            = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2'; # + ".<index>"
 # Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1";
 
-# Juniper specific OIDs
+# Juniper specific OIDs (from NETSCREEN-INTERFACE/ZONE/VSYS-MIB)
 # ------------------------------------------------------------------------
+my $oid_juniper_nsIfIndex               = '.1.3.6.1.4.1.3224.9.1.1.1'; # + ".<index>"
+my $oid_juniper_nsIfName                = '.1.3.6.1.4.1.3224.9.1.1.2'; # + ".<index>"
+my $oid_juniper_nsIfDescr               = '.1.3.6.1.4.1.3224.9.1.1.22'; # + ".<index>"
+my $oid_juniper_nsIfZone                = '.1.3.6.1.4.1.3224.9.1.1.4'; # + ".<index>"
+my $oid_juniper_nsIfVsys                = '.1.3.6.1.4.1.3224.9.1.1.3'; # + ".<index>"
+my $oid_juniper_nsIfStatus              = '.1.3.6.1.4.1.3224.9.1.1.5'; # + ".<index>"
+my $oid_juniper_nsIfIp                  = '.1.3.6.1.4.1.3224.9.1.1.6'; # + ".<index>"
+my $oid_juniper_nsIfNetmask             = '.1.3.6.1.4.1.3224.9.1.1.7'; # + ".<index>"
+my $oid_juniper_nsIfMode                = '.1.3.6.1.4.1.3224.9.1.1.10'; # + ".<index>"
+my $oid_juniper_nsIfMAC                 = '.1.3.6.1.4.1.3224.9.1.1.11'; # + ".<index>"
 
+my $oid_juniper_nsIfMngTelnet           = '.1.3.6.1.4.1.3224.9.1.1.12'; # + ".<index>"
+my $oid_juniper_nsIfMngSCS              = '.1.3.6.1.4.1.3224.9.1.1.13'; # + ".<index>"
+my $oid_juniper_nsIfMngWEB              = '.1.3.6.1.4.1.3224.9.1.1.14'; # + ".<index>"
+my $oid_juniper_nsIfMngSSL              = '.1.3.6.1.4.1.3224.9.1.1.15'; # + ".<index>"
+my $oid_juniper_nsIfMngSNMP             = '.1.3.6.1.4.1.3224.9.1.1.16'; # + ".<index>"
+my $oid_juniper_nsIfMngGlobal           = '.1.3.6.1.4.1.3224.9.1.1.17'; # + ".<index>"
+my $oid_juniper_nsIfMngGlobalPro        = '.1.3.6.1.4.1.3224.9.1.1.18'; # + ".<index>"
+my $oid_juniper_nsIfMngPing             = '.1.3.6.1.4.1.3224.9.1.1.19'; # + ".<index>"
+my $oid_juniper_nsIfMngIdentReset       = '.1.3.6.1.4.1.3224.9.1.1.20'; # + ".<index>"
+
+my $oid_juniper_nsIfMonPlyDeny          = '.1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
+my $oid_juniper_nsIfMonAuthFail         = '.1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
+my $oid_juniper_nsIfMonUrlBlock         = '.1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
+my $oid_juniper_nsIfMonTrMngQueue       = '.1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
+my $oid_juniper_nsIfMonTrMngDrop        = '.1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
+my $oid_juniper_nsIfMonEncFail          = '.1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
+my $oid_juniper_nsIfMonNoSa             = '.1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
+my $oid_juniper_nsIfMonNoSaPly          = '.1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
+my $oid_juniper_nsIfMonSaInactive       = '.1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
+my $oid_juniper_nsIfMonSaPolicyDeny     = '.1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
+
+my $oid_juniper_nsZoneCfgId             = '.1.3.6.1.4.1.3224.8.1.1.1.1'; # + ".<index>"
+my $oid_juniper_nsZoneCfgName           = '.1.3.6.1.4.1.3224.8.1.1.1.2'; # + ".<index>"
+my $oid_juniper_nsZoneCfgType           = '.1.3.6.1.4.1.3224.8.1.1.1.3'; # + ".<index>"
+
+my $oid_juniper_nsVsysCfgId             = '.1.3.6.1.4.1.3224.15.1.1.1.1'; # + ".<index>"
+my $oid_juniper_nsVsysCfgName           = '.1.3.6.1.4.1.3224.15.1.1.1.2'; # + ".<index>"
 
 # ------------------------------------------------------------------------
 # Other global variables
@@ -2230,8 +2282,8 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         my $VlanPortCisco;
         
         $VlanNames = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanName,$ghOptions{'cachedir'},0);
-        $VlanPortHP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortHP,$ghOptions{'cachedir'},0);
-        $VlanPortCisco = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifVlanPortCisco,$ghOptions{'cachedir'},0);
+        $VlanPortHP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_hp_ifVlanPort,$ghOptions{'cachedir'},0);
+        $VlanPortCisco = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_cisco_ifVlanPort,$ghOptions{'cachedir'},0);
         
         # store Vlan names in a hash
         my %vlanname;
