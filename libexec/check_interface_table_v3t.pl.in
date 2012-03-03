@@ -85,8 +85,9 @@ my $oid_ipAdEntNetMask  = ".1.3.6.1.2.1.4.20.1.3";    # + ".<index>"
 my $oid_ifVlanName      = '.1.3.6.1.2.1.47.1.2.1.1.2'; # + ".<index>"
 my $oid_ifSTP           = '.1.3.6.1.2.1.17.2.15.1.3'; # + ".<index>"
 
-my $oid_stp_ifindex_map = '1.3.6.1.2.1.17.1.4.1.2';	  # map from dot1base port table to SNMP ifindex table
-my $oid_stp_portstate   = '1.3.6.1.2.1.17.2.15.1.3.'; # stp port states
+my $oid_stp_ifindex_map = '.1.3.6.1.2.1.17.1.4.1.2';  # map from dot1base port table to SNMP ifindex table
+my %stp_ifmap           = ();
+my $oid_stp_portstate   = '.1.3.6.1.2.1.17.2.15.1.3'; # stp port states
 my %stp_portstate       = (0=>'unknown',1=>'disabled',2=>'blocking',3=>'listening',4=>'learning',5=>'forwarding',6=>'broken');
 
 # RFC1213 - Extracts about in/out stats
@@ -131,8 +132,10 @@ my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'fau
 
 # HP specific OIDs
 # ------------------------------------------------------------------------
-my $oid_hp_ifVlanPort            = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2'; # + ".<index>"
-# Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1";
+my $oid_hp_ifVlanPort          = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2';   # + ".<index>"
+# Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1"; 
+#TODO my $oid_hp_ifDuplexStatus      = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.10';   # + ".<index>"
+#TODO my %hp_ifDuplexStatus          = (1=>'HD10',2=>'HD10',3=>'FD10',4=>'FD100',5=>'auto neg');
 
 # Juniper specific OIDs (from NETSCREEN-INTERFACE/ZONE/VSYS-MIB)
 # ------------------------------------------------------------------------
@@ -260,6 +263,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     {   Title => 'Oper status', Dataname => 'ifOperStatus', Enabled => 1 },
     {   Title => 'Speed', Dataname => 'ifSpeedReadable', Enabled => 1 },
     {   Title => 'Duplex', Dataname => 'ifDuplexStatus', Enabled => 1 },
+    {   Title => 'Stp', Dataname => 'ifSTP', Enabled => 0 },
     {   Title => 'Vlan', Dataname => 'ifVlanNames', Enabled => 0 },
     {   Title => 'Load In', Dataname => 'ifLoadIn', Enabled => 1 },
     {   Title => 'Load Out', Dataname => 'ifLoadOut', Enabled => 1 },
@@ -270,11 +274,12 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     {   Title => 'Last traffic', Dataname => 'ifLastTraffic', Enabled => 1 },
     {   Title => 'Actions', Dataname => 'actions', Enabled => 1 },
 ];
-if ($ghOptions{'vlan'}) { 
-    # show VLANs per port
-    $grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;
-}
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
+
+# show Spanning Tree port state
+if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1};
+# show VLANs per port
+if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1};
 
 # ------------------------------------------------------------------------
 # Other global initializations
@@ -304,6 +309,7 @@ my $gPerfdata                        = "";           # performancedata
 my $grefaDescrLines;                                 # Lines returned from snmpwalk storing interface descriptions
 my $grefaIPLines;                                    # Lines returned from snmpwalk storing ip addresses
 my $grefaPhysAddressLines;                           # Lines returned from snmpwalk storing physical addresses
+my $grefaSTPLines;                                   # Lines returned from snmpwalk storing stp states
 my $grefaOperStatusLines;                            # Lines returned from snmpwalk storing ifOperStatus
 my $grefaOctetInLines;                               # Lines returned from snmpwalk storing ifOctetsIn
 my $grefaOctetOutLines;                              # Lines returned from snmpwalk storing ifOctetsOut
@@ -468,6 +474,23 @@ Get_IpAddress_SubnetMask ($grefaIPLines);
 # get ifAdminStatus, ifSpeed and ifAlias from the net or from cache
 Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 
+# get stp state from the net or from cache
+#Get_Stp ($grefhCurrent);
+
+if ($ghOptions{'stp'}) {
+    # get stp state for all the interfaces
+    $grefaSTPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
+    if ($#$grefaIPLines < 0 ) {
+        logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    $grefaSTPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
+    if ($#$grefaIPLines < 0 ) {
+        logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+}
+
 logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
 # ------------------------------------------------------------------------------
@@ -623,7 +646,7 @@ foreach my $Cell ( @$grefAoHInterfaceTableHeader ) {
         }
 #    }
 }
-$grefAoHInterfaceTableData = GenerateHtmlTable ($grefaInterfaceTableFields,$ghOptions{'track-property'});
+$grefAoHInterfaceTableData = GenerateInterfaceTableData ($grefaInterfaceTableFields,$ghOptions{'track-property'});
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -949,33 +972,60 @@ sub WriteHtmlTable {
 
     my $refhStruct = shift;
 
-    my $Footer = HtmlLinks ({
-        Back            =>  1,
-        ResetTable      =>  "$gInterfaceInformationFile"
-    });
-
     umask "$UMASK";
 
                 not -d $refhStruct->{Dir} and MyMkdir($refhStruct->{Dir});
 
     open (OUT,">$refhStruct->{FileName}") or die "cannot $refhStruct->{FileName} $!";
+        # -- Header --
         print OUT '
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>' . $grefhCurrent->{MD}->{sysName} . '</title>
+    <title>Interfacetable_v3t - ' . $grefhCurrent->{MD}->{sysName} . '</title>
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
     <script type="text/javascript" src="../js/functions.js"></script>
   </head>
-<body>
-';
-        print OUT '<center><pre><a href="' . $ghOptions{'accessmethod'} . '://',$ghOptions{'hostquery'},'">',$ghOptions{'hostquery'},'</a>',
-            ' updated: ',scalar localtime $EndTime,' (',$EndTime-$STARTTIME,' sec.)';
-        print OUT '<span style="float: right;"><a href="' . $ghOptions{htmltableurl} . '" target="_blank">[ go to node selector ]</a></span></pre>';
-        print OUT $refhStruct->{Header};
-        print OUT $refhStruct->{Body};
-        print OUT $Footer;
-        print OUT '<center></body></html>';
+<body>';
+        # -- Header --
+        print OUT '
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <title>Interfacetable_v3t - ' . $grefhCurrent->{MD}->{sysName} . '</title>
+    <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
+    <script type="text/javascript" src="../js/functions.js"></script>
+  </head>
+<body>';
+        # -- Body header --
+        print OUT '<center><span>',
+'<a href="' . $ghOptions{'accessmethod'} . '://' . $ghOptions{'hostquery'} . '">' . $ghOptions{'hostquery'} . '</a>',
+' updated: ',scalar localtime $EndTime,' (',$EndTime-$STARTTIME,' sec.)',
+'<span style="float: right;">',
+'<a href="' . $ghOptions{htmltableurl} . '" target="_blank">[ go to node selector ]</a>',
+'</span>',
+'</span></center>';
+        # -- Tables --
+        print OUT '<center>',
+$refhStruct->{Header},
+$refhStruct->{Body},
+'</center>';
+        # -- Body footer --
+        print OUT '<center><span>',
+'<a href="JavaScript:history.back();">[ back ]</a>';
+        # reset button to remove file
+        if ($gInterfaceInformationFile) {
+            if (-f "$gInterfaceInformationFile") {
+                print OUT "<a href=\"$ghOptions{reseturl}/InterfaceTableReset_v3t.cgi?Command=rm&What=$gInterfaceInformationFile\">[ reset table ]</a>";
+            }
+        }
+        print OUT '</span></center>';
+        print OUT '<span style="float: right; color: grey; font-style: italic">',
+'interfacetable_v3t '.$REVISION,
+'</span>';
+        print OUT '
+    </body>
+</html>';
     close (OUT);
     logger(1, "HTML table file created: $refhStruct->{FileName}");
     return 0;
@@ -1004,7 +1054,7 @@ sub mcompare {
 # Compare data from refhFile and refhCurrent and create the csv data for
 # html table.
 # ------------------------------------------------------------------------
-sub GenerateHtmlTable {
+sub GenerateInterfaceTableData {
 
     my $refaFields               = shift;               # Array of the fields for the table
     my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
@@ -2082,7 +2132,7 @@ sub Get_IpAddress_SubnetMask {
         my ($Tmp,$NetMask) = split (" ",join ("",grep /$IpAddress /,@$refaNetMask),2);
         $NetMask =~ s/\s+$//;    # remove invisible chars from the end
         logger(3, "Index: $Index, IpAddress: $IpAddress, Netmask: $NetMask");
-        defined $quadmask2dec{"$NetMask"} && $NetMask = $quadmask2dec{"$NetMask"};        
+        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"}};        
         
         # get the interface description stored before from the index table
         my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{"$Index"};
@@ -2812,8 +2862,8 @@ sub check_for_unused_interfaces {
 # ------------------------------------------------------------------------------
 sub Convert2Html {
     my $tableType  = shift;       # Type of table to generate
-    my $refAoHHeader = shift;       # Header contains the HTML table header as array
-    my $refAoAoHLines  = shift;       # Reference to array of table lines
+    my $refAoHHeader = shift;     # Header contains the HTML table header as array
+    my $refAoAoHLines  = shift;   # Reference to array of table lines
     my $cssClass   = shift;       # Css class to use for the table
     my $highlightColor = shift;   # Color used to highlight. Disactivated if no color
     
@@ -3081,36 +3131,6 @@ sub ExitPlugin {
     }
 
     exit $refhStruct->{ExitCode};
-}
-
-# ------------------------------------------------------------------------------
-# Append Buttons
-# ------------------------------------------------------------------------------
-sub HtmlLinks {
-
-    my $refhStruct          = shift;
-    my $Text                = shift;
-    my $InterfaceStateFile  = "$refhStruct->{ResetTable}";
-    my $HTML;
-
-    # nice font
-    $HTML.='<span>'."\n";
-
-    # back button
-    if ($refhStruct->{Back}) {
-        $HTML.='<a href="JavaScript:history.back();">[ back ]</a>'."\n";
-    }
-
-    # reset button to remove file
-    if ($InterfaceStateFile) {
-        if (-f "$InterfaceStateFile") {
-            $HTML.="<a href=\"$ghOptions{reseturl}/InterfaceTableReset_v3t.cgi?Command=rm&What=$InterfaceStateFile\">[ reset table ]</a>";
-        }
-    }
-
-    $HTML.='</span><span style="float: right; color: grey; font-style: italic">interfacetable_v3t '.$REVISION.'</span>'."\n";
-
-    return $HTML;
 }
 
 # ------------------------------------------------------------------------
