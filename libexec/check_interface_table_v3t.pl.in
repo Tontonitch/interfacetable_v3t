@@ -1007,8 +1007,18 @@ sub WriteHtmlTable {
 '</span></center>';
         # -- Tables --
         print OUT '<center>',
+'<br>',
+'<span>',
+'<a name=topheader></a>',
 $refhStruct->{Header},
+#'<a href="#top">Go to the top of the table</a>',
+'</span>',
+'<br>',
+'<span>',
+'<a name=topbody></a>',
 $refhStruct->{Body},
+#'<a href="#topbody">Go to the top of the table</a>',
+'</span>',
 '</center>';
         # -- Body footer --
         print OUT '<center><span>',
@@ -2880,9 +2890,6 @@ sub Convert2Html {
     
             # ------------------------------------------------------------------
             # Build HTML format and table header
-            $HTML .= '<a name=top></a>'."\n";
-            $HTML .= '<br>';
-            $HTML .= '<span>'."\n";
             $HTML .= '<table '."class=$cssClass";
             if ($highlightColor ne "") {
                 $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'" . $highlightColor . "'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
@@ -2999,9 +3006,6 @@ sub Convert2Html {
         if ($#$refAoAoHLines >= 0) {
     
             # Build HTML format and table header
-            $HTML .= '<a name=top></a>'."\n";
-            $HTML .= '<br>';
-            $HTML .= '<span>'."\n";
             $HTML .= '<table '."class=$cssClass";
             if ($cssClass eq "interfacetable") {
                 $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
