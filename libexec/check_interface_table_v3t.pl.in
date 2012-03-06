@@ -682,10 +682,10 @@ if ( $gInitialRun ) {
 }
 
 # Create "small" information table
-$gInfoTableHTML = Convert2Html (0,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
+$gInfoTableHTML = Convert2HtmlTable (0,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
 
 # Create "big" interface table
-$gInterfaceTableHTML   = Convert2Html (0,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
+$gInterfaceTableHTML   = Convert2HtmlTable (0,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -760,22 +760,18 @@ if ($gPktDiscardCritCounter > 0 ) {
 }
 
 # Append html table link to text
-$gText = AppendLinkToText({
-          Text        => $gText,
-          HtmlUrl     => $ghOptions{'htmltableurl'},
-          File        => "$gFile.html"
-        });
+$gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '">[details]</a>';
 
 if ($ghOptions{'cisco'} and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
 }
 
 # Write Html Table
-WriteHtmlTable ({
-    Header      => $gInfoTableHTML,
-    Body        => $gInterfaceTableHTML,
-    Dir         => $ghOptions{'htmltabledir'},
-    FileName    => "$ghOptions{'htmltabledir'}/$gFile".'.html'
+WriteHtmlFile ({
+    InfoTable       => $gInfoTableHTML,
+    InterfaceTable  => $gInterfaceTableHTML,
+    Dir             => $ghOptions{'htmltabledir'},
+    FileName        => "$ghOptions{'htmltabledir'}/$gFile".'.html'
 });
 
 # Write perfdata
@@ -961,14 +957,15 @@ sub perfdataout {
 # Create interface table html table file
 # This file will be visible on the browser
 #
-# WriteHtmlTable ({
-#    Header      => $gInfoTableHTML,
-#    Body        => $gInterfaceTableHTML,
-#    FileName    => $gHtmlFileName
+# WriteHtmlFile ({
+#    InfoTable           => $gInfoTableHTML,
+#    InterfaceTable      => $gInterfaceTableHTML,
+#    Dir                 => $ghOptions{'htmltabledir'},
+#    FileName            => $ghOptions{'htmltabledir'}/$gFile".'.html'
 # });
 #
 # ------------------------------------------------------------------------
-sub WriteHtmlTable {
+sub WriteHtmlFile {
 
     my $refhStruct = shift;
 
@@ -977,16 +974,6 @@ sub WriteHtmlTable {
                 not -d $refhStruct->{Dir} and MyMkdir($refhStruct->{Dir});
 
     open (OUT,">$refhStruct->{FileName}") or die "cannot $refhStruct->{FileName} $!";
-        # -- Header --
-        print OUT '
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>Interfacetable_v3t - ' . $grefhCurrent->{MD}->{sysName} . '</title>
-    <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
-    <script type="text/javascript" src="../js/functions.js"></script>
-  </head>
-<body>';
         # -- Header --
         print OUT '
 <html>
@@ -1009,15 +996,15 @@ sub WriteHtmlTable {
         print OUT '<center>',
 '<br>',
 '<span>',
-'<a name=topheader></a>',
-$refhStruct->{Header},
-#'<a href="#top">Go to the top of the table</a>',
+'<a name=topInfoTable></a>',
+$refhStruct->{InfoTable},
+#'<a href="#topInfoTable">Go to the top of the table</a>',
 '</span>',
 '<br>',
 '<span>',
-'<a name=topbody></a>',
-$refhStruct->{Body},
-#'<a href="#topbody">Go to the top of the table</a>',
+'<a name=topInterfaceTable></a>',
+$refhStruct->{InterfaceTable},
+#'<a href="#topInterfaceTable">Go to the top of the table</a>',
 '</span>',
 '</center>';
         # -- Body footer --
@@ -1069,7 +1056,7 @@ sub GenerateInterfaceTableData {
     my $refaFields               = shift;               # Array of the fields for the table
     my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
-    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2Html
+    my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2HtmlTable
     my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
@@ -2714,11 +2701,11 @@ sub check_for_unused_interfaces {
 }
 
 # ------------------------------------------------------------------------------
-# Convert2Html
+# Convert2HtmlTable
 # This function generates a html table
 # ------------------------------------------------------------------------------
 # Function call:
-#  $gHtml = Convert2Html ($tableType, $refAoHHeader,$refAoAoHLines,$cssClass);
+#  $gHtml = Convert2HtmlTable ($tableType, $refAoHHeader,$refAoAoHLines,$cssClass);
 # Arguments:
 #  0 : integrer corresponding to the table type to generate:
 #      0=horizontal headers (default)
@@ -2870,7 +2857,7 @@ sub check_for_unused_interfaces {
 #<td >0d&nbsp;0h&nbsp;0m</td>
 #<td >&nbsp<a href="/pnp4nagios/graph?host=127.0.0.1&srv=If_eth0"><img src="../img/chart.png" alt="Trends" /></a>&nbsp</td></tr></table></td></tr><br>
 # ------------------------------------------------------------------------------
-sub Convert2Html {
+sub Convert2HtmlTable {
     my $tableType  = shift;       # Type of table to generate
     my $refAoHHeader = shift;     # Header contains the HTML table header as array
     my $refAoAoHLines  = shift;   # Reference to array of table lines
@@ -3087,23 +3074,6 @@ sub Convert2Html {
     logger(2, "x"x50);
     
     return $HTML;
-}
-
-# ------------------------------------------------------------------------------
-# AppendLinkToText
-# Apend html table link to text
-# ------------------------------------------------------------------------------
-sub AppendLinkToText {
-
-    my $refhStruct = shift;
-    my $ResultText;
-
-    #$ResultText = '<a href="' . "$refhStruct->{HtmlUrl}/$refhStruct->{File}" . '">' . $refhStruct->{Text} . '</a>';
-
-    #Modified output to avoid problems with addons not handling html links correctly (ex: nagstamon)
-    $ResultText = $refhStruct->{Text} . ' <a href="' . "$refhStruct->{HtmlUrl}/$refhStruct->{File}" . '">[details]</a>';
-
-    return $ResultText;
 }
 
 # ------------------------------------------------------------------------------
