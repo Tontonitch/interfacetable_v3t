@@ -49,7 +49,8 @@ my $gInterfaceInformationFile = param('What');
 
 print header;
 # print start_html('<script type="text/javascript"><!--history.go(-1);--></script>');
-print start_html('Table Reset'),
+print start_html( -title=>'Table Reset',
+                  -style=>{-src=>'../css/button.css'} ),
     h1('Interface Table Reset Procedure'),
     hr;
 print "Resetting... ",
@@ -101,10 +102,15 @@ print "</ul>";
 
 WriteConfigFileNew ("$gInterfaceInformationFile",$grefhFile);
 
-print "New set of reference data saved. The interface table and the raised alarms will be resetted at the next check launch.",
+print "New set of reference data saved. The interface table and the raised alarms will be reset at the next check launch.",
     hr;
 
-print q(<a href=JavaScript:history.back();>Back to the table</a>);
+print q(    <div class="buttons">
+        <a class="green" href="javascript:history.back();">
+            <img src="../img/arrow_left.png" alt="back to table"/>
+            back to table
+        </a>
+    </div>);
 
 print end_html;
 

@@ -39,6 +39,7 @@
 #           idx or mac addr
 #         - update supported nodes list
 #         - add Juniper Netscreen support (+ special columns)
+# IN PROG - look review (buttons, html structure, css)
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05

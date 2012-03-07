@@ -1,0 +1,67 @@
+/***** BUTTONS *****/
+.buttons a{
+    display:block;
+    float:left;
+    margin:0 7px 0 0;
+    background-color:#f5f5f5;
+    border:1px solid #dedede;
+    border-top:1px solid #eee;
+    border-left:1px solid #eee;
+    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+    font-size:8pt;
+    line-height:130%;
+    text-decoration:none;
+    font-weight:bold;
+    color:#565656;
+    cursor:pointer;
+    padding:2px 10px 1px 9px; /* Links */
+}
+.buttons a img{
+    margin: 2px 5px -1px 0 !important;
+    padding:0;
+    border:none;
+    width:10px;
+    height:10px;
+}
+
+/* STANDARD */
+.buttons a:hover{
+    background-color:#dff4ff;
+    border:1px solid #c2e1ef;
+    color:#336699;
+}
+.buttons a:active{
+    background-color:#6299c5;
+    border:1px solid #6299c5;
+    color:#fff;
+}
+
+/* GREEN */
+.buttons a.green{
+    color:#529214;
+}
+.buttons a.green:hover{
+    background-color:#E6EFC2;
+    border:1px solid #C6D880;
+    color:#529214;
+}
+.buttons a.green:active{
+    background-color:#529214;
+    border:1px solid #529214;
+    color:#fff;
+}
+
+/* RED */
+.buttons a.red{
+    color:#d12f19;
+}
+.buttons a.red:hover{
+    background:#fbe3e4;
+    border:1px solid #fbc2c4;
+    color:#d12f19;
+}
+.buttons a.red:active{
+    background-color:#d12f19;
+    border:1px solid #d12f19;
+    color:#fff;
+}

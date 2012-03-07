@@ -975,53 +975,61 @@ sub WriteHtmlFile {
 
     open (OUT,">$refhStruct->{FileName}") or die "cannot $refhStruct->{FileName} $!";
         # -- Header --
-        print OUT '
-<html>
+        print OUT '<html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
     <title>Interfacetable_v3t - ' . $grefhCurrent->{MD}->{sysName} . '</title>
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
+    <link rel="stylesheet" type="text/css" href="../css/button.css">
     <script type="text/javascript" src="../js/functions.js"></script>
   </head>
 <body>';
         # -- Body header --
-        print OUT '<center><span>',
-'<a href="' . $ghOptions{'accessmethod'} . '://' . $ghOptions{'hostquery'} . '">' . $ghOptions{'hostquery'} . '</a>',
-' updated: ',scalar localtime $EndTime,' (',$EndTime-$STARTTIME,' sec.)',
-'<span style="float: right;">',
-'<a href="' . $ghOptions{htmltableurl} . '" target="_blank">[ go to node selector ]</a>',
-'</span>',
-'</span></center>';
+        print OUT '<div width=98% align=center>';
+        print OUT '    <div id="header">
+        <div class="buttons">
+            <a href="' . $ghOptions{htmltableurl} . '/index.php" target="_blank">
+                <img src="../img/house.png" alt="node selector"/>
+                node selector
+            </a>
+        </div>
+        <div>';
+        print OUT '            <a href="' , $ghOptions{'accessmethod'} , '://' , $ghOptions{'hostquery'} , '">' , $ghOptions{'hostquery'} , '</a> updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
+        print OUT '        </div>
+    </div>
+    <br>';
+
         # -- Tables --
-        print OUT '<center>',
-'<br>',
-'<span>',
-'<a name=topInfoTable></a>',
-$refhStruct->{InfoTable},
-#'<a href="#topInfoTable">Go to the top of the table</a>',
-'</span>',
-'<br>',
-'<span>',
-'<a name=topInterfaceTable></a>',
-$refhStruct->{InterfaceTable},
-#'<a href="#topInterfaceTable">Go to the top of the table</a>',
-'</span>',
-'</center>';
+        print OUT '    <div id="info">
+        <a name="topinfotable"></a>' .
+        $refhStruct->{InfoTable} . '
+    </div>
+    <br>
+    <div id="interface">
+        <a name=topinterfacetable></a>' .
+        $refhStruct->{InterfaceTable} . '
+        <div id="toplink">
+            <a href="#topinterfacetable">Back to top</a>
+        </div>
+    </div>
+    <br>';    
         # -- Body footer --
-        print OUT '<center><span>',
-'<a href="JavaScript:history.back();">[ back ]</a>';
-        # reset button to remove file
-        if ($gInterfaceInformationFile) {
-            if (-f "$gInterfaceInformationFile") {
-                print OUT "<a href=\"$ghOptions{reseturl}/InterfaceTableReset_v3t.cgi?Command=rm&What=$gInterfaceInformationFile\">[ reset table ]</a>";
-            }
-        }
-        print OUT '</span></center>';
-        print OUT '<span style="float: right; color: grey; font-style: italic">',
-'interfacetable_v3t '.$REVISION,
-'</span>';
-        print OUT '
-    </body>
+        print OUT '    <div class="buttons">
+        <a class="green" href="javascript:history.back();">
+            <img src="../img/arrow_left.png" alt="back"/>
+            back
+        </a>
+        <a class="red" href="' . $ghOptions{reseturl} . '/InterfaceTableReset_v3t.cgi?Command=rm&What=' . $gInterfaceInformationFile . '">
+            <img src="../img/arrow_refresh.png" alt="reset table"/>
+            reset table
+        </a>
+    </div>
+    <div id="footer">
+        interfacetable_v3t ' . $REVISION . '
+    </div>
+</div>
+<br>
+</body>
 </html>';
     close (OUT);
     logger(1, "HTML table file created: $refhStruct->{FileName}");
@@ -1174,10 +1182,6 @@ sub GenerateInterfaceTableData {
                 $CellContent = denormalize( $CurrentFieldContent );
             }
 
-            # Write an empty cell content if CellContent is empty
-            # This is for visual purposes
-            not $CellContent and $CellContent = '&nbsp';
-
             # Actions field
             if (grep (/$FieldName/i, "Actions")) {
                 # Graphing solution link - one link per line/interface/port
@@ -1194,20 +1198,20 @@ sub GenerateInterfaceTableData {
                                            $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                            '"><img src="' .
                                            '../img/chart.png' .
-                                           '" alt="Trends" /></a>&nbsp';
+                                           '" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
                             $CellContent .= '<a href="' . 
                                            #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '&page_act=[1]+Interface+traffic' .
                                            $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                            '"><img src="' .
                                            '../img/chart.png' .
-                                           '" alt="Trends" /></a>&nbsp';
+                                           '" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "netwaysgrapherv2") {
                             $CellContent .= '<a href="' . 
                                            $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                            '"><img src="' .
                                            '../img/chart.png' .
-                                           '" alt="Trends" /></a>&nbsp';
+                                           '" alt="Trends" /></a>';
                         }
                 }
                 # Retrieve detailed interface info via snmp link
@@ -1217,10 +1221,14 @@ sub GenerateInterfaceTableData {
                                    '&ifindex=' . $InterfaceIndex .
                                    '"><img src="' .
                                    '../img/binocular.png' .
-                                   '" alt="Details" /></a>&nbsp';
+                                   '" alt="Details" /></a>';
                 }
             }
             
+            # Write an empty cell content if CellContent is empty
+            # This is for visual purposes
+            not $CellContent and $CellContent = '&nbsp';
+
             # Store cell content in table
             $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{"Value"} = "$CellContent";
 
