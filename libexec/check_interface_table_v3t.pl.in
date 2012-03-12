@@ -255,23 +255,23 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    {   Title => 'Index', Dataname => 'index', Enabled => 1 },
-    {   Title => 'Description', Dataname => 'ifDescr', Enabled => 1 },
-    {   Title => 'Alias', Dataname => 'ifAlias', Enabled => 1 },
-    {   Title => 'Admin status', Dataname => 'ifAdminStatus', Enabled => 1 },
-    {   Title => 'Oper status', Dataname => 'ifOperStatus', Enabled => 1 },
-    {   Title => 'Speed', Dataname => 'ifSpeedReadable', Enabled => 1 },
-    {   Title => 'Duplex', Dataname => 'ifDuplexStatus', Enabled => 1 },
-    {   Title => 'Stp', Dataname => 'ifStpState', Enabled => 0 },
-    {   Title => 'Vlan', Dataname => 'ifVlanNames', Enabled => 0 },
-    {   Title => 'Load In', Dataname => 'ifLoadIn', Enabled => 1 },
-    {   Title => 'Load Out', Dataname => 'ifLoadOut', Enabled => 1 },
-    {   Title => 'IP', Dataname => 'IpInfo', Enabled => 1 },
-    {   Title => 'bpsIn', Dataname => 'bpsIn', Enabled => 1 },
-    {   Title => 'bpsOut', Dataname => 'bpsOut', Enabled => 1 },
-    {   Title => 'Pkt errors', Dataname => 'pktErrDiscard', Enabled => 1 },
-    {   Title => 'Last traffic', Dataname => 'ifLastTraffic', Enabled => 1 },
-    {   Title => 'Actions', Dataname => 'actions', Enabled => 1 },
+    {   Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Enabled => 1 },
+    {   Title => 'Description',  Dataname => 'ifDescr',         Datatype => 'other',    Enabled => 1 },
+    {   Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Enabled => 1 },
+    {   Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Enabled => 1 },
+    {   Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Enabled => 1 },
+    {   Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Enabled => 1 },
+    {   Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Enabled => 0 },
+    {   Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Enabled => 0 },
+    {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Enabled => 0 },
+    {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Enabled => 1 },
+    {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Enabled => 1 },
+    {   Title => 'IP',           Dataname => 'IpInfo',          Datatype => 'property', Enabled => 1 },
+    {   Title => 'bpsIn',        Dataname => 'bpsIn',           Datatype => 'load',     Enabled => 1 },
+    {   Title => 'bpsOut',       Dataname => 'bpsOut',          Datatype => 'load',     Enabled => 1 },
+    {   Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Enabled => 1 },
+    {   Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Enabled => 1 },
+    {   Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -475,24 +475,24 @@ Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 # STP specific (--stp)
 if ($ghOptions{'stp'}) {
     # get stp port->ifindex map table
-    $grefaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
-    if ($#$grefaSTPIfIndexMapLines < 0 ) {
-        logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
-    print "grefaSTPIfIndexMapLines:".Dumper($grefaSTPIfIndexMapLines);
-    my $stp_ifmap = ();
-    foreach (@$grefaSTPIfIndexMapLines) {
-            $stp_ifmap->{"$2"}=$1 if /$oid_stp_ifindex_map\.([0-9]*) ([0-9]*)/;
-    }
-    print "stp_ifmap:".Dumper($stp_ifmap);
-    $grefaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
-    if ($#$grefaSTPPortStateLines < 0 ) {
-        logger(0, "Could not read STP port state table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_portstate\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
+    #$grefaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
+    #if ($#$grefaSTPIfIndexMapLines < 0 ) {
+    #    logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
+    #    exit $ERRORS{"UNKNOWN"};
+    #}
+    #print "grefaSTPIfIndexMapLines:".Dumper($grefaSTPIfIndexMapLines);
+    #my $stp_ifmap = ();
+    #foreach (@$grefaSTPIfIndexMapLines) {
+    #        $stp_ifmap->{"$1"}=$2 if /$oid_stp_ifindex_map\.([0-9]*) ([0-9]*)/;
+    #}
+    #print "stp_ifmap:".Dumper($stp_ifmap);
+    #$grefaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
+    #if ($#$grefaSTPPortStateLines < 0 ) {
+    #    logger(0, "Could not read STP port state table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_portstate\n");
+    #    exit $ERRORS{"UNKNOWN"};
+    #}
     # post-process interface descriptions
-    Get_Stp ($stp_ifmap, $grefaSTPPortStateLines);
+    Get_Stp ();
 }
 
 # Cisco specific (--cisco)
@@ -1098,7 +1098,6 @@ sub GenerateInterfaceTableData {
     my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
     my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
     my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2HtmlTable
-    my $DataForMD5CheckSum       = "";                  # MD5 Checksum
 
     # Print a header for debug information
     logger(2, "x"x50);
@@ -1145,7 +1144,6 @@ sub GenerateInterfaceTableData {
             
             if (defined $refhInterFaceDataCurrent->{"$FieldName"}) {
                 # This is used to calculate the id (used for displaying the html table)
-                $DataForMD5CheckSum .= $refhInterFaceDataCurrent->{"$FieldName"};
                 $CurrentFieldContent  = $refhInterFaceDataCurrent->{"$FieldName"};
                 # Delete the first and last "blank"
                 $CurrentFieldContent =~ s/^ //;
@@ -2293,10 +2291,70 @@ sub WriteConfigFileNew {
 # ------------------------------------------------------------------------
 sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
 
+    # get ifAdminStatus table
+    my $refaIfAdminStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAdminStatus,$ghOptions{'cachedir'},0);
+    if ($#$refaIfAdminStatus < 0 ) {
+        logger(0, "Could not read ifAdminStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAdminStatus\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    my $refhIfAdminStatus = ();
+    foreach (@$refaIfAdminStatus) {
+        $refhIfAdminStatus->{"$1"}=$2 if /$oid_ifAdminStatus\.([0-9]*) (.*)$/;
+    }
+
+    # get ifDuplexStatus table
+    my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDuplexStatus,$ghOptions{'cachedir'},0);
+    if ($#$refaIfDuplexStatus < 0 ) {
+        logger(0, "Could not read ifDuplexStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifDuplexStatus\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    my $refhIfDuplexStatus = ();
+    foreach (@$refaIfDuplexStatus) {
+        $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus\.([0-9]*) (.*)$/;
+    }
+
+    # get ifAlias table
+    my $refaIfAlias = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAlias,$ghOptions{'cachedir'},0);
+    if ($#$refaIfAlias < 0 ) {
+        logger(0, "Could not read ifAlias table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAlias\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    #print "refaIfAlias: " . Dumper($refaIfAlias);
+    my $refhIfAlias = ();
+    foreach (@$refaIfAlias) {
+        $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias\.([0-9]*) (.*)$/;
+    }
+    #print "refhIfAlias: " . Dumper($refhIfAlias);
+
+    # get ifSpeed table
+    my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifSpeed,$ghOptions{'cachedir'},0);
+    if ($#$refaIfSpeed < 0 ) {
+        logger(0, "Could not read ifSpeed table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifSpeed\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    my $refhIfSpeed = ();
+    foreach (@$refaIfSpeed) {
+        $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed\.([0-9]*) ([0-9]*)/;
+    }
+
+    my $refhIfSpeed64 = ();
+    if ($ghSNMPOptions{'64bits'}) {
+        # get ifSpeed64 table
+        my $refaIfSpeed64 = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifSpeed_64,$ghOptions{'cachedir'},0);
+        if ($#$refaIfSpeed64 < 0 ) {
+            logger(0, "Could not read ifSpeed64 table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifSpeed_64\n");
+            exit $ERRORS{"UNKNOWN"};
+        }
+        $refhIfSpeed64 = ();
+        foreach (@$refaIfSpeed64) {
+            $refhIfSpeed64->{"$1"}=$2 if /$oid_ifSpeed_64\.([0-9]*) ([0-9]*)/;
+        }
+    }
+    
     # loop through all found interfaces
     for my $Desc (keys %{$grefhCurrent->{If}}) {
 
-        my $refhSNMP = ();
+        #my $refhSNMP = ();
         my $CacheTimer = 0;
 
         # Extract the index out of the MetaData
@@ -2317,45 +2375,45 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
          }
 
         # Get next interface properties with caching to avoid network load
-        if ($ghSNMPOptions{'64bits'}) {
-            $refhSNMP = GetMultipleDataWithSnmp (
-                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index", "$oid_ifSpeed_64.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
-        } else {
-            $refhSNMP = GetMultipleDataWithSnmp (
-                $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifAdminStatus.$Index", "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
-        }
+        #if ($ghSNMPOptions{'64bits'}) {
+        #    $refhSNMP = GetMultipleDataWithSnmp (
+        #        $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index", "$oid_ifSpeed_64.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+        #} else {
+        #    $refhSNMP = GetMultipleDataWithSnmp (
+        #        $ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifSpeed.$Index", "$oid_ifDuplexStatus.$Index", "$oid_ifAlias.$Index" ],$ghOptions{'cachedir'},$CacheTimer);
+        #}
         
         # Store ifAdminStatus converted from a digit to "up" or "down"
         $grefhCurrent->{If}->{"$Desc"}->{ifAdminStatus} =
-            ConvertIfStatusToReadable ($refhSNMP->{"$oid_ifAdminStatus.$Index"});
+            ConvertIfStatusToReadable ($refhIfAdminStatus->{"$Index"});
 
         # Get the speed in normal or highperf speed counters
-        if ($refhSNMP->{"$oid_ifSpeed.$Index"} eq ""){
-            $refhSNMP->{"$oid_ifSpeed.$Index"} = -1;
+        if ($refhIfSpeed->{"$Index"} eq ""){
+            $refhIfSpeed->{"$Index"} = -1;
         }
-        if ($refhSNMP->{"$oid_ifSpeed.$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
-            if ($ghSNMPOptions{'64bits'} && $refhSNMP->{"$oid_ifSpeed_64.$Index"} != 0) {
-                $refhSNMP->{"$oid_ifSpeed.$Index"} = $refhSNMP->{"$oid_ifSpeed_64.$Index"} * 1000000;
+        if ($refhIfSpeed->{"$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
+            if ($ghSNMPOptions{'64bits'} && $refhIfSpeed64->{"$Index"} != 0) {
+                $refhIfSpeed->{"$Index"} = $refhIfSpeed64->{"$Index"} * 1000000;
             } elsif (! $ghSNMPOptions{'64bits'}) {
                 logger(1, " --->>> WARNING");
-                logger(1, " $Desc($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhSNMP->{"$oid_ifSpeed.$Index"});
+                logger(1, " $Desc($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.")");
                 logger(1, " $Desc($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $Desc($Index) !!!");
             }
         }
         
         # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeed} =
-            ($refhSNMP->{"$oid_ifSpeed.$Index"});
+            ($refhIfSpeed->{"$Index"});
         $grefhCurrent->{If}->{"$Desc"}->{ifSpeedReadable} =
-            ConvertSpeedToReadable ($refhSNMP->{"$oid_ifSpeed.$Index"});
+            ConvertSpeedToReadable ($refhIfSpeed->{"$Index"});
 
         # Store ifDuplexStatus converted from a digit to string
         $grefhCurrent->{If}->{"$Desc"}->{ifDuplexStatus} =
-            ConvertIfDuplexStatusToReadable ($refhSNMP->{"$oid_ifDuplexStatus.$Index"});
+            ConvertIfDuplexStatusToReadable ($refhIfDuplexStatus->{"$Index"});
             
         # Store ifAlias normalized to not get into trouble with special chars
         $grefhCurrent->{If}->{"$Desc"}->{ifAlias} =
-            normalize ($refhSNMP->{"$oid_ifAlias.$Index"});
+            normalize ($refhIfAlias->{"$Index"});
 
         if ($ghOptions{vlan}) { # show VLANs per port
             # clear ifVlanNames
@@ -2423,24 +2481,40 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
 # ------------------------------------------------------------------------
 sub Get_Stp {
     
-    my $stp_ifmap = shift;
-    my $grefaSTPPortStateLines = shift;
-    
-    for (@$grefaSTPPortStateLines) {
-        my ($Index,$PortstateNow) = split / /,$_,2;
+    # get stp port->ifindex map table
+    my $refaSTPIfIndexMap = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
+    if ($#$refaSTPIfIndexMap < 0 ) {
+        logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    print "refaSTPIfIndexMap:".Dumper($refaSTPIfIndexMap);
+    my $refhSTPIfIndexMap = ();
+    foreach (@$refaSTPIfIndexMap) {
+            $refhSTPIfIndexMap->{"$1"}=$2 if /$oid_stp_ifindex_map\.([0-9]*) ([0-9]*)/;
+    }
+    print "refhSTPIfIndexMap:".Dumper($refhSTPIfIndexMap);
+    my $refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
+    if ($#$refaSTPPortStateLines < 0 ) {
+        logger(0, "Could not read STP port state table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_portstate\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+
+    for (@$refaSTPPortStateLines) {
+        my ($Index,$Portstate) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
-        $PortstateNow =~ s/\s+$//g;    # remove invisible chars from the end
-        if (defined $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$stp_ifmap->{$Index}}) {
-            my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$stp_ifmap->{$Index}};
-            defined $stp_portstate_readable{"$PortstateNow"} and $PortstateNow = $stp_portstate_readable{"$PortstateNow"};
+        $Portstate =~ s/\s+$//g;    # remove invisible chars from the end
+        if (defined $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$refhSTPIfIndexMap->{$Index}}) {
+            my $Desc = $grefhCurrent->{MD}->{IfIndexTable}->{ByIndex}->{$refhSTPIfIndexMap->{$Index}};
+            defined $stp_portstate_readable{"$Portstate"} and $Portstate = $stp_portstate_readable{"$Portstate"};
             logger(2, "Index=$Index ($Desc)");
-            logger(2, "StpIndex=\"$Index\", StpPortstate=\"$PortstateNow\"");
-            
+            logger(2, "StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
+
             # Store the Portstate as property of the current interface
-            $grefhCurrent->{If}->{"$Desc"}->{ifStpState} = "$PortstateNow";
+            $grefhCurrent->{If}->{"$Desc"}->{ifStpState} = "$Portstate";
         }
     }
     return 0;
+
 }        
 
 # ------------------------------------------------------------------------
@@ -2552,7 +2626,7 @@ sub ConvertIfStatusToNumber {
 sub ConvertIfDuplexStatusToReadable {
     my $status = shift;
     my %status_conversion = ( 1=>'unknown', 2=>'half', 3=>'full');
-    if ($status =~ /^(1|2|3)$/) {
+    if (defined $status and $status =~ /^(1|2|3)$/) {
         $status = $status_conversion{$status};
     } else {
         # we do nothing and leave the original status
