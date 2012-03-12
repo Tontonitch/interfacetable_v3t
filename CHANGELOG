@@ -8,7 +8,7 @@
 #
 #
 #   ----------------------------------------------------------------------
-# * 0.03-2
+# * 0.03-2 (not published)
 #   ----------------------------------------------------------------------
 #    - bugfix: workaround for devices with same interface name 'Ethernet Interface'.
 #      waiting for some planned tasks of 0.04 for better and general duplicates detection

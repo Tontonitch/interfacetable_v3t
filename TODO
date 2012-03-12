@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------
 # DONE    - review table building method for more flexibility
 # IN PROG - review general structure of the plugin
-#         - add STP info
+# IN PROG - add STP info
 #         - add a feature to anonymize the info in debug reports (script or option?)
 #         - extend debug if needed
 #         - think about an option to generate an anonymous report for better support
@@ -21,11 +21,9 @@
 #            -> check if enough now
 #         - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
-# DONE    - replace repeated single snmp request by table snmp request / snmpwalk when 
+# IN PROG - replace repeated single snmp request by table snmp request / snmpwalk when 
 #           possible -> performance enhancement
 #         - an option to generate an anonymized debug report 
-#         - check/adapt the perfdata to make the <service_description>.xml and allow correct
-#           link for the nagios/icinga graph icon.
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
@@ -40,11 +38,14 @@
 #         - update supported nodes list
 #         - add Juniper Netscreen support (+ special columns)
 # IN PROG - look review (buttons, html structure, css)
+#         - detect 32/64 bits counter use changes
+#         - detect release change
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
 #         - review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
+#         - multiple spanning tree support (currently only default vlan for cisco)
 #
 # ========================================================================
