@@ -7,45 +7,51 @@
 # ----------------------------------------------------------------------
 # DONE    - review table building method for more flexibility
 # IN PROG - review general structure of the plugin
-# IN PROG - add STP info
-#         - add a feature to anonymize the info in debug reports (script or option?)
+# IN PROG - performance enhancement by prefering snmp table/bulk request
+# DONE    - add STP info
 #         - extend debug if needed
-#         - think about an option to generate an anonymous report for better support
 #         - extend Cisco port info
-#         - add options for hp, or other brands if relevant
+# IN PROG - add options for hp, or other brands if relevant
 #         - review generated link [details] to be not a relative URL, to be usable in 
 #           email notifications
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 #         - better handling of counters cleared manually or via node restart
 #            -> check if enough now
-#         - create a more detailed documentation on supported nodes, also to prevent
-#           regressions
 # IN PROG - replace repeated single snmp request by table snmp request / snmpwalk when 
 #           possible -> performance enhancement
-#         - an option to generate an anonymized debug report 
-#         - add a 3rd table in the html page, summarizing the following options: 
-#               * inclusions/exclusions of any kind
-#               * thresholds of any kind
-#         - better non regression testing 
+# IN PROG - better non regression testing 
 #            -> test phase would include tests on simulated type of monitored nodes
 # IN PROG - convert network masks to quad-dotted decimal representation (*/[0-32])
 #           to free space in the interface table
-#         - option to show mac addresses in the interface table
 # DONE    - correctly handle devices where interfaces have the same ifdescr
 # DONE    - when interfaces have the same ifdescr, give the suffix choice between 
 #           idx or mac addr
-#         - update supported nodes list
-#         - add Juniper Netscreen support (+ special columns)
-# IN PROG - look review (buttons, html structure, css)
+# IN PROG - add Juniper Netscreen support (+ special columns)
+# DONE    - look review (buttons, html structure, css)
 #         - detect 32/64 bits counter use changes
 #         - detect release change
+#         - add a 3rd table in the html page, summarizing the following options: 
+#               * inclusions/exclusions of any kind
+#               * thresholds of any kind
+#         - add a 4th table in the html page, giving some specific device info,
+#           depending on the nodetype option
+#         - update supported nodes list
+#         - create a more detailed documentation on supported nodes, also to prevent
+#           regressions
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
+#         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
+#           use stpxInconsistentState?
+#         - add a feature to anonymize the info in debug reports (script or option?)
+#
+# ----------------------------------------------------------------------
+# Todo not classified yet
+# ----------------------------------------------------------------------
 #         - review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
-#         - multiple spanning tree support (currently only default vlan for cisco)
+#         - option to show mac addresses in the interface table
 #
 # ========================================================================
