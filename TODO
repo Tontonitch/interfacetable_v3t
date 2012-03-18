@@ -16,7 +16,7 @@
 #           email notifications
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
-#         - better handling of counters cleared manually or via node restart
+# DONE    - better handling of counters cleared manually or via node restart
 #            -> check if enough now
 # IN PROG - replace repeated single snmp request by table snmp request / snmpwalk when 
 #           possible -> performance enhancement
@@ -30,7 +30,7 @@
 # IN PROG - add Juniper Netscreen support (+ special columns)
 # DONE    - look review (buttons, html structure, css)
 #         - detect 32/64 bits counter use changes
-#         - detect release change
+# DONE    - detect release change
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
