@@ -2,7 +2,7 @@
 ### Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(interfacetable_v3t, 0.03, tontonitch-pro@yahoo.fr)
+AC_INIT(interfacetable_v3t, 0.04, tontonitch-pro@yahoo.fr)
 
 ### For later filesystem permissions
 AC_DEFINE([DEFAULT_USER], [nagios], [Default User])
@@ -20,9 +20,9 @@ AC_CANONICAL_HOST
 
 ### Some information about the project
 PKG_NAME=interfacetable_v3t
-PKG_VERSION="0.03"
+PKG_VERSION="0.04"
 PKG_HOME_URL="http://www.tontonitch.com"
-PKG_REL_DATE="14-11-2011"
+PKG_REL_DATE="xx-xx-2012"
 AC_SUBST(PKG_NAME)
 AC_SUBST(PKG_VERSION)
 AC_SUBST(PKG_HOME_URL)
