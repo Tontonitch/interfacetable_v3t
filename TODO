@@ -29,7 +29,7 @@
 #           idx or mac addr
 # IN PROG - add Juniper Netscreen support (+ special columns)
 # DONE    - look review (buttons, html structure, css)
-#         - detect 32/64 bits counter use changes
+# DONE    - detect 32/64 bits counter use changes
 # DONE    - detect release change
 #         - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
@@ -46,6 +46,7 @@
 #         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
 #           use stpxInconsistentState?
 #         - add a feature to anonymize the info in debug reports (script or option?)
+#         - review normalization for a more standard one available in perl and php
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet

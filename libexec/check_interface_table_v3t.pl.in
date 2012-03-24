@@ -233,32 +233,41 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    {   Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Enabled => 1 },
-    {   Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Enabled => 1 },
-    {   Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Enabled => 1 },
-    {   Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Enabled => 1 },
-    {   Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Enabled => 1 },
-    {   Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Enabled => 1 },
-    {   Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Enabled => 0 },
-    {   Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Enabled => 0 },
-    {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Enabled => 0 },
-    {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Enabled => 1 },
-    {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Enabled => 1 },
-    {   Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Enabled => 1 },
-    {   Title => 'bpsIn',        Dataname => 'bpsIn',           Datatype => 'load',     Enabled => 1 },
-    {   Title => 'bpsOut',       Dataname => 'bpsOut',          Datatype => 'load',     Enabled => 1 },
-    {   Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Enabled => 1 },
-    {   Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Enabled => 1 },
-    {   Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Enabled => 1 },
+    {   Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Enabled => 1 }, #0
+    {   Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Enabled => 1 }, #1
+    {   Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Enabled => 1 }, #2
+    {   Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Enabled => 1 }, #3
+    {   Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Enabled => 1 }, #4
+    {   Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Enabled => 1 }, #5
+    {   Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Enabled => 0 }, #6
+    {   Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Enabled => 0 }, #7
+    {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Enabled => 0 }, #8
+    {   Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Enabled => 0 }, #9
+    {   Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Enabled => 0 }, #10
+    {   Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Enabled => 0 }, #11
+    {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Enabled => 1 }, #12
+    {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Enabled => 1 }, #13
+    {   Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Enabled => 1 }, #14
+    {   Title => 'bpsIn',        Dataname => 'bpsIn',           Datatype => 'load',     Enabled => 1 }, #15
+    {   Title => 'bpsOut',       Dataname => 'bpsOut',          Datatype => 'load',     Enabled => 1 }, #16
+    {   Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Enabled => 1 }, #17
+    {   Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Enabled => 1 }, #18
+    {   Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Enabled => 1 }, #19
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
 # show duplex mode
-if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[6]->{Enabled} = 1};
+if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[6]->{Enabled} = 1;}
 # show Spanning Tree port state
-if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1};
+if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;}
 # show VLANs per port
-if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1};
+if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
+# show Netscreen specific info
+if ($ghOptions{'nodetype'} eq "netscreen") {
+    $grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;
+    $grefAoHInterfaceTableHeader->[10]->{Enabled} = 1;
+    $grefAoHInterfaceTableHeader->[11]->{Enabled} = 1;
+}
 
 # ------------------------------------------------------------------------
 # Other global initializations
@@ -351,7 +360,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_type","$oid_cisco_serial" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{Node}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
     $grefhCurrent->{MD}->{Node}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_serial}";
-}    
+}
 
 # ------------------------------------------------------------------------------
 # Read interface related data (from snmp/cache)
@@ -825,6 +834,12 @@ sub ReadInterfaceInformationFile {
             $gLongCacheTimer  = 0;
         }
         
+        # detect if the user has just changed between using the 64bits option or not. 
+        # In case of change, purge the history datasets as they are not correct anymore
+        $grefhCurrent->{MD}->{CachedInfo}->{'64bits'} = $ghSNMPOptions{'64bits'};
+        if (defined $grefhFile->{MD}->{CachedInfo}->{'64bits'} and $ghSNMPOptions{'64bits'} != $grefhFile->{MD}->{CachedInfo}->{'64bits'}) {
+            for (keys %$grefhFile->{History}) { delete $grefhFile->{History}->{$_}; }  # purge the History part in $grefhFile hash
+        }
     } else {
         # the file with interface information was not found - this is the first
         # run of the program or it was deleted before.
@@ -1075,6 +1090,7 @@ sub Get_InterfaceNames {
         # This is used later for displaying the html table
         $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$Name"} = "$Index";
         $grefhCurrent->{MD}->{Map}->{NameToDescr}->{"$Name"} = "$Desc";
+        $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Desc"} = "$Name";
         $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"} = "$Name";
         $grefhCurrent->{If}->{$Name}->{index}   = "$Index";
         $grefhCurrent->{If}->{$Name}->{ifName} = "$Name";
@@ -1513,7 +1529,7 @@ sub GenerateInterfaceTableData {
             my $FileFieldContent        = "";
             my $FieldType               = ""; # 'property' or 'load'
             
-            if ($FieldName =~ /^index$|^ifName$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifDuplexStatus$|^ifVlanNames$|^ifIpInfo$/i) {
+            if ($FieldName =~ /^index$|^ifName$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifDuplexStatus$|^ifVlanNames$|^ifIpInfo$|^nsIfZone$|^nsIfVsys$|^nsIfMng$/i) {
                 $FieldType = "property";
             } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^pktErrDiscard$|^ifLastTraffic$/i ) {
                 $FieldType = "load";
@@ -2399,14 +2415,16 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
     }
 
     # get ifDuplexStatus table
-    my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDuplexStatus,$ghOptions{'cachedir'},0);
-    if ($#$refaIfDuplexStatus < 0 ) {
-        logger(0, "Could not read ifDuplexStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifDuplexStatus\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
     my $refhIfDuplexStatus = ();
-    foreach (@$refaIfDuplexStatus) {
-        $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus\.([0-9]*) (.*)$/;
+    if ($ghOptions{'duplex'}) {
+        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDuplexStatus,$ghOptions{'cachedir'},0);
+        if ($#$refaIfDuplexStatus < 0 ) {
+            logger(0, "Could not read ifDuplexStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifDuplexStatus\n");
+            exit $ERRORS{"UNKNOWN"};
+        }
+        foreach (@$refaIfDuplexStatus) {
+            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus\.([0-9]*) (.*)$/;
+        }
     }
 
     # get ifAlias table
@@ -2484,7 +2502,7 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
             ConvertIfStatusToReadable ($refhIfAdminStatus->{"$Index"});
 
         # Get the speed in normal or highperf speed counters
-        if ($refhIfSpeed->{"$Index"} eq ""){
+        if (not defined $refhIfSpeed->{"$Index"} or $refhIfSpeed->{"$Index"} eq ""){
             $refhIfSpeed->{"$Index"} = -1;
         }
         if ($refhIfSpeed->{"$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
@@ -2504,8 +2522,11 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
             ConvertSpeedToReadable ($refhIfSpeed->{"$Index"});
 
         # Store ifDuplexStatus converted from a digit to string
-        $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} =
-            ConvertIfDuplexStatusToReadable ($refhIfDuplexStatus->{"$Index"});
+        if ($ghOptions{'duplex'}) {
+            # Store ifDuplexStatus converted from a digit to string
+            $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} =
+                ConvertIfDuplexStatusToReadable ($refhIfDuplexStatus->{"$Index"});
+        }
             
         # Store ifAlias normalized to not get into trouble with special chars
         $grefhCurrent->{If}->{"$ifName"}->{ifAlias} =
@@ -2620,10 +2641,6 @@ sub Get_Stp {
 # ------------------------------------------------------------------------
 sub Get_Netscreen {
     
-    my $refaNsIfDescr;
-    my $refaNsIfZone;
-    my $refaNsIfIfVsys;
-    
     # # get stp port->ifindex map table
     # my $refaSTPIfIndexMap = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
     # if ($#$refaSTPIfIndexMap < 0 ) {
@@ -2671,8 +2688,291 @@ sub Get_Netscreen {
     # my $oid_juniper_nsVsysCfgId             = '.1.3.6.1.4.1.3224.15.1.1.1.1'; # + ".<index>"
     # my $oid_juniper_nsVsysCfgName           = '.1.3.6.1.4.1.3224.15.1.1.1.2'; # + ".<index>"
 
+    my $refhNsZone = ();
+    my $refhNsVsys = ();
+    my $refhNsIfMng = ();
+        
+    # get netscreen interface name and build a map table with the standard interface description
+    my $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfName,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfNameLines < 0 ) {
+        logger(0, "Could not read the Netscreen nsIfName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfName\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    for (@$refaNsIfNameLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        $Value = normalize ($Value);
+        if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"}) {
+            my $ifName = $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"};
+            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"} = $Index;
+            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} = "$ifName";
+        }
+    }
+    
+    # Zones
+    ## get netscreen zone id and name
+    my $refaNsZoneCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsZoneCfgName,$ghOptions{'cachedir'},0);
+    if ($#$refaNsZoneCfgNameLines < 0 ) {
+        logger(0, "Could not read the Netscreen nsZoneCfgName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsZoneCfgName\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    for (@$refaNsZoneCfgNameLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        $refhNsZone->{"$Index"} = "$Value";
+    }
+    ## get netscreen zone id for all interfaces
+    my $refaNsIfZoneLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfZone,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfZoneLines < 0 ) {
+        logger(0, "Could not read the Netscreen nsIfZone table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfZone\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    for (@$refaNsIfZoneLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
+            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfZone} = "$refhNsZone->{$Value}";
+        }
+    }
+    
+    # Vsys
+    ## get netscreen vsys id and name
+    my $refaNsVsysCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsVsysCfgName,$ghOptions{'cachedir'},0);
+    if ($#$refaNsVsysCfgNameLines < 0 ) {
+        logger(0, "Could not read the Netscreen nsZoneCfgName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsVsysCfgName\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    for (@$refaNsVsysCfgNameLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        $refhNsVsys->{"$Index"} = "$Value";
+    }
+    ## get netscreen zone id for all interfaces
+    my $refaNsIfVsysLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfVsys,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfVsysLines < 0 ) {
+        logger(0, "Could not read the Netscreen nsIfVsys table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfVsys\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    for (@$refaNsIfVsysLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
+            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfVsys} = "$refhNsVsys->{$Value}";
+        }
+    }
+    
+    # Management protocols
+    # get permitted management protocols
+    ## Telnet
+    my $refaNsIfMngTelnetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngTelnet,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngTelnetLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngTelnet table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngTelnet\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ## SCS
+    my $refaNsIfMngSCSLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSCS,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngSCSLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngSCS table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSCS\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##WEB           
+    my $refaNsIfMngWEBLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngWEB,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngWEBLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngWEB table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngWEB\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##SSL           
+    my $refaNsIfMngSSLLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSSL,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngSSLLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngSSL table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSSL\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##SNMP          
+    my $refaNsIfMngSNMPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSNMP,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngSNMPLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngSNMP table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSNMP\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##Global        
+    my $refaNsIfMngGlobalLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobal,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngGlobalLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngGlobal table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngGlobal\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##GlobalPro     
+    my $refaNsIfMngGlobalProLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobalPro,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngGlobalProLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngGlobalPro table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngGlobalPro\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##Ping          
+    my $refaNsIfMngPingLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngPing,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngPingLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngPing table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngPing\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    ##IdentReset    
+    my $refaNsIfMngIdentResetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngIdentReset,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfMngIdentResetLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfMngIdentReset table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngIdentReset\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    
+    foreach (@$refaNsIfMngTelnetLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "Telnet";
+        }
+    }
+    foreach (@$refaNsIfMngSCSLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "SCS";
+        }
+    }
+    foreach (@$refaNsIfMngWEBLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "WEB";
+        }
+    }
+    foreach (@$refaNsIfMngSSLLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "SSL";
+        }
+    }
+    foreach (@$refaNsIfMngSNMPLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "SNMP";
+        }
+    }
+    foreach (@$refaNsIfMngGlobalLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "Global";
+        }
+    }
+    foreach (@$refaNsIfMngGlobalProLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "GlobalPro";
+        }
+    }
+    foreach (@$refaNsIfMngPingLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "Ping";
+        }
+    }
+    foreach (@$refaNsIfMngIdentResetLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;    # remove all but the index
+        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+        
+        # Add the protocol if permitted
+        if ($Value) {
+            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne ""; 
+            $refhNsIfMng->{"$Index"} .= "IdentReset";
+        }
+    }
+    print "permitted protocols:\n".Dumper($refhNsIfMng);
+    
+    for my $Index (keys %$refhNsIfMng) {
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
+            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfMng} = "$refhNsIfMng->{$Index}";
+        }
+    }
+    
+    #logger(1, "ifName: $ifName\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk");
+    
+    
+    # my $oid_juniper_nsIfMngTelnet           = '.1.3.6.1.4.1.3224.9.1.1.12'; # + ".<index>"
+    # my $oid_juniper_nsIfMngSCS              = '.1.3.6.1.4.1.3224.9.1.1.13'; # + ".<index>"
+    # my $oid_juniper_nsIfMngWEB              = '.1.3.6.1.4.1.3224.9.1.1.14'; # + ".<index>"
+    # my $oid_juniper_nsIfMngSSL              = '.1.3.6.1.4.1.3224.9.1.1.15'; # + ".<index>"
+    # my $oid_juniper_nsIfMngSNMP             = '.1.3.6.1.4.1.3224.9.1.1.16'; # + ".<index>"
+    # my $oid_juniper_nsIfMngGlobal           = '.1.3.6.1.4.1.3224.9.1.1.17'; # + ".<index>"
+    # my $oid_juniper_nsIfMngGlobalPro        = '.1.3.6.1.4.1.3224.9.1.1.18'; # + ".<index>"
+    # my $oid_juniper_nsIfMngPing             = '.1.3.6.1.4.1.3224.9.1.1.19'; # + ".<index>"
+    # my $oid_juniper_nsIfMngIdentReset       = '.1.3.6.1.4.1.3224.9.1.1.20'; # + ".<index>"
+    
+    
+    
+    #for (@$refaSTPPortStateLines) {
+    #    my ($Index,$Portstate) = split / /,$_,2;
+    #    $Index =~ s/^.*\.//g;    # remove all but the index
+    #    $Portstate =~ s/\s+$//g;    # remove invisible chars from the end
+    #    if (defined $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index}) {
+    #        my $ifName = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index};
+    #        defined $stp_portstate_readable{"$Portstate"} and $Portstate = $stp_portstate_readable{"$Portstate"};
+    #        logger(2, "IfName=\"$ifName\", StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
+    #
+    #        # Store the Portstate as property of the current interface
+    #        $grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
+    #    }
+    #}
+    
+    
+    
+    
     return 0;
-
+    
 } 
 
 # ------------------------------------------------------------------------
