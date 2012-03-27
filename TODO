@@ -7,27 +7,25 @@
 # ----------------------------------------------------------------------
 # DONE    - review table building method for more flexibility
 # IN PROG - review general structure of the plugin
-# IN PROG - performance enhancement by prefering snmp table/bulk request
+# DONE    - performance enhancement by prefering snmp table/bulk request
 # DONE    - add STP info
 #         - extend debug if needed
 #         - extend Cisco port info
-# IN PROG - add options for hp, or other brands if relevant
+# DONE    - add options for hp, or other brands if relevant
 #         - review generated link [details] to be not a relative URL, to be usable in 
 #           email notifications
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 # DONE    - better handling of counters cleared manually or via node restart
 #            -> check if enough now
-# IN PROG - replace repeated single snmp request by table snmp request / snmpwalk when 
-#           possible -> performance enhancement
 # IN PROG - better non regression testing 
 #            -> test phase would include tests on simulated type of monitored nodes
-# IN PROG - convert network masks to quad-dotted decimal representation (*/[0-32])
+# DONE    - convert network masks to quad-dotted decimal representation (*/[0-32])
 #           to free space in the interface table
 # DONE    - correctly handle devices where interfaces have the same ifdescr
 # DONE    - when interfaces have the same ifdescr, give the suffix choice between 
 #           idx or mac addr
-# IN PROG - add Juniper Netscreen support (+ special columns)
+# DONE    - add Juniper Netscreen support (+ special columns)
 # DONE    - look review (buttons, html structure, css)
 # DONE    - detect 32/64 bits counter use changes
 # DONE    - detect release change
@@ -54,5 +52,7 @@
 #         - review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
 #         - option to show mac addresses in the interface table
+#         - multiple tables (physical interfaces separated from logical interfaces)
+#         - change from html files to php interface and datafiles
 #
 # ========================================================================
