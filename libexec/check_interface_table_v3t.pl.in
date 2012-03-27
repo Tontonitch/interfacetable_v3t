@@ -119,15 +119,15 @@ my $oid_cisco_serial            = '.1.3.6.1.4.1.9.5.1.2.19.0'; # ex: CAT0645Z0HB
 # NOT USED - my $cisco_ports         = '.1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
 my $oid_cisco_ifVlanPort         = '.1.3.6.1.4.1.9.9.68.1.2.2.1.2'; # + ".?.<index>"
 
-# For use in Cisco CATOS special hacks
-my $oid_cisco_port_name_table               = '.1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
-my $oid_cisco_port_ifindex_map              = '.1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
-my $oid_cisco_port_linkfaultstatus_table    = '.1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
-my $oid_cisco_port_operstatus_table         = '.1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
-my $oid_cisco_port_addoperstatus_table      = '.1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
-my %cisco_port_linkfaultstatus = (1=>'up',2=>'nearEndFault',3=>'nearEndConfigFail',4=>'farEndDisable',5=>'farEndFault',6=>'farEndConfigFail',7=>'otherFailure');
-my %cisco_port_operstatus      = (0=>'operstatus:unknown',1=>'operstatus:other',2=>'operstatus:ok',3=>'operstatus:minorFault',4=>'operstatus:majorFault');
-my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'faulty',4=>'notConnected',5=>'inactive',6=>'shutdown',7=>'dripDis',8=>'disable',9=>'monitor',10=>'errdisable',11=>'linkFaulty',12=>'onHook',13=>'offHook',14=>'reflector');
+# For use in Cisco CATOS special hacks - NOT USED YET
+# my $oid_cisco_port_name_table               = '.1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
+# my $oid_cisco_port_ifindex_map              = '.1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
+# my $oid_cisco_port_linkfaultstatus_table    = '.1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
+# my $oid_cisco_port_operstatus_table         = '.1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
+# my $oid_cisco_port_addoperstatus_table      = '.1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
+# my %cisco_port_linkfaultstatus = (1=>'up',2=>'nearEndFault',3=>'nearEndConfigFail',4=>'farEndDisable',5=>'farEndFault',6=>'farEndConfigFail',7=>'otherFailure');
+# my %cisco_port_operstatus      = (0=>'operstatus:unknown',1=>'operstatus:other',2=>'operstatus:ok',3=>'operstatus:minorFault',4=>'operstatus:majorFault');
+# my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'faulty',4=>'notConnected',5=>'inactive',6=>'shutdown',7=>'dripDis',8=>'disable',9=>'monitor',10=>'errdisable',11=>'linkFaulty',12=>'onHook',13=>'offHook',14=>'reflector');
 
 # HP specific OIDs
 # ------------------------------------------------------------------------
@@ -159,16 +159,17 @@ my $oid_juniper_nsIfMngGlobalPro        = '.1.3.6.1.4.1.3224.9.1.1.18'; # + ".<i
 my $oid_juniper_nsIfMngPing             = '.1.3.6.1.4.1.3224.9.1.1.19'; # + ".<index>"
 my $oid_juniper_nsIfMngIdentReset       = '.1.3.6.1.4.1.3224.9.1.1.20'; # + ".<index>"
 
-my $oid_juniper_nsIfMonPlyDeny          = '.1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
-my $oid_juniper_nsIfMonAuthFail         = '.1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
-my $oid_juniper_nsIfMonUrlBlock         = '.1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
-my $oid_juniper_nsIfMonTrMngQueue       = '.1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
-my $oid_juniper_nsIfMonTrMngDrop        = '.1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
-my $oid_juniper_nsIfMonEncFail          = '.1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
-my $oid_juniper_nsIfMonNoSa             = '.1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
-my $oid_juniper_nsIfMonNoSaPly          = '.1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
-my $oid_juniper_nsIfMonSaInactive       = '.1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
-my $oid_juniper_nsIfMonSaPolicyDeny     = '.1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
+#NOT USED YET
+#my $oid_juniper_nsIfMonPlyDeny          = '.1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
+#my $oid_juniper_nsIfMonAuthFail         = '.1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
+#my $oid_juniper_nsIfMonUrlBlock         = '.1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngQueue       = '.1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngDrop        = '.1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
+#my $oid_juniper_nsIfMonEncFail          = '.1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSa             = '.1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSaPly          = '.1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaInactive       = '.1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaPolicyDeny     = '.1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
 
 my $oid_juniper_nsZoneCfgId             = '.1.3.6.1.4.1.3224.8.1.1.1.1'; # + ".<index>"
 my $oid_juniper_nsZoneCfgName           = '.1.3.6.1.4.1.3224.8.1.1.1.2'; # + ".<index>"
@@ -274,7 +275,6 @@ if ($ghOptions{'nodetype'} eq "netscreen") {
 # ------------------------------------------------------------------------
 
 my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
-my $grefaAllInterfaceNames;                          # Sorted array which holds all interface names
 my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
 
 my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
@@ -293,21 +293,7 @@ my $gNumberOfInterfacesWithoutTrunk  = 0;            # in "check_for_unused_inte
 my $gInterfacesWithoutTrunk          = {};           # in "check_for_unused_interfaces" we use this for counting
 my $gNumberOfPerfdataInterfaces      = 0;            # in "EvaluateInterfaces" counted number of interfaces we collect perfdata for
 my $gPerfdata                        = "";           # performancedata
-        # This is the base for the short and long cache timer.
 
-my $grefaDescrLines;                                 # Lines returned from snmpwalk storing interface descriptions
-my $grefaIPLines;                                    # Lines returned from snmpwalk storing ip addresses
-my $grefaPhysAddressLines;                           # Lines returned from snmpwalk storing physical addresses
-my $grefaSTPIfIndexMapLines;                         # Lines returned from snmpwalk storing stp port->ifindex map table
-my $grefaSTPPortStateLines;                          # Lines returned from snmpwalk storing stp port states
-my $grefaCiscoPortIfIndexMapLines;
-my $grefaOperStatusLines;                            # Lines returned from snmpwalk storing ifOperStatus
-my $grefaOctetInLines;                               # Lines returned from snmpwalk storing ifOctetsIn
-my $grefaOctetOutLines;                              # Lines returned from snmpwalk storing ifOctetsOut
-my $grefaInErrorsLines;                              # Lines returned from snmpwalk storing ifPktsInErr
-my $grefaOutErrorsLines;                             # Lines returned from snmpwalk storing ifPktsOutErr
-my $grefaInDiscardsLines;                            # Lines returned from snmpwalk storing ifPktsInDiscard
-my $grefaOutDiscardLines;                            # Lines returned from snmpwalk storing ifPktsOutDiscard
 my $gShortCacheTimer                 = 0;            # Short cache timer are calculated in ExtractCache timer routine
 my $gLongCacheTimer                  = 0;            # Long cache timer are calculated in ExtractCache timer routine
 my $gText;                                           # Plugin Output ...
@@ -317,26 +303,22 @@ my $grefhFile;                                       # Properties from the inter
 my $grefhCurrent;                                    # Properties from current interface states
 my $grefhListOfChanges               = undef;        # List all the changes for long plugin output
 
-
-# create uniq file name without extension
-my $gFile =  normalize($ghOptions{'hostdisplay'}).'-Interfacetable';
-
-# file where we store interface information table
-my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";
+my $gFile =  normalize($ghOptions{'hostdisplay'}).'-Interfacetable';    # create uniq file name without extension
+my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";    # file where we store interface information table
 
 # If --snapshot is set, we dont track changes
-if ($ghOptions{'snapshot'}) {
-    $gInitialRun = 1;
-}
+$ghOptions{'snapshot'} and $gInitialRun = 1;
 
 # ------------------------------------------------------------------------------
 # Check host and snmp service reachability
 # ------------------------------------------------------------------------------
 
 # get uptime of the host - no caching !
+
+logger(1, "Check that the target \"$ghOptions{hostquery}\" is reachable via snmp");
 $grefhCurrent->{MD}->{Node}->{sysUpTime} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime" ],$ghOptions{'cachedir'},0);
 if (!defined $grefhCurrent->{MD}->{Node}->{sysUpTime} or $grefhCurrent->{MD}->{Node}->{sysUpTime} eq "") {
-    logger(0, "Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp\n");
+    logger(0, "Could not read sysUpTime information from host \"$ghOptions{hostquery}\" with snmp");
     exit $ERRORS{"CRITICAL"};
 }
 
@@ -370,121 +352,25 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 # and reformatted interface names.
 Get_InterfaceNames ();
 
-# Generate an interface name list, ordered by related index
-foreach my $key (sort { $a <=> $b } keys %{$grefhCurrent->{MD}->{Map}->{IndexToName}}){
-   push (@$grefaAllInterfaceNames,$grefhCurrent->{MD}->{Map}->{IndexToName}->{$key});
-}
-logger(3, "Interface name list -> generated array\ngrefaAllInterfaceNames:".Dumper($grefaAllInterfaceNames));
-
-# Gather interface ip addresses and masks
-Get_IpAddress_SubnetMask ();
-
-# get all interface operstatus - no caching !
-$grefaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
-if ($#$grefaOperStatusLines < 0 ) {
-    logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp.\nCheck the access to the oid $oid_ifOperStatus\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-
-# change to 64 bit counters if option is set : 
-if ($ghSNMPOptions{'64bits'}) {
-  $oid_out_octet_table  = $oid_out_octet_table_64;
-  $oid_in_octet_table   = $oid_in_octet_table_64;
-}
-
-# get all interface in/out traffic octet counters - no caching !
-# -> Octets in
-$grefaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
-if ($#$grefaOctetInLines < 0 ) {
-    logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_octet_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-# -> Octets out
-$grefaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
-if ($#$grefaOctetOutLines < 0 ) {
-    logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_octet_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-
-# get all interface in/out packet error/discarded octet counters - no caching !
-# -> Packet errors in
-$grefaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
-if ($#$grefaInErrorsLines < 0 ) {
-    logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_error_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-# -> Packet errors out
-$grefaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
-if ($#$grefaOutErrorsLines < 0 ) {
-    logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_error_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-# -> Packet discards in
-$grefaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
-if ($#$grefaInDiscardsLines < 0 ) {
-    logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_discard_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-# -> Packet discards out
-$grefaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
-if ($#$grefaOutDiscardLines < 0 ) {
-    logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_discard_table\n");
-    exit $ERRORS{"UNKNOWN"};
-}
-
-# post-processing interface octet counters
-Get_TraficInOut ($grefaOctetInLines, "OctetsIn", "BitsIn");
-Get_TraficInOut ($grefaOctetOutLines, "OctetsOut", "BitsOut");
-Get_IfErrInOut ($grefaInErrorsLines, "PktsInErr");
-Get_IfErrInOut ($grefaOutErrorsLines, "PktsOutErr");
-Get_IfDiscardInOut ($grefaInDiscardsLines, "PktsInDiscard");
-Get_IfDiscardInOut ($grefaOutDiscardLines, "PktsOutDiscard");
-
 # extract ifIndex and ifOperStatus out of the lines and get the
 # ifDescription from the net or from cache
-Get_OperStatus ($grefaOperStatusLines);
+Get_OperStatus ();
+
+# Gather interface ip addresses and masks
+if ($ghOptions{'nodetype'} ne "netscreen") {
+   Get_IpAddress_SubnetMask ();
+}
+
+# Gather interface traffics (in/out and packet errors/discards)
+Get_Traffic ();
 
 # get ifAdminStatus, ifSpeed and ifAlias from the net or from cache
 Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 
 # STP specific (--stp)
 if ($ghOptions{'stp'}) {
-    # get stp port->ifindex map table
-    #$grefaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
-    #if ($#$grefaSTPIfIndexMapLines < 0 ) {
-    #    logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
-    #    exit $ERRORS{"UNKNOWN"};
-    #}
-    #print "grefaSTPIfIndexMapLines:".Dumper($grefaSTPIfIndexMapLines);
-    #my $stp_ifmap = ();
-    #foreach (@$grefaSTPIfIndexMapLines) {
-    #        $stp_ifmap->{"$1"}=$2 if /$oid_stp_ifindex_map\.([0-9]*) ([0-9]*)/;
-    #}
-    #print "stp_ifmap:".Dumper($stp_ifmap);
-    #$grefaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
-    #if ($#$grefaSTPPortStateLines < 0 ) {
-    #    logger(0, "Could not read STP port state table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_portstate\n");
-    #    exit $ERRORS{"UNKNOWN"};
-    #}
-    # post-process interface descriptions
     Get_Stp ();
 }
-
-# Cisco specific (--nodetype=cisco)
-#if ($ghOptions{'nodetype'} eq "cisco") {
-#    # get cisco port->ifindex map table
-#    $grefaCiscoPortIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_cisco_port_ifindex_map,$ghOptions{'cachedir'},0);
-#    if ($#$grefaCiscoPortIfIndexMapLines < 0 ) {
-#        logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_cisco_port_ifindex_map\n");
-#        exit $ERRORS{"UNKNOWN"};
-#    }
-#    print "grefaCiscoPortIfIndexMapLines:".Dumper($grefaCiscoPortIfIndexMapLines);
-#    my $cisco_ifmap = ();
-#    foreach (@$grefaCiscoPortIfIndexMapLines) {
-#            $cisco_ifmap->{"$2"}=$1 if /$oid_cisco_port_ifindex_map\.([0-9]*) ([0-9]*)/;
-#    }
-#    print "cisco_ifmap:".Dumper($cisco_ifmap);
-#}
 
 # Juniper Netscreen specific (--nodetype=netscreen)
 if ($ghOptions{'nodetype'} eq "netscreen") {
@@ -817,6 +703,7 @@ sub ReadInterfaceInformationFile {
 
     # read all properties from the state file - store into $grefhFile
     if (-r "$InterfaceInformationFile") {
+        logger(1, "Found a readable state file \"$InterfaceInformationFile\"");
         $grefhFile = ReadConfigFileNew ("$InterfaceInformationFile");
 
         # check that the state file is not an old formated file, generated by a previous version 
@@ -838,12 +725,14 @@ sub ReadInterfaceInformationFile {
         # In case of change, purge the history datasets as they are not correct anymore
         $grefhCurrent->{MD}->{CachedInfo}->{'64bits'} = $ghSNMPOptions{'64bits'};
         if (defined $grefhFile->{MD}->{CachedInfo}->{'64bits'} and $ghSNMPOptions{'64bits'} != $grefhFile->{MD}->{CachedInfo}->{'64bits'}) {
-            for (keys %$grefhFile->{History}) { delete $grefhFile->{History}->{$_}; }  # purge the History part in $grefhFile hash
+            logger(1, "Detected a change in the use of the --64bits option. Purging the counters from history as not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
         }
     } else {
         # the file with interface information was not found - this is the first
         # run of the program or it was deleted before.
         # Create a new one and store the sysUptime immediately
+        logger(1, "Not readable state file \"$InterfaceInformationFile\" found, creating a new one");
         WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
         $gInitialRun = 1;
     }
@@ -1135,8 +1024,8 @@ sub Get_InterfaceNames {
 #
 # ------------------------------------------------------------------------
 sub Get_IpAddress_SubnetMask {
-    my $refaIPLines;
-    my $refaNetMaskLines;
+    my $refaIPLines;        # Lines returned from snmpwalk storing ip addresses
+    my $refaNetMaskLines;   # Lines returned from snmpwalk storing physical addresses
 
     # Get info from snmp/cache
     #------------------------------------------
@@ -1147,7 +1036,7 @@ sub Get_IpAddress_SubnetMask {
         logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
         exit $ERRORS{"UNKNOWN"};
     }
-
+    
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
     $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} = join (";",@$refaIPLines);
@@ -1216,11 +1105,97 @@ sub Get_IpAddress_SubnetMask {
                     "caching is disabled because of first or current IpInfo";
             }
         } else {
-            logger(3, "Impossible to map the IP info to any existing interface: no corresponding interface index. Skipping IP info.");
+            logger(3, "Cannot map the IP info to any existing interface: no corresponding interface index. Skipping IP info.");
         }
     }
+
     return 0;
 }
+
+
+# ------------------------------------------------------------------------------
+# Get_Traffic
+# ------------------------------------------------------------------------------
+# Description: gather interface traffics (in/out and packet errors/discards)
+# ------------------------------------------------------------------------------
+# Function call:
+#  Get_Traffic();
+# Arguments:
+#  None
+# Output:
+#  None
+# ------------------------------------------------------------------------------
+sub Get_Traffic {
+    my $refaOctetInLines;                               # Lines returned from snmpwalk storing ifOctetsIn
+    my $refaOctetOutLines;                              # Lines returned from snmpwalk storing ifOctetsOut
+    my $refaInErrorsLines;                              # Lines returned from snmpwalk storing ifPktsInErr
+    my $refaOutErrorsLines;                             # Lines returned from snmpwalk storing ifPktsOutErr
+    my $refaInDiscardsLines;                            # Lines returned from snmpwalk storing ifPktsInDiscard
+    my $refaOutDiscardLines;                            # Lines returned from snmpwalk storing ifPktsOutDiscard
+
+    # Get info from snmp/cache
+    #------------------------------------------
+    
+    # change to 64 bit counters if option is set : 
+    if ($ghSNMPOptions{'64bits'}) {
+    $oid_out_octet_table  = $oid_out_octet_table_64;
+    $oid_in_octet_table   = $oid_in_octet_table_64;
+    }
+    
+    # get all interface in/out traffic octet counters - no caching !
+    # -> Octets in
+    $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_octet_table,$ghOptions{'cachedir'},0);
+    if ($#$refaOctetInLines < 0 ) {
+        logger(0, "Could not read ifOctetIn information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_octet_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    # -> Octets out
+    $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_octet_table,$ghOptions{'cachedir'},0);
+    if ($#$refaOctetOutLines < 0 ) {
+        logger(0, "Could not read ifOctetOut information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_octet_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    
+    # get all interface in/out packet error/discarded octet counters - no caching !
+    # -> Packet errors in
+    $refaInErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_error_table,$ghOptions{'cachedir'},0);
+    if ($#$refaInErrorsLines < 0 ) {
+        logger(0, "Could not read ifInErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_error_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    # -> Packet errors out
+    $refaOutErrorsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_error_table,$ghOptions{'cachedir'},0);
+    if ($#$refaOutErrorsLines < 0 ) {
+        logger(0, "Could not read ifOutErrors information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_error_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    # -> Packet discards in
+    $refaInDiscardsLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_in_discard_table,$ghOptions{'cachedir'},0);
+    if ($#$refaInDiscardsLines < 0 ) {
+        logger(0, "Could not read ifInDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_in_discard_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    # -> Packet discards out
+    $refaOutDiscardLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_out_discard_table,$ghOptions{'cachedir'},0);
+    if ($#$refaOutDiscardLines < 0 ) {
+        logger(0, "Could not read ifOutDiscards information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_out_discard_table\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    
+    # post-processing interface octet counters
+    #------------------------------------------
+    
+    Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn");
+    Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut");
+    Get_IfErrInOut ($refaInErrorsLines, "PktsInErr");
+    Get_IfErrInOut ($refaOutErrorsLines, "PktsOutErr");
+    Get_IfDiscardInOut ($refaInDiscardsLines, "PktsInDiscard");
+    Get_IfDiscardInOut ($refaOutDiscardLines, "PktsOutDiscard");
+
+    return 0;
+}
+
+
 
 # ------------------------------------------------------------------------
 # write performance data
@@ -1885,7 +1860,14 @@ sub EvaluateInterfaces {
 # ------------------------------------------------------------------------
 sub Get_OperStatus {
 
-    my $refaOperStatusLines = shift;
+    my $refaOperStatusLines;       # Lines returned from snmpwalk storing ifOperStatus
+
+    # get all interface operstatus - no caching !
+    $refaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifOperStatus,$ghOptions{'cachedir'},0);
+    if ($#$refaOperStatusLines < 0 ) {
+        logger(0, "Could not read ifOperStatus information from host \"$ghOptions{'hostquery'}\" with snmp.\nCheck the access to the oid $oid_ifOperStatus\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
 
     # Example of $refaOperStatusLines
     #    .1.3.6.1.2.1.2.2.1.8.1 up
@@ -1993,7 +1975,7 @@ sub Get_OperStatus {
 # ------------------------------------------------------------------------
 # get trafic in octets (ifInOctets / ifOutOctets)
 # ------------------------------------------------------------------------
-sub Get_TraficInOut {
+sub Get_TrafficInOut {
 
     my $refaOctetLines = shift;
     my $WhatOctet = shift;
@@ -2597,14 +2579,16 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
 #
 # ------------------------------------------------------------------------
 sub Get_Stp {
+    my $refaSTPIfIndexMapLines;                         # Lines returned from snmpwalk storing stp port->ifindex map table
+    my $refaSTPPortStateLines;                          # Lines returned from snmpwalk storing stp port states
     
     # get stp port->ifindex map table
-    my $refaSTPIfIndexMap = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
-    if ($#$refaSTPIfIndexMap < 0 ) {
+    $refaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
+    if ($#$refaSTPIfIndexMapLines < 0 ) {
         logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
         exit $ERRORS{"UNKNOWN"};
     }
-    for (@$refaSTPIfIndexMap) {
+    for (@$refaSTPIfIndexMapLines) {
         if (/$oid_stp_ifindex_map\.([0-9]*) ([0-9]*)/) {
             $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$1"} = $2;
             $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{IndexToStpIndex}->{"$2"} = $1;
@@ -2613,7 +2597,7 @@ sub Get_Stp {
         }
     }
     
-    my $refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
+    $refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_portstate,$ghOptions{'cachedir'},0);
     if ($#$refaSTPPortStateLines < 0 ) {
         logger(0, "Could not read STP port state table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_portstate\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2640,60 +2624,30 @@ sub Get_Stp {
 #
 # ------------------------------------------------------------------------
 sub Get_Netscreen {
-    
-    # # get stp port->ifindex map table
-    # my $refaSTPIfIndexMap = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_stp_ifindex_map,$ghOptions{'cachedir'},0);
-    # if ($#$refaSTPIfIndexMap < 0 ) {
-    #     logger(0, "Could not read STP port-index map table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_stp_ifindex_map\n");
-    #     exit $ERRORS{"UNKNOWN"};
-    # }
-    # 
-    # 
-    # 
-    # my $oid_juniper_nsIfName                = '.1.3.6.1.4.1.3224.9.1.1.2'; # + ".<index>"
-    # my $oid_juniper_nsIfDescr               = '.1.3.6.1.4.1.3224.9.1.1.22'; # + ".<index>"
-    # my $oid_juniper_nsIfZone                = '.1.3.6.1.4.1.3224.9.1.1.4'; # + ".<index>"
-    # my $oid_juniper_nsIfVsys                = '.1.3.6.1.4.1.3224.9.1.1.3'; # + ".<index>"
-    # my $oid_juniper_nsIfStatus              = '.1.3.6.1.4.1.3224.9.1.1.5'; # + ".<index>"
-    # my $oid_juniper_nsIfIp                  = '.1.3.6.1.4.1.3224.9.1.1.6'; # + ".<index>"
-    # my $oid_juniper_nsIfNetmask             = '.1.3.6.1.4.1.3224.9.1.1.7'; # + ".<index>"
-    # my $oid_juniper_nsIfMode                = '.1.3.6.1.4.1.3224.9.1.1.10'; # + ".<index>"
-    # my $oid_juniper_nsIfMAC                 = '.1.3.6.1.4.1.3224.9.1.1.11'; # + ".<index>"
-    # 
-    # my $oid_juniper_nsIfMngTelnet           = '.1.3.6.1.4.1.3224.9.1.1.12'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSCS              = '.1.3.6.1.4.1.3224.9.1.1.13'; # + ".<index>"
-    # my $oid_juniper_nsIfMngWEB              = '.1.3.6.1.4.1.3224.9.1.1.14'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSSL              = '.1.3.6.1.4.1.3224.9.1.1.15'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSNMP             = '.1.3.6.1.4.1.3224.9.1.1.16'; # + ".<index>"
-    # my $oid_juniper_nsIfMngGlobal           = '.1.3.6.1.4.1.3224.9.1.1.17'; # + ".<index>"
-    # my $oid_juniper_nsIfMngGlobalPro        = '.1.3.6.1.4.1.3224.9.1.1.18'; # + ".<index>"
-    # my $oid_juniper_nsIfMngPing             = '.1.3.6.1.4.1.3224.9.1.1.19'; # + ".<index>"
-    # my $oid_juniper_nsIfMngIdentReset       = '.1.3.6.1.4.1.3224.9.1.1.20'; # + ".<index>"
-    # 
-    # my $oid_juniper_nsIfMonPlyDeny          = '.1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
-    # my $oid_juniper_nsIfMonAuthFail         = '.1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
-    # my $oid_juniper_nsIfMonUrlBlock         = '.1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
-    # my $oid_juniper_nsIfMonTrMngQueue       = '.1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
-    # my $oid_juniper_nsIfMonTrMngDrop        = '.1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
-    # my $oid_juniper_nsIfMonEncFail          = '.1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
-    # my $oid_juniper_nsIfMonNoSa             = '.1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
-    # my $oid_juniper_nsIfMonNoSaPly          = '.1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
-    # my $oid_juniper_nsIfMonSaInactive       = '.1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
-    # my $oid_juniper_nsIfMonSaPolicyDeny     = '.1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
-    # 
-    # my $oid_juniper_nsZoneCfgId             = '.1.3.6.1.4.1.3224.8.1.1.1.1'; # + ".<index>"
-    # my $oid_juniper_nsZoneCfgName           = '.1.3.6.1.4.1.3224.8.1.1.1.2'; # + ".<index>"
-    # my $oid_juniper_nsZoneCfgType           = '.1.3.6.1.4.1.3224.8.1.1.1.3'; # + ".<index>"
-    # 
-    # my $oid_juniper_nsVsysCfgId             = '.1.3.6.1.4.1.3224.15.1.1.1.1'; # + ".<index>"
-    # my $oid_juniper_nsVsysCfgName           = '.1.3.6.1.4.1.3224.15.1.1.1.2'; # + ".<index>"
-
+    my $refhNsIfNetmask = ();
     my $refhNsZone = ();
     my $refhNsVsys = ();
     my $refhNsIfMng = ();
-        
+
+    my $refaNsIfNameLines;
+    my $refaNsIfIpLines;                # Lines returned from snmpwalk storing ip addresses
+    my $refaNsIfNetmaskLines;           # Lines returned from snmpwalk storing physical addresses
+    my $refaNsZoneCfgNameLines;
+    my $refaNsIfZoneLines;
+    my $refaNsVsysCfgNameLines;
+    my $refaNsIfVsysLines;
+    my $refaNsIfMngTelnetLines;         # Permitted management: Telnet
+    my $refaNsIfMngSCSLines;            # Permitted management: SCS
+    my $refaNsIfMngWEBLines;            # Permitted management: WEB
+    my $refaNsIfMngSSLLines;            # Permitted management: SSL
+    my $refaNsIfMngSNMPLines;           # Permitted management: SNMP
+    my $refaNsIfMngGlobalLines;         # Permitted management: Global
+    my $refaNsIfMngGlobalProLines;      # Permitted management: GlobalPro
+    my $refaNsIfMngPingLines;           # Permitted management: Ping
+    my $refaNsIfMngIdentResetLines;     # Permitted management: IdentReset 
+    
     # get netscreen interface name and build a map table with the standard interface description
-    my $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfName,$ghOptions{'cachedir'},0);
+    $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfName,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfNameLines < 0 ) {
         logger(0, "Could not read the Netscreen nsIfName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfName\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2710,9 +2664,80 @@ sub Get_Netscreen {
         }
     }
     
+    # IP/Netmask
+    ## get info from snmp/cache
+    $refaNsIfNetmaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfIp,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfNetmaskLines < 0 ) {
+        logger(0, "Could not read Netscreen nsIfIp information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfIp\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    
+    # store all ip information in the hash to avoid reading the netmask
+    # again in the next run
+    $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} = join (";",@$refaNsIfNetmaskLines);
+
+    # remove all invisible chars incl. \r and \n
+    $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} =~ s/[\000-\037]|[\177-\377]//g;
+    
+    # get the subnet masks with caching 0 only if the ip addresses
+    # have changed
+    if (defined $grefhFile->{MD}->{CachedInfo}->{IpInfo} and $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} eq $grefhFile->{MD}->{CachedInfo}->{IpInfo}) {
+        $refaNsIfNetmaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfNetmask,$ghOptions{'cachedir'},$gLongCacheTimer);
+    } else {
+        $refaNsIfNetmaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfNetmask,$ghOptions{'cachedir'},0);
+    }
+    for (@$refaNsIfNetmaskLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        $refhNsIfNetmask->{"$Index"} = "$Value";
+    }
+
+    logger(3, "IP information lines");
+    for (@$refaNsIfIpLines) {
+        my ($Index,$IpAddress) = split / /,$_,2;        # blank splits OID & ifIndex
+        $Index      =~  s/^$oid_juniper_nsIfIp\.//;     # remove all but numbers
+        $Index      =~  s/\D//g;                        # remove all but numbers
+                
+        # extract the netmask
+        my $NetMask = $refhNsIfNetmask->{$Index};
+        logger(3, "Index: $Index, IpAddress: $IpAddress, Netmask: $NetMask");
+        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"}};        
+        
+        # get the interface name stored before from the index table
+        # check that a mapping was possible between the ip info and an interface
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
+            my $Name = $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index};
+        
+            # separate multiple IP Adresses with a blank
+            # blank is good because the WEB browser can break lines
+            if ($grefhCurrent->{If}->{"$Name"}->{ifIpInfo}) {
+                $grefhCurrent->{If}->{"$Name"}->{ifIpInfo} =
+                $grefhCurrent->{If}->{"$Name"}->{ifIpInfo}." "
+            }
+            # now we are finished with the puzzle of getting ip and subnet mask
+            # add IpInfo as property to the interface
+            my $IpInfo = "$IpAddress/$NetMask";
+            $grefhCurrent->{If}->{"$Name"}->{ifIpInfo} .= $IpInfo;
+    
+            # check if the IP address has changed to its first run
+            my $FirstIpInfo = $grefhFile->{If}->{"$Name"}->{ifIpInfo};
+            unless ($FirstIpInfo) {$FirstIpInfo = "";}
+            
+            # disable caching of this interface if ip information has changed
+            if ("$IpInfo" ne "$FirstIpInfo") {
+                $grefhCurrent->{MD}->{If}->{"$Name"}->{CacheTimer} = 0;
+                $grefhCurrent->{MD}->{If}->{"$Name"}->{CacheTimerComment} =
+                    "caching is disabled because of first or current IpInfo";
+            }
+        } else {
+            logger(3, "Cannot map the IP info to any existing interface: no corresponding interface index. Skipping IP info.");
+        }
+    }
+    
     # Zones
     ## get netscreen zone id and name
-    my $refaNsZoneCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsZoneCfgName,$ghOptions{'cachedir'},0);
+    $refaNsZoneCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsZoneCfgName,$ghOptions{'cachedir'},0);
     if ($#$refaNsZoneCfgNameLines < 0 ) {
         logger(0, "Could not read the Netscreen nsZoneCfgName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsZoneCfgName\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2724,23 +2749,25 @@ sub Get_Netscreen {
         $refhNsZone->{"$Index"} = "$Value";
     }
     ## get netscreen zone id for all interfaces
-    my $refaNsIfZoneLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfZone,$ghOptions{'cachedir'},0);
+    $refaNsIfZoneLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfZone,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfZoneLines < 0 ) {
         logger(0, "Could not read the Netscreen nsIfZone table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfZone\n");
         exit $ERRORS{"UNKNOWN"};
     }
+    logger(3, "Retrieve Netscreen zone for all interfaces");
     for (@$refaNsIfZoneLines) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $Value =~ s/\s+$//g;            # remove invisible chars from the end
         if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
             $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfZone} = "$refhNsZone->{$Value}";
+            logger(3, " ifName: " . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . ", nsIfZone: " . $refhNsZone->{$Value});
         }
     }
     
     # Vsys
     ## get netscreen vsys id and name
-    my $refaNsVsysCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsVsysCfgName,$ghOptions{'cachedir'},0);
+    $refaNsVsysCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsVsysCfgName,$ghOptions{'cachedir'},0);
     if ($#$refaNsVsysCfgNameLines < 0 ) {
         logger(0, "Could not read the Netscreen nsZoneCfgName table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsVsysCfgName\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2752,7 +2779,7 @@ sub Get_Netscreen {
         $refhNsVsys->{"$Index"} = "$Value";
     }
     ## get netscreen zone id for all interfaces
-    my $refaNsIfVsysLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfVsys,$ghOptions{'cachedir'},0);
+    $refaNsIfVsysLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfVsys,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfVsysLines < 0 ) {
         logger(0, "Could not read the Netscreen nsIfVsys table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfVsys\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2769,55 +2796,55 @@ sub Get_Netscreen {
     # Management protocols
     # get permitted management protocols
     ## Telnet
-    my $refaNsIfMngTelnetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngTelnet,$ghOptions{'cachedir'},0);
+    $refaNsIfMngTelnetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngTelnet,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngTelnetLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngTelnet table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngTelnet\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ## SCS
-    my $refaNsIfMngSCSLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSCS,$ghOptions{'cachedir'},0);
+    $refaNsIfMngSCSLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSCS,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngSCSLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngSCS table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSCS\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##WEB           
-    my $refaNsIfMngWEBLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngWEB,$ghOptions{'cachedir'},0);
+    $refaNsIfMngWEBLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngWEB,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngWEBLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngWEB table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngWEB\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##SSL           
-    my $refaNsIfMngSSLLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSSL,$ghOptions{'cachedir'},0);
+    $refaNsIfMngSSLLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSSL,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngSSLLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngSSL table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSSL\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##SNMP          
-    my $refaNsIfMngSNMPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSNMP,$ghOptions{'cachedir'},0);
+    $refaNsIfMngSNMPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngSNMP,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngSNMPLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngSNMP table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngSNMP\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##Global        
-    my $refaNsIfMngGlobalLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobal,$ghOptions{'cachedir'},0);
+    $refaNsIfMngGlobalLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobal,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngGlobalLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngGlobal table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngGlobal\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##GlobalPro     
-    my $refaNsIfMngGlobalProLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobalPro,$ghOptions{'cachedir'},0);
+    $refaNsIfMngGlobalProLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngGlobalPro,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngGlobalProLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngGlobalPro table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngGlobalPro\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##Ping          
-    my $refaNsIfMngPingLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngPing,$ghOptions{'cachedir'},0);
+    $refaNsIfMngPingLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngPing,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngPingLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngPing table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngPing\n");
         exit $ERRORS{"UNKNOWN"};
     }
     ##IdentReset    
-    my $refaNsIfMngIdentResetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngIdentReset,$ghOptions{'cachedir'},0);
+    $refaNsIfMngIdentResetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfMngIdentReset,$ghOptions{'cachedir'},0);
     if ($#$refaNsIfMngIdentResetLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfMngIdentReset table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfMngIdentReset\n");
         exit $ERRORS{"UNKNOWN"};
@@ -2931,7 +2958,7 @@ sub Get_Netscreen {
             $refhNsIfMng->{"$Index"} .= "IdentReset";
         }
     }
-    print "permitted protocols:\n".Dumper($refhNsIfMng);
+    #print "permitted protocols:\n".Dumper($refhNsIfMng);
     
     for my $Index (keys %$refhNsIfMng) {
         if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
@@ -2940,36 +2967,6 @@ sub Get_Netscreen {
     }
     
     #logger(1, "ifName: $ifName\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk");
-    
-    
-    # my $oid_juniper_nsIfMngTelnet           = '.1.3.6.1.4.1.3224.9.1.1.12'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSCS              = '.1.3.6.1.4.1.3224.9.1.1.13'; # + ".<index>"
-    # my $oid_juniper_nsIfMngWEB              = '.1.3.6.1.4.1.3224.9.1.1.14'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSSL              = '.1.3.6.1.4.1.3224.9.1.1.15'; # + ".<index>"
-    # my $oid_juniper_nsIfMngSNMP             = '.1.3.6.1.4.1.3224.9.1.1.16'; # + ".<index>"
-    # my $oid_juniper_nsIfMngGlobal           = '.1.3.6.1.4.1.3224.9.1.1.17'; # + ".<index>"
-    # my $oid_juniper_nsIfMngGlobalPro        = '.1.3.6.1.4.1.3224.9.1.1.18'; # + ".<index>"
-    # my $oid_juniper_nsIfMngPing             = '.1.3.6.1.4.1.3224.9.1.1.19'; # + ".<index>"
-    # my $oid_juniper_nsIfMngIdentReset       = '.1.3.6.1.4.1.3224.9.1.1.20'; # + ".<index>"
-    
-    
-    
-    #for (@$refaSTPPortStateLines) {
-    #    my ($Index,$Portstate) = split / /,$_,2;
-    #    $Index =~ s/^.*\.//g;    # remove all but the index
-    #    $Portstate =~ s/\s+$//g;    # remove invisible chars from the end
-    #    if (defined $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index}) {
-    #        my $ifName = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index};
-    #        defined $stp_portstate_readable{"$Portstate"} and $Portstate = $stp_portstate_readable{"$Portstate"};
-    #        logger(2, "IfName=\"$ifName\", StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
-    #
-    #        # Store the Portstate as property of the current interface
-    #        $grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
-    #    }
-    #}
-    
-    
-    
     
     return 0;
     
