@@ -328,13 +328,14 @@ if (!defined $grefhCurrent->{MD}->{Node}->{sysUpTime} or $grefhCurrent->{MD}->{N
 
 # read all interfaces and their properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
-logger(3, "Data from files -> grefhFile:".Dumper($grefhFile));
+logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # ------------------------------------------------------------------------------
 # Read node related data (from snmp/cache)
 # ------------------------------------------------------------------------------
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
+logger(1, "Retrieve targetsystem information");
 $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
@@ -377,7 +378,7 @@ if ($ghOptions{'nodetype'} eq "netscreen") {
     Get_Netscreen ();
 }
 
-logger(3, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
+logger(5, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
 # ------------------------------------------------------------------------------
 # Include / Exclude interfaces
@@ -421,7 +422,7 @@ $grefhCurrent = EvaluateInterfaces (
     $ghOptions{'exclude-property'},
     $ghOptions{'include-property'}
     );
-#logger(3, "Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
+#logger(5, "Interface inclusions / exclusions -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
 
 # ------------------------------------------------------------------------------
 # Create interface information table data
@@ -430,7 +431,7 @@ $grefhCurrent = EvaluateInterfaces (
 # sort ifIndex by number
 @$grefaAllIndizes = sort { $a <=> $b }
     keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
-logger(3, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
+logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
 my $basetime = CleanAndSelectHistoricalDataset();
 if (defined $basetime) {
@@ -477,7 +478,7 @@ if ($gChangeText) {
     $gText = "$gNumberOfInterfacesWithoutTrunk interface(s)"
 }
 
-#logger(3, "gInterfacesWithoutTrunk: " . Dumper (%{$gInterfacesWithoutTrunk}));
+#logger(5, "gInterfacesWithoutTrunk: " . Dumper (%{$gInterfacesWithoutTrunk}));
 for my $switchport (keys %{$gInterfacesWithoutTrunk}) {
     if ($gInterfacesWithoutTrunk->{$switchport}) {
         # this port is free
@@ -687,6 +688,38 @@ exit $ERRORS{"UNKNOWN"};
 # * ReadConfigFileNew
 # * WriteConfigFileNew
 # * Get_InterfaceNames
+# * Get_IpAddress_SubnetMask
+# * Get_Traffic
+# * perfdataout
+# * WriteHtmlFile
+# * mcompare
+# * GenerateInterfaceTableData
+# * EvaluateInterfaces
+# * Get_OperStatus
+# * Get_TrafficInOut
+# * Get_IfErrInOut
+# * Get_IfDiscardInOut
+# * CleanAndSelectHistoricalDataset
+# * CalculateBps
+# * EvaluatePackets
+# * Get_AdminStatus_Speed_Duplex_Alias_Vlan
+# * Get_Stp
+# * Get_Netscreen
+# * ConvertSpeedToReadable
+# * ConvertIfStatusToReadable
+# * ConvertIfStatusToNumber
+# * ConvertIfDuplexStatusToReadable
+# * TimeDiff
+# * colorcode
+# * check_for_unused_interfaces
+# * Convert2HtmlTable
+# * ExitPlugin
+# * print_usage
+# * print_help
+# * print_defaults
+# * print_revision
+# * support
+# * check_options
 # ------------------------------------------------------------------------------
 
 
@@ -1471,8 +1504,8 @@ sub GenerateInterfaceTableData {
     logger(2, "x"x50);
     
     # Print tracking info
-    logger(3, "Available fields:".Dumper($refaFields));
-    logger(3, "Tracked fields:".Dumper($refaToCompare));
+    logger(5, "Available fields:".Dumper($refaFields));
+    logger(5, "Tracked fields:".Dumper($refaToCompare));
     
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     for my $InterfaceIndex (@$grefaAllIndizes) {
@@ -1649,7 +1682,7 @@ sub GenerateInterfaceTableData {
     } # for $InterfaceIndex
 
     # Print a footer for debug information
-    logger(3, " List of changes -> generated hash of array\ngrefhListOfChanges:".Dumper ($grefhListOfChanges));
+    logger(5, " List of changes -> generated hash of array\ngrefhListOfChanges:".Dumper ($grefhListOfChanges));
     logger(2, "x"x50);
 
     return $refaContentForHtmlTable;
@@ -2060,7 +2093,7 @@ sub Get_IfDiscardInOut {
 # ------------------------------------------------------------------------
 sub CleanAndSelectHistoricalDataset {
 
-    #logger(3, "perfdata dirty:\n".Dumper($grefhFile));
+    #logger(5, "perfdata dirty:\n".Dumper($grefhFile));
 
     my $firsttime = $STARTTIME;
 
@@ -2267,10 +2300,10 @@ sub CalculateBps {
 
     }
     logger(2, "x"x50);
-    #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent));
-    #logger(3, "grefhFile: " . Dumper ($grefhFile));
-    #logger(3, "grefhCurrent: " . Dumper ($grefhCurrent->{If}));
-    #logger(3, "grefhFile: " . Dumper ($grefhFile->{If}));
+    #logger(5, "grefhCurrent: " . Dumper ($grefhCurrent));
+    #logger(5, "grefhFile: " . Dumper ($grefhFile));
+    #logger(5, "grefhCurrent: " . Dumper ($grefhCurrent->{If}));
+    #logger(5, "grefhFile: " . Dumper ($grefhFile->{If}));
 
     return 0;
 }
@@ -2415,13 +2448,11 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         logger(0, "Could not read ifAlias table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAlias\n");
         exit $ERRORS{"UNKNOWN"};
     }
-    #print "refaIfAlias: " . Dumper($refaIfAlias);
     my $refhIfAlias = ();
     foreach (@$refaIfAlias) {
         $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias\.([0-9]*) (.*)$/;
     }
-    #print "refhIfAlias: " . Dumper($refhIfAlias);
-
+    
     # get ifSpeed table
     my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifSpeed,$ghOptions{'cachedir'},0);
     if ($#$refaIfSpeed < 0 ) {
@@ -3402,8 +3433,8 @@ sub Convert2HtmlTable {
     my $HTMLTable;                # HTML Table code only
     
     logger(2, "x"x50);
-    logger(3, "refAoHHeader: " . Dumper ($refAoHHeader));
-    logger(3, "refAoAoHLines: " . Dumper ($refAoAoHLines));
+    logger(5, "refAoHHeader: " . Dumper ($refAoHHeader));
+    logger(5, "refAoAoHLines: " . Dumper ($refAoAoHLines));
 
     if ($tableType == 0) { 
         if ($#$refAoAoHLines >= 0) {
@@ -3456,7 +3487,7 @@ sub Convert2HtmlTable {
             # ------------------------------------------------------------------
             # Build html table content
             foreach my $Line ( @$refAoAoHLines ) {
-                logger(3, "Line: " . Dumper ($Line));
+                logger(5, "Line: " . Dumper ($Line));
                 # start table line
                 $HTMLTable .= "<tr";
                 my $trTagclose = '>';
@@ -3537,7 +3568,7 @@ sub Convert2HtmlTable {
     
             # Build html table content
             foreach my $Line ( @$refAoAoHLines ) {
-                #logger(3, "Line: " . Dumper ($Line));
+                #logger(5, "Line: " . Dumper ($Line));
                 # start table line ---------------------------------------------
                 $HTMLTable .= "<tr";
                 my $trTagclose = '>';

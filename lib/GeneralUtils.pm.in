@@ -40,11 +40,11 @@ sub setLoglevel {
     ################################
     # SUB use: Set the overall loglevel
     # SUB specs: ###################
-    #  * arg 0: The loglevel to set (1-3)
+    #  * arg 0: The loglevel to set (1-5)
     ################################
 
     my $loglevel = shift;
-    if($loglevel >= 1 && $loglevel <= 3){
+    if($loglevel >= 1 && $loglevel <= 5){
         $LOGLEVEL = $loglevel;
     }
 }
@@ -56,7 +56,7 @@ sub logger {
     ################################
     # SUB use: Log and display messages based on loglevel
     # SUB specs:
-    #  * arg 0: The loglevel of the message (0-3)
+    #  * arg 0: The loglevel of the message (0-5)
     #  * arg 1: The message to be logged
     #  * return: nothing (all is printed to STDOUT)
     ################################
@@ -67,7 +67,7 @@ sub logger {
     #        2 - calculations
     #        2 - html output
     #        2 - performance data output
-    #        2 - snmp queries/results
+    #        3 - snmp queries/results
     #        3 - executecommand
     #        3 - commandline
     #        3 - config file
@@ -82,11 +82,11 @@ sub logger {
     $loglevel    = shift;
     $msg         = shift;
 
-    unless($loglevel >= 0 and $loglevel <= 3){die "You passed a message with an invalid loglevel lo logger().\n"}
-    unless($LOGLEVEL >= 0 and $LOGLEVEL <= 3){die "The main loglevel is not set properly (must be 0-3).\n"}
+    unless($loglevel >= 0 and $loglevel <= 5){die "You passed a message with an invalid loglevel to logger().\n"}
+    unless($LOGLEVEL >= 0 and $LOGLEVEL <= 5){die "The main loglevel is not set properly (must be 0-5).\n"}
 
     # define labels for different loglevels
-    my %level_labels = ( 0 => "ERROR", 1 => "INFO", 2 => "DEBUG", 3 => "TRACE" );
+    my %level_labels = ( 0 => "ERROR", 1 => "INFO", 2 => "DEBUG", 3 => "TRACE1", 4 => "TRACE2", 5 => "TRACE3" );
 
     # fetch the name of the function which called logger()
     my $caller = (caller(1))[3];
