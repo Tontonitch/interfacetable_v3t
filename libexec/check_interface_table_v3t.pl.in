@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-alpha1';
+$REVISION       = '0.04-beta1';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -335,7 +335,7 @@ logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 # ------------------------------------------------------------------------------
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
-logger(1, "Retrieve targetsystem information");
+logger(1, "Retrieve target system information");
 $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
@@ -353,8 +353,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 # and reformatted interface names.
 Get_InterfaceNames ();
 
-# extract ifIndex and ifOperStatus out of the lines and get the
-# ifDescription from the net or from cache
+# Gather interface operational status
 Get_OperStatus ();
 
 # Gather interface ip addresses and masks
@@ -365,15 +364,15 @@ if ($ghOptions{'nodetype'} ne "netscreen") {
 # Gather interface traffics (in/out and packet errors/discards)
 Get_Traffic ();
 
-# get ifAdminStatus, ifSpeed and ifAlias from the net or from cache
+# Gather interface admin status, speed, alias and vlan
 Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 
-# STP specific (--stp)
+# Gather Spanning Tree specific info (--stp)
 if ($ghOptions{'stp'}) {
     Get_Stp ();
 }
 
-# Juniper Netscreen specific (--nodetype=netscreen)
+# Gather Juniper Netscreen specific info (--nodetype=netscreen)
 if ($ghOptions{'nodetype'} eq "netscreen") {
     Get_Netscreen ();
 }
@@ -525,15 +524,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 # do not compare ifName and ifIndex because they can change during reboot
 # Field list: index,ifName,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifDuplexStatus,ifVlanNames,ifLoadIn,ifLoadOut,ifIpInfo,bpsIn,bpsOut,ifLastTraffic
 #
-my $grefaInterfaceTableFields;
-foreach my $Cell ( @$grefAoHInterfaceTableHeader ) {
-#    foreach my $Cell ( @$Line ) {
-        if ($Cell->{'Enabled'}) {
-            push(@$grefaInterfaceTableFields,$Cell->{'Dataname'});
-        }
-#    }
-}
-$grefAoHInterfaceTableData = GenerateInterfaceTableData ($grefaInterfaceTableFields,$ghOptions{'track-property'});
+$grefAoHInterfaceTableData = GenerateInterfaceTableData ($grefAoHInterfaceTableHeader,$ghOptions{'track-property'});
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -765,7 +756,7 @@ sub ReadInterfaceInformationFile {
         # the file with interface information was not found - this is the first
         # run of the program or it was deleted before.
         # Create a new one and store the sysUptime immediately
-        logger(1, "Not readable state file \"$InterfaceInformationFile\" found, creating a new one");
+        logger(1, "No readable state file \"$InterfaceInformationFile\" found, creating a new one");
         WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
         $gInitialRun = 1;
     }
@@ -1495,16 +1486,25 @@ sub mcompare {
 # ------------------------------------------------------------------------
 sub GenerateInterfaceTableData {
 
-    my $refaFields               = shift;               # Array of the fields for the table
-    my $refaToCompare            = shift;               # Array of fields which should be included from change tracking
-    my $iLineCounter             = 0;                   # Fluss Variable (ah geh ;-) )
+    my $refAoHInterfaceTableHeader  = shift;
+    my $refaToCompare               = shift;            # Array of fields which should be included from change tracking
+    my $iLineCounter                = 0;                # Fluss Variable (ah geh ;-) )
     my $refaContentForHtmlTable;                        # This is the final data structure which we pass to Convert2HtmlTable
 
+    my $grefaInterfaceTableFields;
+    foreach my $Cell ( @$grefAoHInterfaceTableHeader ) {
+    #    foreach my $Cell ( @$Line ) {
+            if ($Cell->{'Enabled'}) {
+                push(@$grefaInterfaceTableFields,$Cell->{'Dataname'});
+            }
+    #    }
+    }
+    
     # Print a header for debug information
     logger(2, "x"x50);
     
     # Print tracking info
-    logger(5, "Available fields:".Dumper($refaFields));
+    logger(5, "Available fields:".Dumper($refAoHInterfaceTableHeader));
     logger(5, "Tracked fields:".Dumper($refaToCompare));
     
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
@@ -1525,8 +1525,9 @@ sub GenerateInterfaceTableData {
         # This variable used for exittext
         $gNumberOfInterfaces++;
 
-        for my $FieldName ( @$refaFields ) {
-
+        foreach my $Header ( @$refAoHInterfaceTableHeader ) {
+            next if (not $Header->{'Enabled'});
+            
             my $ChangeTime;
             my $LastChangeInfo          = "";
             #my $CellColor;
@@ -1536,22 +1537,16 @@ sub GenerateInterfaceTableData {
             my $CurrentFieldContent     = "";
             my $FileFieldContent        = "";
             my $FieldType               = ""; # 'property' or 'load'
-            
-            if ($FieldName =~ /^index$|^ifName$|^ifAlias$|^ifAdminStatus$|^ifOperStatus$|^ifSpeedReadable$|^ifDuplexStatus$|^ifVlanNames$|^ifIpInfo$|^nsIfZone$|^nsIfVsys$|^nsIfMng$/i) {
-                $FieldType = "property";
-            } elsif ( $FieldName =~ /^ifLoadIn$|^ifLoadOut$|^bpsIn$|^bpsOut$|^pktErrDiscard$|^ifLastTraffic$/i ) {
-                $FieldType = "load";
-            }
-            
-            if (defined $refhInterFaceDataCurrent->{"$FieldName"}) {
+                        
+            if (defined $refhInterFaceDataCurrent->{"$Header->{Dataname}"}) {
                 # This is used to calculate the id (used for displaying the html table)
-                $CurrentFieldContent  = $refhInterFaceDataCurrent->{"$FieldName"};
+                $CurrentFieldContent  = $refhInterFaceDataCurrent->{"$Header->{Dataname}"};
                 # Delete the first and last "blank"
                 $CurrentFieldContent =~ s/^ //;
                 $CurrentFieldContent =~ s/ $//;
             }
-            if (defined $refhInterFaceDataFile->{"$FieldName"}) {
-                $FileFieldContent = $refhInterFaceDataFile->{"$FieldName"};
+            if (defined $refhInterFaceDataFile->{"$Header->{Dataname}"}) {
+                $FileFieldContent = $refhInterFaceDataFile->{"$Header->{Dataname}"};
                 # Delete the first and last "blank"
                 $FileFieldContent =~ s/^ //;
                 $FileFieldContent =~ s/ $//;
@@ -1559,11 +1554,11 @@ sub GenerateInterfaceTableData {
 
             # Flag if the current status of this field should be compared with the
             # "snapshoted" status.
-            my $CompareThisField = grep (/$FieldName/i, @$refaToCompare);
+            my $CompareThisField = grep (/$Header->{Dataname}/i, @$refaToCompare);
 
             # some fields have a change time property in the interface information file.
             # if the change time exists we store this and write into html table
-            $ChangeTime = $grefhFile->{MD}->{If}->{$Name}->{$FieldName."ChangeTime"};
+            $ChangeTime = $grefhFile->{MD}->{If}->{$Name}->{$Header->{Dataname}."ChangeTime"};
 
             # If interface is excluded or this is the initial run we don't lookup for
             # data changes
@@ -1573,14 +1568,14 @@ sub GenerateInterfaceTableData {
             } elsif ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "true") {
                 $CompareThisField = 0;
                 $CellStyle = "cellExcluded";
-            } elsif (($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedLoadTrack} eq "true") && ( $FieldType eq "load" )) {
+            } elsif (($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedLoadTrack} eq "true") && ( $Header->{'Datatype'} eq "load" )) {
                 $CompareThisField = 0;
                 $CellStyle = "cellNotTracked";
-            } elsif (($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedPropertyTrack} eq "true") && ( $FieldType eq "property" ) && ($CompareThisField == 1)) {
+            } elsif (($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedPropertyTrack} eq "true") && ( $Header->{'Datatype'} eq "property" ) && ($CompareThisField == 1)) {
                 $CompareThisField = 0;
                 $CellStyle = "cellNotTracked";
-            } elsif (defined $grefhCurrent->{If}->{$Name}->{$FieldName."OutOfRange"}) {
-                $CellBackgroundColor = $grefhCurrent->{If}->{$Name}->{$FieldName."OutOfRange"};
+            } elsif (defined $grefhCurrent->{If}->{$Name}->{$Header->{Dataname}."OutOfRange"}) {
+                $CellBackgroundColor = $grefhCurrent->{If}->{$Name}->{$Header->{Dataname}."OutOfRange"};
             }
             
             # Set LastChangeInfo to this Format "(since 0d 0h 43m)"
@@ -1590,7 +1585,7 @@ sub GenerateInterfaceTableData {
             }
 
             if ( $CompareThisField  ) {
-                logger(2, "Compare \"".denormalize($Name)."($FieldName)\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
+                logger(2, "Compare \"".denormalize($Name)."($Header->{Dataname})\" now=\"$CurrentFieldContent\" file=\"$FileFieldContent\"");
                 if ( $CurrentFieldContent eq $FileFieldContent ) {
                     # Field content has NOT changed
                     $CellContent = denormalize ( $CurrentFieldContent );
@@ -1600,22 +1595,22 @@ sub GenerateInterfaceTableData {
                     $CellContent = "now: " . denormalize( $CurrentFieldContent ) . "$LastChangeInfo was: " . denormalize ( $FileFieldContent );
                     if ($ghOptions{verbose} or $ghOptions{'warning-property'} > 0 or $ghOptions{'critical-property'} > 0) {
                         $gChangeText .= "(" . denormalize ($Name) .
-                            ") $FieldName now <b>$CurrentFieldContent</b> (was: <b>$FileFieldContent</b>)<br>";
+                            ") $Header->{Dataname} now <b>$CurrentFieldContent</b> (was: <b>$FileFieldContent</b>)<br>";
                     }
                     $CellStyle = "cellTrackedChange";
                     $gDifferenceCounter++;
                     
                     # Update the list of changes
-                    push @{$grefhListOfChanges->{"$FieldName"}}, trim(denormalize($Name));
+                    push @{$grefhListOfChanges->{"$Header->{Dataname}"}}, trim(denormalize($Name));
                 }
             } else {
                 # Filed will not be compared, just write the current field - value in the table.
-                logger(2, "Not comparing $FieldName on interface ".denormalize($Name));
+                logger(2, "Not comparing $Header->{Dataname} on interface ".denormalize($Name));
                 $CellContent = denormalize( $CurrentFieldContent );
             }
 
             # Actions field
-            if (grep (/$FieldName/i, "Actions")) {
+            if (grep (/$Header->{Dataname}/i, "Actions")) {
                 # Graphing solution link - one link per line/interface/port
                 if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false" 
                     and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
@@ -1676,7 +1671,7 @@ sub GenerateInterfaceTableData {
               $refaContentForHtmlTable->[ $iLineCounter ]->[ $iFieldCounter ]->{Style} = $CellStyle;
 
             $iFieldCounter++;
-        } # for FieldName
+        } # for Header
         
         $iLineCounter++;
     } # for $InterfaceIndex
@@ -2542,8 +2537,11 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         }
             
         # Store ifAlias normalized to not get into trouble with special chars
-        $grefhCurrent->{If}->{"$ifName"}->{ifAlias} =
-            normalize ($refhIfAlias->{"$Index"});
+        if (defined $refhIfAlias->{"$Index"}) {
+            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = normalize ($refhIfAlias->{"$Index"});
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
+        }
 
         if ($ghOptions{vlan}) { # show VLANs per port
             # clear ifVlanNames
@@ -2697,15 +2695,15 @@ sub Get_Netscreen {
     
     # IP/Netmask
     ## get info from snmp/cache
-    $refaNsIfNetmaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfIp,$ghOptions{'cachedir'},0);
-    if ($#$refaNsIfNetmaskLines < 0 ) {
+    $refaNsIfIpLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_juniper_nsIfIp,$ghOptions{'cachedir'},0);
+    if ($#$refaNsIfIpLines < 0 ) {
         logger(0, "Could not read Netscreen nsIfIp information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_juniper_nsIfIp\n");
         exit $ERRORS{"UNKNOWN"};
     }
     
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
-    $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} = join (";",@$refaNsIfNetmaskLines);
+    $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} = join (";",@$refaNsIfIpLines);
 
     # remove all invisible chars incl. \r and \n
     $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} =~ s/[\000-\037]|[\177-\377]//g;
