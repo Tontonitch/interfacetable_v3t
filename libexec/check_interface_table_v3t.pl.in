@@ -80,7 +80,7 @@ my $oid_ifAdminStatus   = ".1.3.6.1.2.1.2.2.1.7";     # + ".<index>"
 my $oid_ifOperStatus    = ".1.3.6.1.2.1.2.2.1.8";     # + ".<index>"
 #my $oid_ifLastChange    = ".1.3.6.1.2.1.2.2.1.9";     # + ".<index>", not used
 my $oid_ifDuplexStatus  = ".1.3.6.1.2.1.10.7.2.1.19"; # + ".<index>"
-my $oid_ipAdEntIfIndex  = ".1.3.6.1.2.1.4.20.1.2";    # + ".<index>"
+my $oid_ipAdEntIfIndex  = ".1.3.6.1.2.1.4.20.1.2";    # + ".<IP address>"
 my $oid_ipAdEntNetMask  = ".1.3.6.1.2.1.4.20.1.3";    # + ".<index>"
 my $oid_ifVlanName      = '.1.3.6.1.2.1.47.1.2.1.1.2'; # + ".<index>"
 
@@ -245,7 +245,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Enabled => 0 }, #8
     {   Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Enabled => 0 }, #9
     {   Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Enabled => 0 }, #10
-    {   Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Enabled => 0 }, #11
+    {   Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Enabled => 0 }, #11
     {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Enabled => 1 }, #12
     {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Enabled => 1 }, #13
     {   Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Enabled => 1 }, #14
@@ -3688,6 +3688,7 @@ sub print_usage () {
         
     * advanced usage:
       $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+        [--domain <transport domain>] [-P <port>]
         [-e <globally excluded interface list>] [-i <globally included interface list>] 
         [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>] 
         [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
@@ -3777,14 +3778,21 @@ sub print_usage () {
   Property checks (interface property changes)
     --tp, --track-property (optional)
         List of tracked properties. Values can be:
-        * 'ifAdminStatus'      : the administrative status of the interface
-        * 'ifOperStatus'       : the operational status of the interface
-        * 'ifSpeedReadable'    : the speed of the interface
-        * 'ifStpState'         : the Spanning Tree state of the interface
-        * 'ifDuplexStatus'     : the operation mode of the interface (duplex mode)
-        * 'ifVlanNames'        : the vlan on which the interface was associated
-        * 'ifIpInfo'           : the ip configuration for the interface
+          Standard:
+            * 'ifAlias'            : the interface alias
+            * 'ifAdminStatus'      : the administrative status of the interface
+            * 'ifOperStatus'       : the operational status of the interface
+            * 'ifSpeedReadable'    : the speed of the interface
+            * 'ifStpState'         : the Spanning Tree state of the interface
+            * 'ifDuplexStatus'     : the operation mode of the interface (duplex mode)
+            * 'ifVlanNames'        : the vlan on which the interface was associated
+            * 'ifIpInfo'           : the ip configuration for the interface
+          Netscreen specific:
+            * 'nsIfZone'           : the security zone name an interface belongs to
+            * 'nsIfVsys'           : the virtual system name an interface belongs to
+            * 'nsIfMng'            : the management protocols permitted on the interface
         Default is 'ifOperStatus' only
+        Exemple: --tp='ifOperStatus,nsIfMng'
     --ep, --exclude-property (optional)
         * Comma separated list of interfaces excluded from the property tracking.
         * For the 'ifOperStatus' property, the exclusion of an interface is usually 
@@ -3816,6 +3824,10 @@ sub print_usage () {
     -L, --protocols=<authproto>,<privproto>
         <authproto> : Authentication protocol (md5|sha : default md5)
         <privproto> : Priv protocole (des|aes : default des)
+    --domain
+        SNMP transport domain. Can be: udp (default), tcp, udp6, tcp6.
+        Specifying a transport domain also change the default port according 
+        to that selected transport domain. Use --port to overwrite the port. 
     -P, --port=PORT
         SNMP port (Default 161)
     --64bits
@@ -4003,6 +4015,7 @@ sub check_options () {
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
+        'domain=s',                             # SNMP transport domain
         'port|P=i',                             # SNMP port
         'community|C=s',                        # Specifies the snmp v1/v2c community string.
         'v2c|2',                                # Use snmp v2c
@@ -4082,6 +4095,7 @@ sub check_options () {
     );
     # Default values: snmp options
     %ghSNMPOptions = (
+        'domain'                    => "udp",
         'port'                      => 161,
         'community'                 => "public",
         'version'                   => "1",         # 1, 2c, 3
@@ -4363,6 +4377,23 @@ sub check_options () {
     } else {
         $ghSNMPOptions{'version'} = "1";
     }
+    if (exists $commandline{domain}) {
+        if ($commandline{domain} =~ /^udp$|^tcp$|^udp6$|^tcp6$/i) {
+            $ghSNMPOptions{'domain'} = "$commandline{domain}";
+            if ($commandline{domain} eq "udp") {
+                $ghSNMPOptions{'port'} = 161;
+            } elsif ($commandline{domain} eq "tcp") {
+                $ghSNMPOptions{'port'} = 1161;
+            } elsif ($commandline{domain} eq "udp6") {
+                $ghSNMPOptions{'port'} = 10161;
+            } elsif ($commandline{domain} eq "tcp6") {
+                $ghSNMPOptions{'port'} = 1611;
+            }
+        } else {
+            logger(0, "Specified transport domain \"$commandline{domain}\" is not valid. Valid domains are: udp, tcp, udp6, tcp6.");
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
     if (exists $commandline{port}) {
         $ghSNMPOptions{'port'} = "$commandline{port}";
     }
@@ -4451,6 +4482,7 @@ __END__
 =head2 Advanced usage
 
   check_interface_table_v3t.pl [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+    [--domain <transport domain>] [--P <port>]
     [-e <globally excluded interface list>] [-i <globally included interface list>] 
     [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>] 
     [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
