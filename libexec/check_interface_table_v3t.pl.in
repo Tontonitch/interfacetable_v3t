@@ -1054,12 +1054,8 @@ sub Get_IpAddress_SubnetMask {
     # Get info from snmp/cache
     #------------------------------------------
     
-    # get all interface ip info
+    # get all interface ip info - resulting table can be empty
     $refaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0);
-    if ($#$refaIPLines < 0 ) {
-        logger(0, "Could not read ipAdEntIfIndex information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ipAdEntIfIndex\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
     
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
@@ -1069,7 +1065,7 @@ sub Get_IpAddress_SubnetMask {
     $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} =~ s/[\000-\037]|[\177-\377]//g;
     
     # get the subnet masks with caching 0 only if the ip addresses
-    # have changed
+    # have changed - resulting table can be empty
     if (defined $grefhFile->{MD}->{CachedInfo}->{IpInfo} and $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} eq $grefhFile->{MD}->{CachedInfo}->{IpInfo}) {
         $refaNetMaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer);
     } else {
@@ -2437,12 +2433,8 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         }
     }
 
-    # get ifAlias table
+    # get ifAlias table - returned result can be empty
     my $refaIfAlias = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAlias,$ghOptions{'cachedir'},0);
-    if ($#$refaIfAlias < 0 ) {
-        logger(0, "Could not read ifAlias table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAlias\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
     my $refhIfAlias = ();
     foreach (@$refaIfAlias) {
         $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias\.([0-9]*) (.*)$/;
@@ -3271,7 +3263,7 @@ sub check_for_unused_interfaces {
 # Arguments:
 #  0 : integrer corresponding to the table type to generate:
 #      0=horizontal headers (default)
-#      1=vertical headers 
+#      (TODOTODOTODOTODOTODOTODO 1=vertical headers)
 #  1 : ref to an AoH. Each hash correspond to a header of the table
 #        * Link
 #        * Tip 
@@ -3551,88 +3543,89 @@ sub Convert2HtmlTable {
         } else {
             $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
         }
-    } elsif ($tableType == 1) { 
-        if ($#$refAoAoHLines >= 0) {
-    
-            # Build HTML format and table header
-            $HTML .= '<table '."class=$cssClass";
-            if ($cssClass eq "interfacetable") {
-                $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
-            }
-            $HTML .= '>'."\n";
-            
-            # Build html table title header
-            $HTML .= "<th>$_</th>" for ( @$refAoHHeader );
-    
-            # Build html table content
-            foreach my $Line ( @$refAoAoHLines ) {
-                #logger(5, "Line: " . Dumper ($Line));
-                # start table line ---------------------------------------------
-                $HTMLTable .= "<tr";
-                my $trTagclose = '>';
-    
-                foreach my $Cell ( @$Line ) {
-    
-                    my $Value;
-                    my $SpecialCellFormat      = "";
-                    #my $SpecialTextFormatHead  = "";
-                    #my $SpecialTextFormatFoot  = "";
-    
-                    if ( defined $Cell->{InterfaceGraphURL} ) {
-                        if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
-                            $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
-                        }
-                        $trTagclose = '';
-                    }
-                    $HTMLTable .= $trTagclose;
-                    $trTagclose = '';
-                    #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
-                    # if background is defined ---------------------------------
-                    if ( defined $Cell->{Background} ) {
-                        $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
-                    }
-                    
-                    # if style is defined ---------------------------------
-                    if ( defined $Cell->{Style} ) {
-                        $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
-                    }
-    
-                    # if a special font is indicated ---------------------------
-                    #if ( defined $Cell->{Font} ) {
-                    #    $SpecialTextFormatHead .= $Cell->{Font};
-                    #    $SpecialTextFormatFoot .= '</font>';
-                    #}
-    
-                    # if we got a value write into cell ------------------------
-                    if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
-                        $Value = $Cell->{Value};
-                    } else {
-                    # otherwise create a empty cell ----------------------------
-                        $Value = "&nbsp;";
-                    }
-    
-                    # if a link is indicated -----------------------------------
-                    if ( defined $Cell->{Link} ) {
-                        $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
-                    }
-    
-                    # finally build the table line;
-                    $HTMLTable .= "\n" . '<td ' . 
-                        $SpecialCellFormat . '>' .
-                        #$SpecialTextFormatHead . 
-                        $Value .
-                        #$SpecialTextFormatFoot . 
-                        '</td>';
-                }
-                # end table line -----------------------------------------------
-                $HTMLTable .= "</tr>";
-            }
-            $HTMLTable .= "</table>";
-            $HTML .= "$HTMLTable</td></tr><br>";
-        } else {
-            $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
-        }
     } 
+    # elsif ($tableType == 1) { 
+    #    if ($#$refAoAoHLines >= 0) {
+    #
+    #        # Build HTML format and table header
+    #        $HTML .= '<table '."class=$cssClass";
+    #        if ($cssClass eq "interfacetable") {
+    #            $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'#81BEF7'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
+    #        }
+    #        $HTML .= '>'."\n";
+    #        
+    #        # Build html table title header
+    #        $HTML .= "<th>$_</th>" for ( @$refAoHHeader );
+    #
+    #        # Build html table content
+    #        foreach my $Line ( @$refAoAoHLines ) {
+    #            #logger(5, "Line: " . Dumper ($Line));
+    #            # start table line ---------------------------------------------
+    #            $HTMLTable .= "<tr";
+    #            my $trTagclose = '>';
+    #
+    #            foreach my $Cell ( @$Line ) {
+    #
+    #                my $Value;
+    #                my $SpecialCellFormat      = "";
+    #                #my $SpecialTextFormatHead  = "";
+    #                #my $SpecialTextFormatFoot  = "";
+    #
+    #                if ( defined $Cell->{InterfaceGraphURL} ) {
+    #                    if($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} ne "nagiosgrapher" ){         # thd
+    #                        $HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');" >';
+    #                    }
+    #                    $trTagclose = '';
+    #                }
+    #                $HTMLTable .= $trTagclose;
+    #                $trTagclose = '';
+    #                #logger(1, "HTMLTable: $HTMLTable \nCell: $Cell->{InterfaceGraphURL}");
+    #                # if background is defined ---------------------------------
+    #                if ( defined $Cell->{Background} ) {
+    #                    $SpecialCellFormat .= ' bgcolor="'.$Cell->{Background}.'"';
+    #                }
+    #                
+    #                # if style is defined ---------------------------------
+    #                if ( defined $Cell->{Style} ) {
+    #                    $SpecialCellFormat .= ' class="'.$Cell->{Style}.'"';
+    #                }
+    #
+    #                # if a special font is indicated ---------------------------
+    #                #if ( defined $Cell->{Font} ) {
+    #                #    $SpecialTextFormatHead .= $Cell->{Font};
+    #                #    $SpecialTextFormatFoot .= '</font>';
+    #                #}
+    #
+    #                # if we got a value write into cell ------------------------
+    #                if ( defined $Cell->{Value} and  $Cell->{Value} ne " ") {
+    #                    $Value = $Cell->{Value};
+    #                } else {
+    #                # otherwise create a empty cell ----------------------------
+    #                    $Value = "&nbsp;";
+    #                }
+    #
+    #                # if a link is indicated -----------------------------------
+    #                if ( defined $Cell->{Link} ) {
+    #                    $Value = '<a href="' . $Cell->{Link} . '">' . $Value . '</a>';
+    #                }
+    #
+    #                # finally build the table line;
+    #                $HTMLTable .= "\n" . '<td ' . 
+    #                    $SpecialCellFormat . '>' .
+    #                    #$SpecialTextFormatHead . 
+    #                    $Value .
+    #                    #$SpecialTextFormatFoot . 
+    #                    '</td>';
+    #            }
+    #            # end table line -----------------------------------------------
+    #            $HTMLTable .= "</tr>";
+    #        }
+    #        $HTMLTable .= "</table>";
+    #        $HTML .= "$HTMLTable</td></tr><br>";
+    #    } else {
+    #        $HTML.='<a href=JavaScript:history.back();>No data to display</a>'."\n";
+    #    }
+    #} 
     logger(2, "x"x50);
     
     return $HTML;
