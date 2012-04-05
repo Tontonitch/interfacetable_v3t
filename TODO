@@ -37,6 +37,8 @@
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 # DONE    - add snmp transport domain selection
+#         - handle old arg by telling what to change
+#         - tolerant option proposed when snmp request doesn't return anything
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
