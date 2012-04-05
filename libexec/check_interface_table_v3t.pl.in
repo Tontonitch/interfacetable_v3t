@@ -2129,8 +2129,17 @@ sub CalculateBps {
         # Get normalized interface name (key for If data structure)
         my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$Index};
         logger(2, " ifName: $ifName (index: $Index)");
+        
+        # Skip interface if excluded
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
+            next;
+        }
+
+        # Skip interface if no load stats
+        if (not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn}
+            and not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut}) {
+            logger(2, "  -> not load statistics, skipping");
             next;
         }
         
