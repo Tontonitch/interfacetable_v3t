@@ -71,10 +71,20 @@ td {
     vertical-align:bottom;
 }
 
+/* Configuration table */ 
+#config table {
+    width: 100%;
+}
+#config .cellFirstColumn {
+    width: 300px;
+}
+
 /* Cell styles */
 .cellFirstColumn {
     background-color: #D3D3D3;
     color: black;
+    font-size: 10pt;
+    font-weight:bold;
 }
 .cellInitialRun {
     color: #808000;

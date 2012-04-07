@@ -271,6 +271,16 @@ if ($ghOptions{'nodetype'} eq "netscreen") {
 }
 
 # ------------------------------------------------------------------------
+# Configuration table initializations
+# ------------------------------------------------------------------------
+my $gConfigTableHTML;                                      # Generated HTML code of the Config table
+my $grefAoHConfigTableHeader = [                           # Header for the colomns of the Config table
+    {   Title => 'Parameter',           Enabled => 1 },
+    {   Title => 'Result',              Enabled => 1 },
+];
+my $grefAoHConfigTableData;                                # Contents of the Config table
+
+# ------------------------------------------------------------------------
 # Other global initializations
 # ------------------------------------------------------------------------
 
@@ -519,6 +529,44 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     else { $grefAoHInfoTableData->[0]->[4]->{Value} =  'no data to compare with'; }
 }
 
+# ------------------------------------------------------------------------------
+# Create config information table data
+# ------------------------------------------------------------------------------
+
+$grefAoHConfigTableData->[0] = [ {Value => "Globally excluded interfaces"}, {Value => ""} ];
+$grefAoHConfigTableData->[1] = [ {Value => "Excluded interfaces from traffic tracking"}, {Value => ""} ];
+$grefAoHConfigTableData->[2] = [ {Value => "Excluded interfaces from property tracking"}, {Value => ""} ];
+$grefAoHConfigTableData->[3] = [ {Value => "Interface traffic load thresholds"},
+    {Value => "warning at $ghOptions{'warning-load'}%, critical at $ghOptions{'critical-load'}%"} ];
+$grefAoHConfigTableData->[4] = [ {Value => "Interface packet error/discard thresholds"},
+    {Value => "errors: warning at $ghOptions{'warning-pkterr'} pkts/s, critical at $ghOptions{'critical-pkterr'} pkts/s; discards: warning at $ghOptions{'warning-pktdiscard'} pkts/s, critical at $ghOptions{'critical-pktdiscard'} pkts/s"} ];
+$grefAoHConfigTableData->[5] = [ {Value => "Interface property tracked"}, {Value => join(", ",@{$ghOptions{'track-property'}})} ];
+$grefAoHConfigTableData->[6] = [ {Value => "Interface property change thresholds"}, {Value => ""} ];
+( $ghOptions{'warning-property'} > 0 ) ? $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), "
+  : $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
+( $ghOptions{'critical-property'} > 0 ) ? $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)"
+  : $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
+    
+# Loop through all interfaces
+for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
+    # Denormalize interface name
+    my $ifNameReadable = denormalize ($ifName);
+    # Update the config table 
+    if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+        $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable ";
+    }
+    if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
+        $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable ";
+    }
+    if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} eq "true") {
+        $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable ";
+    }
+}    
+$grefAoHConfigTableData->[0]->[1]->{Value} eq "" and $grefAoHConfigTableData->[0]->[1]->{Value} = "none";
+$grefAoHConfigTableData->[1]->[1]->{Value} eq "" and $grefAoHConfigTableData->[1]->[1]->{Value} = "none";
+$grefAoHConfigTableData->[2]->[1]->{Value} eq "" and $grefAoHConfigTableData->[2]->[1]->{Value} = "none";
+
+
 #
 # Generate Html Table
 # do not compare ifName and ifIndex because they can change during reboot
@@ -564,6 +612,9 @@ $gInfoTableHTML = Convert2HtmlTable (1,$grefAoHInfoTableHeader,$grefAoHInfoTable
 
 # Create "big" interface table
 $gInterfaceTableHTML   = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
+
+# Create configuration table
+$gConfigTableHTML = Convert2HtmlTable (2,$grefAoHConfigTableHeader,$grefAoHConfigTableData,"configtable","");
 
 # ------------------------------------------------------------------------------
 # Calculate exitcode and exit this program
@@ -648,6 +699,7 @@ if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and 
 WriteHtmlFile ({
     InfoTable       => $gInfoTableHTML,
     InterfaceTable  => $gInterfaceTableHTML,
+    ConfigTable     => $gConfigTableHTML,
     Dir             => $ghOptions{'htmltabledir'},
     FileName        => "$ghOptions{'htmltabledir'}/$gFile".'.html'
 });
@@ -1381,6 +1433,7 @@ sub perfdataout {
 # WriteHtmlFile ({
 #    InfoTable           => $gInfoTableHTML,
 #    InterfaceTable      => $gInterfaceTableHTML,
+#    ConfigTable         => $gConfigTableHTML,
 #    Dir                 => $ghOptions{'htmltabledir'},
 #    FileName            => $ghOptions{'htmltabledir'}/$gFile".'.html'
 # });
@@ -1422,18 +1475,25 @@ sub WriteHtmlFile {
 
         # -- Tables --
         print OUT '    <div id="info">
-        <a name="topinfotable"></a>' .
+        <a name="topinfotable">Node information</a>' .
         $refhStruct->{InfoTable} . '
     </div>
     <br>
     <div id="interface">
-        <a name=topinterfacetable></a>' .
+        <a name=topinterfacetable>Interface information</a>' .
         $refhStruct->{InterfaceTable} . '
         <div id="toplink">
             <a href="#topinterfacetable">Back to top</a>
         </div>
     </div>
-    <br>';    
+    <br>';
+        if ( $ghOptions{configtable} ) {
+        print OUT '    <div id="config">
+        <a name=topconfigtable>Configuration information</a>' .
+        $refhStruct->{ConfigTable} . '
+    </div>
+    <br>';
+        }
         # -- Body footer --
         print OUT '    <div class="buttons">
         <a class="green" href="javascript:history.back();">
@@ -1512,6 +1572,11 @@ sub GenerateInterfaceTableData {
         # Get normalized interface name (key for If data structure)
         my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
 
+        # Skip the interface if config table enabled
+        if ($ghOptions{configtable} and $grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "true") {
+            next;
+        }
+        
         # This is the If datastructure from the interface information file
         my $refhInterFaceDataFile     = $grefhFile->{If}->{$Name};
 
@@ -3433,8 +3498,8 @@ sub Convert2HtmlTable {
     my $HTML;                     # HTML Content back to the caller
     my $HTMLTable;                # HTML Table code only
     
-    my $headerLineEnabled = $tableType%2:
-    my $firstColumnEnabled = int($tableType/2):
+    my $headerLineEnabled = $tableType%2;
+    my $firstColumnEnabled = int($tableType/2);
     
     logger(2, "x"x50);
     logger(5, "refAoHHeader: " . Dumper ($refAoHHeader));
@@ -3844,6 +3909,11 @@ sub print_usage () {
     --(no)unixsnmp
         Use unix snmp utilities for snmp requests (table/bulk requests), in place of perl bindings
         Default is to use (perl bindings)
+    --(no)configtable
+        Enable/disable configuration table on the generated HTML page. Also, if enabled, the
+        globally excluded interfaces are not shown in the interface table anymore (interesting in 
+        case of lots of excluded interfaces)
+        Enabled by default.
         
   Notes:
     - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property, 
@@ -3962,13 +4032,21 @@ sub check_options () {
         #------- other features ---------#
         'config=s',                             # Configuration file
         'css=s',                                # Used css stylesheet
-        'ifdetails'                             # Link to query interface info - not yet functional
+        'ifdetails',                            # Link to query interface info - not yet functional
+        'configtable!',                         # Enable or not the configuration table
+        #------- deprecated options ---------#
+        'cisco',                                # replaced by --nodetype=cisco
         );
         
     # gathering commandline options
     if (! GetOptions(\%commandline, @params)) {
         print_help();
         exit $ERRORS{UNKNOWN};
+    }
+    # deprecated options
+    if (exists $commandline{cisco}) {
+        logger(0, "Option \"--cisco\" is deprecated. Use \"--nodetype=cisco\" instead.");
+        exit $ERRORS{"UNKNOWN"};
     }
     
     #====== Configuration hashes ======#
@@ -4024,7 +4102,8 @@ sub check_options () {
         #------- other features ---------#
         'config'                    => '',
         'css'                       => "icinga",             # Used css stylesheet. Can be classical, icinga or nagiosxi.
-        'ifdetails'                 => 0
+        'ifdetails'                 => 0,
+        'configtable'               => 1
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -4295,6 +4374,9 @@ sub check_options () {
     }    
     if (exists $commandline{ifdetails}) {
         $ghOptions{'ifdetails'} = 1;
+    }
+    if (exists $commandline{configtable}) {
+        $ghOptions{'configtable'} = $commandline{configtable};
     }
     
     #-------- SNMP related ----------#
