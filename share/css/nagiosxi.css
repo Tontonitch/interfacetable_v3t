@@ -52,7 +52,7 @@ td {
 
 /* Information table */ 
 #info table {
-	width: 100%;
+    width: 100%;
 }
 #info tr {
    background-color: #FFFFFF;
@@ -60,18 +60,22 @@ td {
 
 /* Interface table */
 #interface table {
-	width: 100%;
+    width: 100%;
 }
 #interface img {
-	border: 0;
+    border: 0;
     float: left;
     display: block;
     padding:0;
-	margin:0;
+    margin:0;
     vertical-align:bottom;
 }
 
 /* Cell styles */
+.cellFirstColumn {
+    background-color: #D3D3D3;
+    color: black;
+}
 .cellInitialRun {
     color: #808000;
 }

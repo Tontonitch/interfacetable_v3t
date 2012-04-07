@@ -578,7 +578,7 @@ sub GetTableDataWithSnmp {
     my $refaLinesTmp    = ();
     my $refaLines       = ();
     
-    if ( not $ghSNMPOptions{'unixsnmp'} ) {
+    if ( not $refhSNMPOptions->{'unixsnmp'} ) {
         # gather data via perl's snmp  
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {

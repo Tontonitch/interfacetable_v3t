@@ -24,21 +24,19 @@
 # DONE    - look review (buttons, html structure, css)
 # DONE    - detect 32/64 bits counter use changes
 # DONE    - detect release change
-#         - add a 3rd table in the html page, summarizing the following options: 
+# IN PROG - add a 3rd table in the html page, summarizing the following options: 
 #               * inclusions/exclusions of any kind
 #               * thresholds of any kind
-#         - add a 4th table in the html page, giving some specific device info,
-#           depending on the nodetype option
 #         - update supported nodes list
 #         - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
-#         - review generated link [details] to be not a relative URL, to be usable in 
+# REJECT  - review generated link [details] to be not a relative URL, to be usable in 
 #           email notifications
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 # DONE    - add snmp transport domain selection
 #         - handle old arg by telling what to change
-#         - tolerant option proposed when snmp request doesn't return anything
+# REJECT  - tolerant option proposed when snmp request doesn't return anything
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
@@ -48,6 +46,8 @@
 #         - add a feature to anonymize the info in debug reports (script or option?)
 #         - review normalization for a more standard one available in perl and php
 #         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
+#         - add a 4th table in the html page, giving some specific device info,
+#           depending on the nodetype option
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet

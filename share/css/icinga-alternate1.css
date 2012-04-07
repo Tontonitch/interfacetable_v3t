@@ -1,7 +1,7 @@
 /***** GENERAL *****/
 body {
-	color: #000000;
-	font-family: Verdana Geneva Arial Helvetica sans-serif;
+    color: #000000;
+    font-family: Verdana Geneva Arial Helvetica sans-serif;
 }
 #header {
     text-align: middle;
@@ -17,24 +17,24 @@ body {
     
 /***** TABLES *****/
 table {
-	background-color: #fff; 
-	padding: 2px; 
-	border: 0;
+    background-color: #fff; 
+    padding: 2px; 
+    border: 0;
 }
 tr {
-	background-color: #E7E7E7;
+    background-color: #E7E7E7;
 }
 th {
-	font-size: 10pt; 
-	background-color: #707677; 
-	color: #fff; 
-	border: 0;
-	padding: 2px 5px 2px 5px;
+    font-size: 10pt; 
+    background-color: #707677; 
+    color: #fff; 
+    border: 0;
+    padding: 2px 5px 2px 5px;
 }
 td {
-	border: 0 none;
+    border: 0 none;
     font-size: 8pt;
-	padding: 2px 5px 2px 5px;
+    padding: 2px 5px 2px 5px;
 }
 #toplink {
     text-align: right;
@@ -50,26 +50,30 @@ td {
 
 /* Information table */ 
 #info table {
-	width: 100%;
+    width: 100%;
 }
 #info tr {
-	background-color: #D2D2D2;
+    background-color: #D2D2D2;
 }
 
 /* Interface table */
 #interface table {
-	width: 100%;
+    width: 100%;
 }
 #interface img {
-	border: 0;
+    border: 0;
     float: left;
     display: block;
     padding:0;
-	margin:0;
+    margin:0;
     vertical-align:bottom;
 }
 
 /* Cell styles */
+.cellFirstColumn {
+    background-color: #707677;
+    color: #fff; 
+}
 .cellInitialRun {
     color: #808000;
 }
