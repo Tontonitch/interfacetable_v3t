@@ -73,7 +73,8 @@ sub logger {
     #        3 - config file
     #        3 - options
     #        3 - history file content
-    #        3 - current status    
+    #        3 - current status 
+    #        5 - hash/array dumps     
     ################################
 
     my $loglevel = 0;
@@ -86,7 +87,7 @@ sub logger {
     unless($LOGLEVEL >= 0 and $LOGLEVEL <= 5){die "The main loglevel is not set properly (must be 0-5).\n"}
 
     # define labels for different loglevels
-    my %level_labels = ( 0 => "ERROR", 1 => "INFO", 2 => "DEBUG", 3 => "TRACE1", 4 => "TRACE2", 5 => "TRACE3" );
+    my %level_labels = ( 0 => "ERROR", 1 => "INFO", 2 => "DEBUG", 3 => "TRACE1", 4 => "TRACE2", 5 => "DUMP" );
 
     # fetch the name of the function which called logger()
     my $caller = (caller(1))[3];
@@ -111,55 +112,6 @@ sub logger {
     }
 }
 
-
-=head1 NAME
-
- GeneralUtils - Some functions quite often used
-
-=head1 SYNOPSIS
-
-	use GeneralUtils;
-
-	printArray(\@a);
-	printArray(\@a, "DEBUG: ");
-
-	printHash(\%h);
-	printHash(\%h, "    ");  # e. g. if you want to print intended
-	
-	print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
-	# prints out: aVeryLongStringWitho
-	
-	$c = "short";
-	$c = fixedLen($c, 20, undef, ".");
-	# $c is now: short...............
-
-	$string = cutOffSpaces("foo   ");
-	# $string = "foo"
-
-	$hostname = getHostnameFromUrl("http://www.example.com:80/foo/");
-	# $hostname = "www.example.com";
-	$hostname = getHostnameFromUrl("http://myworkstation.example.com", "s");
-	# $hostname = "myworkstation";
-
-	print getProtocolFromUrl("https://www.example.com/test/") ."\n";
-	# https
-	$p = getProtocolFromUrl("www.example.com");
-	# $p = "http";
-
-=head1 DESCRIPTION
-
-=head2 GeneralUtils::printArray 
-
-	GeneralUtils::printArray(\@array [, $prefix])
-	
-	prints out the content of an array in a structured way
-	
-	parameter 1: reference to an array
-	parameter 2: prefix for every line of output
-	returns:     nothing of value
-
-=cut
-
 #----------------------------------------------------------------------------#
 
 sub printArray
@@ -183,18 +135,6 @@ sub printArray
     }
     return $output;
 }
-
-=head2 GeneralUtils::printHash
-
-	GeneralUtils::printHash(\%hash [, $prefix])
-	
-	prints out the content of a hash in a structured way
-	
-	parameter 1: reference to a hash
-	parameter 2: prefix for every line of output
-	returns:     nothing of value
-
-=cut
 
 #----------------------------------------------------------------------------#
 
@@ -453,3 +393,61 @@ sub trim {
 1;
 
 __END__
+
+=head1 NAME
+
+ GeneralUtils - Some functions quite often used
+
+=head1 SYNOPSIS
+
+	use GeneralUtils;
+
+	printArray(\@a);
+	printArray(\@a, "DEBUG: ");
+
+	printHash(\%h);
+	printHash(\%h, "    ");  # e. g. if you want to print intended
+	
+	print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
+	# prints out: aVeryLongStringWitho
+	
+	$c = "short";
+	$c = fixedLen($c, 20, undef, ".");
+	# $c is now: short...............
+
+	$string = cutOffSpaces("foo   ");
+	# $string = "foo"
+
+	$hostname = getHostnameFromUrl("http://www.example.com:80/foo/");
+	# $hostname = "www.example.com";
+	$hostname = getHostnameFromUrl("http://myworkstation.example.com", "s");
+	# $hostname = "myworkstation";
+
+	print getProtocolFromUrl("https://www.example.com/test/") ."\n";
+	# https
+	$p = getProtocolFromUrl("www.example.com");
+	# $p = "http";
+
+=head1 DESCRIPTION
+
+=head2 GeneralUtils::printArray 
+
+	GeneralUtils::printArray(\@array [, $prefix])
+	
+	prints out the content of an array in a structured way
+	
+	parameter 1: reference to an array
+	parameter 2: prefix for every line of output
+	returns:     nothing of value
+
+=head2 GeneralUtils::printHash
+
+	GeneralUtils::printHash(\%hash [, $prefix])
+	
+	prints out the content of a hash in a structured way
+	
+	parameter 1: reference to a hash
+	parameter 2: prefix for every line of output
+	returns:     nothing of value
+
+=cut

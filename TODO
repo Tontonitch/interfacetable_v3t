@@ -9,7 +9,7 @@
 # DONE    - review general structure of the plugin
 # DONE    - performance enhancement by prefering snmp table/bulk request
 # DONE    - add STP info
-# IN PROG - extend debug if needed
+# DONE    - extend debug if needed
 # DONE    - add options for hp, or other brands if relevant
 # DONE    - better handling of counters cleared manually or via node restart
 #            -> check if enough now
