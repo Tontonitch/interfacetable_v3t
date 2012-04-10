@@ -542,29 +542,39 @@ $grefAoHConfigTableData->[4] = [ {Value => "Interface packet error/discard thres
     {Value => "errors: warning at $ghOptions{'warning-pkterr'} pkts/s, critical at $ghOptions{'critical-pkterr'} pkts/s; discards: warning at $ghOptions{'warning-pktdiscard'} pkts/s, critical at $ghOptions{'critical-pktdiscard'} pkts/s"} ];
 $grefAoHConfigTableData->[5] = [ {Value => "Interface property tracked"}, {Value => join(", ",@{$ghOptions{'track-property'}})} ];
 $grefAoHConfigTableData->[6] = [ {Value => "Interface property change thresholds"}, {Value => ""} ];
-( $ghOptions{'warning-property'} > 0 ) ? $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), "
-  : $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
-( $ghOptions{'critical-property'} > 0 ) ? $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)"
-  : $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
-    
+if ( $ghOptions{'warning-property'} > 0 ) {
+    $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), ";
+} else {
+    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
+}
+if ( $ghOptions{'critical-property'} > 0 ) {
+    $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)";
+} else {
+    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
+}
+
 # Loop through all interfaces
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
     # Denormalize interface name
     my $ifNameReadable = denormalize ($ifName);
-    # Update the config table 
+    # Update the config table
     if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
-        $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable ";
+        $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= ", ";
+        $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable";
     }
     if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
-        $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable ";
+        $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= ", ";
+        $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable";
     }
     if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} eq "true") {
-        $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable ";
+        $grefAoHConfigTableData->[2]->[1]->{Value} ne "" and $grefAoHConfigTableData->[2]->[1]->{Value} .= ", ";
+        $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable";
     }
-}    
+}
 $grefAoHConfigTableData->[0]->[1]->{Value} eq "" and $grefAoHConfigTableData->[0]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[1]->[1]->{Value} eq "" and $grefAoHConfigTableData->[1]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[2]->[1]->{Value} eq "" and $grefAoHConfigTableData->[2]->[1]->{Value} = "none";
+
 
 
 #
@@ -3680,7 +3690,7 @@ sub print_usage () {
   Usage:
 
     * basic usage:
-      $PROGNAME [-vvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+      $PROGNAME [-vvvvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
         [--exclude <globally excluded interface list>] [--include <globally included interface list>] 
         [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
         [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
@@ -3689,7 +3699,7 @@ sub print_usage () {
         [--critical-property <critical property change counter>] [-r] [-f]
         
     * advanced usage:
-      $PROGNAME [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
+      $PROGNAME [-vvvvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>] 
         [--domain <transport domain>] [-P <port>] [--nodetype <type>] 
         [-e <globally excluded interface list>] [-i <globally included interface list>] 
         [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>] 
@@ -3882,7 +3892,7 @@ sub print_usage () {
         Add the vlan attribution property for each interface in the interface table.
     --nodetype (optional)
         Specify the node type, for specific information to be printed / specific oids to be used
-        Values can be: standard (default), cisco, catalyst, hp, netscreen
+        Values can be: standard (default), cisco, hp, netscreen
     --accessmethod (optional)
         Access method for the link to the host in the HTML page.
         Can be ssh or telnet.
