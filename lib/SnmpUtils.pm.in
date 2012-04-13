@@ -749,7 +749,7 @@ sub ExecuteCommand {
     }
 
     # execute the unix command
-    open(UNIX,"$Command |") or last;
+    open(UNIX,"$Command |") or die "[ERROR] ExecuteCommand: failed to execute \"$Command\", $!";
         while (<UNIX>) {
             push @$refaLines,$_;
         }
