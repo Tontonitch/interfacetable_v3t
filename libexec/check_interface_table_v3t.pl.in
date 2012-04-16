@@ -1480,8 +1480,14 @@ sub WriteHtmlFile {
             </a>
         </div>
         <div>';
-        print OUT '            <a href="' , $ghOptions{'accessmethod'} , '://' , $ghOptions{'hostquery'} , '">' , $ghOptions{'hostquery'} , '</a> updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
-        print OUT '        </div>
+        #print OUT '            <a href="' , $ghOptions{'accessmethod'} , '://' , $ghOptions{'hostquery'} , '">' , $ghOptions{'hostquery'} , '</a> updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
+        print OUT '
+        ' , $ghOptions{'hostquery'} , ' updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
+        while ( my ($key, $value) = each(%{$ghOptions{'accessmethod'}}) ) {
+            print OUT ' <a href=" ' . $value . '">' . $key . '</a>';
+        }
+        print OUT '
+        </div>
     </div>
     <br>';
 
@@ -1507,7 +1513,8 @@ sub WriteHtmlFile {
     <br>';
         }
         # -- Body footer --
-        print OUT '    <div class="buttons">
+        print OUT '
+        <div class="buttons">
         <a class="green" href="javascript:history.back();">
             <img src="../img/arrow_left.png" alt="back"/>
             back
@@ -3708,7 +3715,7 @@ sub print_usage () {
         [--tp <property list>] [--ip <property tracking interface inclusion list>] [--ep <property tracking interface exclusion list>] 
         [--wp <warning property change counter>] [--cp <critical property change counter>] [-r] [-f]
         [--cachedir <caching directory>] [--statedir <state files directory>] [--(no)duplex] [--(no)stp]
-        [--(no)vlan] [--accessmethod <method>] [--htmltabledir <system path to html interface tables>] 
+        [--(no)vlan] [--accessmethod <method>[:<target>]] [--htmltabledir <system path to html interface tables>] 
         [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
@@ -3894,8 +3901,11 @@ sub print_usage () {
         Specify the node type, for specific information to be printed / specific oids to be used
         Values can be: standard (default), cisco, hp, netscreen
     --accessmethod (optional)
-        Access method for the link to the host in the HTML page.
-        Can be ssh or telnet.
+        Access method for a shortcut to the host in the HTML page.
+        Format is : <method>[:<target>]
+        Where method can be: ssh, telnet, http or https.
+        Ex: --accessmethod="http:http://my_netapp_fas/na_admin"
+        Can be called multiple times for multiple shortcuts.
     --htmltabledir (optional)
         Specifies the directory in the file system where HTML interface table are stored.
     --htmltableurl (optional)
@@ -3932,7 +3942,7 @@ sub print_usage () {
         
   Notes:
     - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property, 
-      --exclude-property and --include-property:
+      --exclude-property, --include-property and --accessmethod:
        * These options can be used multiple times, the lists of interfaces/properties 
          will be concatenated.
        * The separator can be changed using the --ifs option.
@@ -3990,7 +4000,7 @@ sub check_options () {
         'hostdisplay|h=s',
         'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
-        'accessmethod=s',                       # access method for the link to the host in the HTML page
+        'accessmethod=s@',                       # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
         'exclude|e=s@',                         # list of interfaces globally excluded
@@ -4076,7 +4086,7 @@ sub check_options () {
         'hostdisplay'               => '',
         'cachedir'                  => "@cachedir@",
         'statedir'                  => "@statedir@",
-        'accessmethod'              => "ssh",
+        'accessmethod'              => undef,
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
         'exclude'                   => undef,
@@ -4200,9 +4210,23 @@ sub check_options () {
     }
     $ghOptions{'statedir'} = "$ghOptions{'statedir'}/$commandline{hostquery}";
     -d "$ghOptions{'statedir'}" or MyMkdir ("$ghOptions{'statedir'}");
-    if (exists $commandline{accessmethod} and ($commandline{accessmethod} eq "ssh" or $commandline{accessmethod} eq "telnet")) {
-        $ghOptions{'accessmethod'} = "$commandline{accessmethod}";
+    
+    # accessmethod(s)
+    if (exists $commandline{'accessmethod'}) {
+        my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'accessmethod'}}));
+        my %tmphash = ();
+        for (@tmparray) {
+            my ($method,$target) = split /:/,$_,2;
+            if ($method =~ /^ssh$|^telnet$|^http$|^https$/) {
+                $tmphash{"$method"} = ($target) ? "$target" : "$method://$ghOptions{'hostquery'}";
+            } else {
+                logger(0, "Specified accessmethod \"$method\" (in \"$_\") is not valid. Valid accessmethods are: ssh, telnet, http and https.");
+                exit $ERRORS{"UNKNOWN"};
+            }
+        }
+        $ghOptions{'accessmethod'} = \%tmphash;
     }
+
     # organizing global interface exclusion/inclusion
     if (exists $commandline{'exclude'}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'exclude'}}));
