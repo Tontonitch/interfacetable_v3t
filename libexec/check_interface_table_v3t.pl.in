@@ -67,8 +67,10 @@ my $STARTTIME   = time ();                      # time of program start
 # Standard OIDs
 # ------------------------------------------------------------------------
 my $oid_sysDescr        = ".1.3.6.1.2.1.1.1.0";
-my $oid_sysName         = ".1.3.6.1.2.1.1.5.0";
 my $oid_sysUpTime       = ".1.3.6.1.2.1.1.3.0";
+my $oid_sysContact      = ".1.3.6.1.2.1.1.4.0";
+my $oid_sysName         = ".1.3.6.1.2.1.1.5.0";
+my $oid_sysLocation     = ".1.3.6.1.2.1.1.6.0";
 
 my $oid_ifDescr         = ".1.3.6.1.2.1.2.2.1.2";     # + ".<index>"
 my $oid_ifAlias         = ".1.3.6.1.2.1.31.1.1.1.18"; # + ".<index>"
@@ -219,6 +221,8 @@ my $grefAoHInfoTableHeader = [                           # Header for the colomn
     {   Title => 'System Information',  Enabled => 1 },
     {   Title => 'Type',                Enabled => 0 },
     {   Title => 'Serial',              Enabled => 0 },
+    {   Title => 'Location',            Enabled => 1 },
+    {   Title => 'Contact',             Enabled => 1 },
     {   Title => 'Ports',               Enabled => 1 },
     {   Title => 'Delta seconds used for bandwidth calculations', Enabled => 1 },
 ];
@@ -346,9 +350,11 @@ logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 logger(1, "Retrieve target system information");
-$grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+$grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr","$oid_sysName","$oid_sysContact","$oid_sysLocation" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$grefhSNMP->{$oid_sysName}";
+$grefhCurrent->{MD}->{Node}->{sysContact} = "$grefhSNMP->{$oid_sysContact}";
+$grefhCurrent->{MD}->{Node}->{sysLocation}  = "$grefhSNMP->{$oid_sysLocation}";
 if ($ghOptions{'nodetype'} eq "cisco") { 
     $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_type","$oid_cisco_serial" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{Node}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_type}";
@@ -518,15 +524,19 @@ $grefAoHInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysDes
 if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_type}";
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
+    $grefAoHInfoTableData->[0]->[5]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
+    $grefAoHInfoTableData->[0]->[6]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
+    $grefAoHInfoTableData->[0]->[7]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
+    $grefAoHInfoTableData->[0]->[7]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[8]->{Value} = "$ghOptions{'delta'}" }
+    else { $grefAoHInfoTableData->[0]->[8]->{Value} =  'no data to compare with'; }
+} else {
+    $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
+    $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
     if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
     else { $grefAoHInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
-} else {
-    $grefAoHInfoTableData->[0]->[3]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-    $grefAoHInfoTableData->[0]->[3]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[4]->{Value} = "$ghOptions{'delta'}" }
-    else { $grefAoHInfoTableData->[0]->[4]->{Value} =  'no data to compare with'; }
 }
 
 # ------------------------------------------------------------------------------
@@ -1042,10 +1052,16 @@ sub Get_InterfaceNames {
                 }
             } 
             
-            # 3. Cisco ASA 55xx series
+            # 3. Known long of problematic interface names
             if ($Name =~ /^Adaptive Security Appliance '(.*)' interface$/) {
+                #Cisco ASA 55xx series
                 $Name="$1";
                 logger(2, "  Interface name matching Cisco ASA interface pattern, name reduced to \"$Name\"");
+            }
+            elsif ($Name =~ /^(.*)[,;] Product.*$/) {
+                #old AIX interfaces
+                $Name="$1";
+                logger(2, "  Interface name matching old AIX interface pattern, name reduced to \"$Name\"");
             }
             
             # Detect long name, which may be reduced for a cleaner interface table
@@ -1483,10 +1499,17 @@ sub WriteHtmlFile {
         #print OUT '            <a href="' , $ghOptions{'accessmethod'} , '://' , $ghOptions{'hostquery'} , '">' , $ghOptions{'hostquery'} , '</a> updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
         print OUT '
         ' , $ghOptions{'hostquery'} , ' updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
+        print OUT '
+            <span class="button2">';
         while ( my ($key, $value) = each(%{$ghOptions{'accessmethod'}}) ) {
-            print OUT ' <a href=" ' . $value . '">' . $key . '</a>';
+            if ($key =~ /^http$|^https$/) {
+                print OUT '<a class="accessmethod" href=" ' . $value . '" target="_blank">' . $key . '</a>';
+            } else {
+                print OUT '<a class="accessmethod" href=" ' . $value . '">' . $key . '</a>';
+            }
         }
         print OUT '
+            </span>
         </div>
     </div>
     <br>';
