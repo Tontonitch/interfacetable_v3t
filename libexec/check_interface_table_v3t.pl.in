@@ -4166,6 +4166,7 @@ sub check_options () {
         'privproto'                 => "des",       # des, aes
         'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
         '64bits'                    => 0,
+        'max-repetitions'           => undef,
         'unixsnmp'                  => 0
     );
     
@@ -4453,6 +4454,9 @@ sub check_options () {
         $ghSNMPOptions{'version'} = "3";
     } else {
         $ghSNMPOptions{'version'} = "1";
+    }
+    if (exists $commandline{'max-repetitions'}) {
+        $ghSNMPOptions{'max-repetitions'} = $commandline{'max-repetitions'};
     }
     if (exists $commandline{domain}) {
         if ($commandline{domain} =~ /^udp$|^tcp$|^udp6$|^tcp6$/i) {
