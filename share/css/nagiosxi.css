@@ -91,11 +91,11 @@ td {
 }
 .cellTrackedOk {
     background-color: #B2FF5F;
-    color: #fff;
+    color: black;
 }
 .cellTrackedChange {
     background-color: #FF795F;
-    color: #fff;
+    color: black;
 }
 .cellNotTracked {
     background-color: #E5E5E5;
