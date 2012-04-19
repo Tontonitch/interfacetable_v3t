@@ -4076,6 +4076,7 @@ sub check_options () {
         'protocols|L=s',                        # Format: <authproto>,<privproto>; 
         'timeout|t=i',
         '64bits',                               # Use 64 bits counters
+        'max-repetitions=i',                    # Max-repetitions tells the get-bulk command to attempt up to M get-next operations to retrieve the remaining objects.
         'unixsnmp!',                            # Use unix snmp utilities in some cases, in place of perl bindings
         #------- other features ---------#
         'config=s',                             # Configuration file
