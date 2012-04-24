@@ -493,9 +493,10 @@ sub SnmpGetTable {
         }
         # snmp value not from cache - read it from the net
         if ($readFromCache == 0) {
+            logger(3, "SnmpGetTable data from net: base-OID=${OID}, cache=${CacheTimer}s");
             my $refhValues = $refoSession->get_table(%$refhQuery);
             foreach my $k (keys(%{$refhValues})) {
-                logger(3, "OID=$k, Value=$refhValues->{$k}");
+                logger(3, " OID=$k, Value=$refhValues->{$k}");
                 my $SnmpValue = $refhValues->{$k};
                 
                 # remove non ascii chars incl. \r and \n
@@ -550,7 +551,6 @@ sub SnmpGetTable {
                 }
                 close (OUT);
             }
-            logger(3, "SnmpGetTable data from net:  OID=${OID}, cache=${CacheTimer}s");
         } else {
             logger(3, "SnmpGetTable data from file: ${CacheDir}/${OID}, cache=${CacheTimer}s");
         }

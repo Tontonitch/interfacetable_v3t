@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-beta1';
+$REVISION       = '0.04-beta2';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -3875,6 +3875,9 @@ sub print_usage () {
         SNMP port (Default 161)
     --64bits
         Use SNMP 64 bits counters
+    --max-repetitions=integer
+        Available only for snmp v2c/v3. Increasing this value may enhance snmp query performances 
+        by gathering more results at one time. Setting it to 1 would disable the use of get-bulk.
     --(no)unixsnmp
         Use unix snmp utilities for snmp requests (table/bulk requests), in place of perl bindings
         Default is to use perl bindings
