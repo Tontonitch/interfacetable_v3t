@@ -199,6 +199,39 @@ my %quadmask2dec = (
     '255.255.255.252' => 30, '255.255.255.254' => 31, '255.255.255.255' => 32,
 );
 
+# ------------------------------------------------------------------------
+# Other global initializations
+# ------------------------------------------------------------------------
+
+my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
+my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
+
+my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
+my $gNoHistory                       = 0;            # Flag that will be set in case there's no valid historical dataset
+my $gDifferenceCounter               = 0;            # Number of changes. This variable is used in the exitcode algorithm
+my $gIfLoadWarnCounter               = 0;            # counter for interfaces with warning load. This variable is used in the exitcode algorithm
+my $gIfLoadCritCounter               = 0;            # counter for interfaces with critical load. This variable is used in the exitcode algorithm
+my $gPktErrWarnCounter               = 0;
+my $gPktErrCritCounter               = 0;
+my $gPktDiscardWarnCounter           = 0;
+my $gPktDiscardCritCounter           = 0;
+my $gNumberOfInterfaces              = 0;            # Total number of interfaces including vlans ...
+my $gNumberOfFreeInterfaces          = 0;            # in "check_for_unused_interfaces" counted number of free interfaces
+my $gNumberOfFreeUpInterfaces        = 0;            # in "check_for_unused_interfaces" counted number of free interfaces with status AdminUp
+my $gNumberOfInterfacesWithoutTrunk  = 0;            # in "check_for_unused_interfaces" counted number of interfaces WITHOUT trunk ports
+my $gInterfacesWithoutTrunk          = {};           # in "check_for_unused_interfaces" we use this for counting
+my $gNumberOfPerfdataInterfaces      = 0;            # in "EvaluateInterfaces" counted number of interfaces we collect perfdata for
+my $gPerfdata                        = "";           # performancedata
+
+my $gShortCacheTimer                 = 0;            # Short cache timer are calculated in ExtractCache timer routine
+my $gLongCacheTimer                  = 0;            # Long cache timer are calculated in ExtractCache timer routine
+my $gText;                                           # Plugin Output ...
+my $gChangeText;                                     # Contains data of changes in interface properties
+my $grefhSNMP;                                       # Temp snmp structure
+my $grefhFile;                                       # Properties from the interface file
+my $grefhCurrent;                                    # Properties from current interface states
+my $grefhListOfChanges               = undef;        # List all the changes for long plugin output
+
 # ========================================================================
 # FUNCTION DECLARATIONS
 # ========================================================================
@@ -210,6 +243,16 @@ sub check_options();
 
 # Get command line options and adapt default values in %ghOptions
 check_options();
+
+# ------------------------------------------------------------------------
+# Initializations depending on options
+# ------------------------------------------------------------------------
+
+my $gFile =  normalize($ghOptions{'hostdisplay'}).'-Interfacetable';    # create uniq file name without extension
+my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";    # file where we store interface information table
+
+# If --snapshot is set, we dont track changes
+$ghOptions{'snapshot'} and $gInitialRun = 1;
 
 # ------------------------------------------------------------------------
 # Info table initializations
@@ -283,45 +326,6 @@ my $grefAoHConfigTableHeader = [                           # Header for the colo
     {   Title => 'Result',              Enabled => 1 },
 ];
 my $grefAoHConfigTableData;                                # Contents of the Config table
-
-# ------------------------------------------------------------------------
-# Other global initializations
-# ------------------------------------------------------------------------
-
-my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
-my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
-
-my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
-my $gNoHistory                       = 0;            # Flag that will be set in case there's no valid historical dataset
-my $gDifferenceCounter               = 0;            # Number of changes. This variable is used in the exitcode algorithm
-my $gIfLoadWarnCounter               = 0;            # counter for interfaces with warning load. This variable is used in the exitcode algorithm
-my $gIfLoadCritCounter               = 0;            # counter for interfaces with critical load. This variable is used in the exitcode algorithm
-my $gPktErrWarnCounter               = 0;
-my $gPktErrCritCounter               = 0;
-my $gPktDiscardWarnCounter           = 0;
-my $gPktDiscardCritCounter           = 0;
-my $gNumberOfInterfaces              = 0;            # Total number of interfaces including vlans ...
-my $gNumberOfFreeInterfaces          = 0;            # in "check_for_unused_interfaces" counted number of free interfaces
-my $gNumberOfFreeUpInterfaces        = 0;            # in "check_for_unused_interfaces" counted number of free interfaces with status AdminUp
-my $gNumberOfInterfacesWithoutTrunk  = 0;            # in "check_for_unused_interfaces" counted number of interfaces WITHOUT trunk ports
-my $gInterfacesWithoutTrunk          = {};           # in "check_for_unused_interfaces" we use this for counting
-my $gNumberOfPerfdataInterfaces      = 0;            # in "EvaluateInterfaces" counted number of interfaces we collect perfdata for
-my $gPerfdata                        = "";           # performancedata
-
-my $gShortCacheTimer                 = 0;            # Short cache timer are calculated in ExtractCache timer routine
-my $gLongCacheTimer                  = 0;            # Long cache timer are calculated in ExtractCache timer routine
-my $gText;                                           # Plugin Output ...
-my $gChangeText;                                     # Contains data of changes in interface properties
-my $grefhSNMP;                                       # Temp snmp structure
-my $grefhFile;                                       # Properties from the interface file
-my $grefhCurrent;                                    # Properties from current interface states
-my $grefhListOfChanges               = undef;        # List all the changes for long plugin output
-
-my $gFile =  normalize($ghOptions{'hostdisplay'}).'-Interfacetable';    # create uniq file name without extension
-my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";    # file where we store interface information table
-
-# If --snapshot is set, we dont track changes
-$ghOptions{'snapshot'} and $gInitialRun = 1;
 
 # ------------------------------------------------------------------------------
 # Check host and snmp service reachability
@@ -4283,8 +4287,8 @@ sub check_options () {
     # extract two cache timers out of the commandline --cache option
     #
     # Examples:
-    #   -cache 150              $gShortCacheTimer = 150 and $Long... = 300
-    #   -cache 3600,86400       $gShortCacheTimer = 3600 and $Long...= 86400
+    #   --cache 150              $gShortCacheTimer = 150 and $Long... = 300
+    #   --cache 3600,86400       $gShortCacheTimer = 3600 and $Long...= 86400
     #
     # ------------------------------------------------------------------------
     # only one number entered
