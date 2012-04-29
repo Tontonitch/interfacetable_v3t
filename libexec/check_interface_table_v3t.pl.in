@@ -223,8 +223,8 @@ my $gInterfacesWithoutTrunk          = {};           # in "check_for_unused_inte
 my $gNumberOfPerfdataInterfaces      = 0;            # in "EvaluateInterfaces" counted number of interfaces we collect perfdata for
 my $gPerfdata                        = "";           # performancedata
 
-my $gShortCacheTimer                 = 0;            # Short cache timer are calculated in ExtractCache timer routine
-my $gLongCacheTimer                  = 0;            # Long cache timer are calculated in ExtractCache timer routine
+my $gShortCacheTimer                 = 0;            # Short cache timer are calculated by check_options
+my $gLongCacheTimer                  = 0;            # Long cache timer are calculated by check_options
 my $gText;                                           # Plugin Output ...
 my $gChangeText;                                     # Contains data of changes in interface properties
 my $grefhSNMP;                                       # Temp snmp structure
@@ -968,14 +968,14 @@ sub Get_InterfaceNames {
     #------------------------------------------
     
     # get all interface descriptions
-    $refaIfDescriptionLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDescr,$ghOptions{'cachedir'},$gLongCacheTimer);
+    $refaIfDescriptionLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifDescr,$ghOptions{'cachedir'},0);
     if ($#$refaIfDescriptionLines < 0 ) {
         logger(0, "Could not read ifDescr information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifDescr\n");
         exit $ERRORS{"UNKNOWN"};
     }
     
     # get all interface mac addresses
-    $refaIfPhysAddressLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},$gShortCacheTimer);
+    $refaIfPhysAddressLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},0);
     if ($#$refaIfPhysAddressLines < 0 ) {
         logger(0, "Could not read ifPhysAddress information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifPhysAddress\n");
         exit $ERRORS{"UNKNOWN"};
