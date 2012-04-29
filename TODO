@@ -32,8 +32,8 @@
 # REJECT  - tolerant option proposed when snmp request doesn't return anything
 # REJECT  - review generated link [details] to be not a relative URL, to be usable in 
 #           email notifications
-#         - update supported nodes list
-#         - create a more detailed documentation on supported nodes, also to prevent
+# DONE    - update supported nodes list
+# DONE    - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
 #
 # ----------------------------------------------------------------------
@@ -48,6 +48,8 @@
 #           depending on the nodetype option
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
+#         - better support of IP info for HP Procurve switches
+#         - support for Brocade with FabricOS < v5.3.0
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
