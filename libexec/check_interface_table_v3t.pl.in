@@ -975,7 +975,8 @@ sub Get_InterfaceNames {
     }
     
     # get all interface mac addresses
-    $refaIfPhysAddressLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},0);
+    $refaIfPhysAddressLines = ($ghOptions('usemacaddr')) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},$gLongCacheTimer)
     if ($#$refaIfPhysAddressLines < 0 ) {
         logger(0, "Could not read ifPhysAddress information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifPhysAddress\n");
         exit $ERRORS{"UNKNOWN"};
@@ -1839,12 +1840,12 @@ sub EvaluateInterfaces {
     my $ExcludePropertyTrackList = shift;
     my $IncludePropertyTrackList = shift;
 
-    if (defined $ExcludeTrackList) { logger(2, "ExcludeTrackList: @{$ExcludeTrackList}"); }
-    if (defined $IncludeTrackList) { logger(2, "IncludeTrackList: @{$IncludeTrackList}"); }
-    if (defined $ExcludeLoadTrackList) { logger(2, "ExcludeLoadTrackList: @{$ExcludeLoadTrackList}"); }
-    if (defined $IncludeLoadTrackList) { logger(2, "IncludeLoadTrackList: @{$IncludeLoadTrackList}"); }
-    if (defined $ExcludePropertyTrackList) { logger(2, "ExcludePropertyTrackList: @{$ExcludePropertyTrackList}"); }
-    if (defined $IncludePropertyTrackList) { logger(2, "IncludePropertyTrackList: @{$IncludePropertyTrackList}"); }
+    if (defined $ExcludeTrackList) { logger(2, "ExcludeTrackList: " . join(", ",@{$ExcludeTrackList})); }
+    if (defined $IncludeTrackList) { logger(2, "IncludeTrackList: " . join(", ",@{$IncludeTrackList})); }
+    if (defined $ExcludeLoadTrackList) { logger(2, "ExcludeLoadTrackList: " . join(", ",@{$ExcludeLoadTrackList})); }
+    if (defined $IncludeLoadTrackList) { logger(2, "IncludeLoadTrackList: " . join(", ",@{$IncludeLoadTrackList})); }
+    if (defined $ExcludePropertyTrackList) { logger(2, "ExcludePropertyTrackList: " . join(", ",@{$ExcludePropertyTrackList})); }
+    if (defined $IncludePropertyTrackList) { logger(2, "IncludePropertyTrackList: " . join(", ",@{$IncludePropertyTrackList})); }
     
     # Loop through all interfaces
     for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -1875,14 +1876,29 @@ sub EvaluateInterfaces {
         # Process the interface exclusion list
         for my $ExcludeString (@$ExcludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ("${ifNameReadable}_${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
-                    logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+                if ($ghOptions{'alias-matching'}) {
+                    if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+                    }
+                } else {
+                    if ("${ifNameReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+                    }
                 }
-            }
-            elsif ("$ifNameReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
-                logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+            } else {
+                if ($ghOptions{'alias-matching'}) {
+                    if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+                    }
+                } else {
+                    if ("${ifNameReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
+                    }
+                }
             }
         }
 
@@ -1891,14 +1907,29 @@ sub EvaluateInterfaces {
         # subset of a group of interfaces which were excluded previously
         for my $IncludeString (@$IncludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ("${ifNameReadable}_${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
-                    logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+                if ($ghOptions{'alias-matching'}) {
+                    if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+                    }
+                } else {
+                    if ("${ifNameReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+                    }
                 }
-            }
-            elsif ("$ifNameReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
-                logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+            } else {
+                if ($ghOptions{'alias-matching'}) {
+                    if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+                    }
+                } else {
+                    if ("${ifNameReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" globally");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
+                    }
+                }
             }
         }
       
@@ -1916,14 +1947,29 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${ifNameReadable}_${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
-                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                        }
                     }
-                }
-                elsif ("$ifNameReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
-                    logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                } else {
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
+                        }
+                    }
                 }
             }
     
@@ -1932,14 +1978,29 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${ifNameReadable}_${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
-                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                        }
                     }
-                }
-                elsif ("$ifNameReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
-                    logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                } else {
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" from traffic load tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
+                        }
+                    }
                 }
             }
         } else {
@@ -1955,14 +2016,29 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${ifNameReadable}_${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
-                        logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                        }
                     }
-                }
-                elsif ("$ifNameReadable" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
-                    logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                } else {
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
+                            logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
+                        }
+                    }
                 }
             }
     
@@ -1971,17 +2047,31 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ("${ifNameReadable}_${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
-                        logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                        $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
+                        }
+                    }
+                } else {
+                    if ($ghOptions{'alias-matching'}) {
+                        if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
+                        }
+                    } else {
+                        if ("${ifNameReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
+                            logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" from property change tracking");
+                            $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
+                        }
                     }
                 }
-                elsif ("$ifNameReadable" eq "$IncludeString" or "$IncludeString" eq "ALL") {
-                    logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\"");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
-                }
             }
-            
         } else {
             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
         }
@@ -2563,7 +2653,8 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
     }
 
     # get ifAlias table - returned result can be empty
-    my $refaIfAlias = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAlias,$ghOptions{'cachedir'},0);
+    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAlias,$ghOptions{'cachedir'},0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
     my $refhIfAlias = ();
     foreach (@$refaIfAlias) {
         $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias\.([0-9]*) (.*)$/;
@@ -4030,9 +4121,10 @@ sub check_options () {
         'hostdisplay|h=s',
         'cachedir=s',                           # caching directory
         'statedir=s',                           # interface table state directory
-        'accessmethod=s@',                       # access method for the link to the host in the HTML page
+        'accessmethod=s@',                      # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
+        'alias-matching!'                       # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
         'community=s',                          # community string
@@ -4120,6 +4212,7 @@ sub check_options () {
         'accessmethod'              => undef,
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
+        'alias-matching'            => 0,
         'exclude'                   => undef,
         'include'                   => undef,
         'delta'                     => 600,
@@ -4267,6 +4360,9 @@ sub check_options () {
     if (exists $commandline{'include'}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include'}}));
         $ghOptions{'include'} = \@tmparray;
+    }
+    if (exists $commandline{'alias-matching'}) {
+        $ghOptions{'alias-matching'} = $commandline{'alias-matching'};
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};

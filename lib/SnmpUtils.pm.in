@@ -132,12 +132,13 @@ sub SnmpGet {
                     # $FileProperties[9] = LastModifyTime of file
                     # only read the cache file if it is not too old
                     if (time - $CacheTimer < $FileProperties[9]) {
+                        logger(3, " valid cached data, loading");
                         open (IN,"<$CacheDir/$OID");
                             $SnmpValue = <IN>;
                         close (IN);
-                        logger(3, " valid cached data, loaded");
+                        logger(3, "   data: \"$SnmpValue\"");
                     } else {
-                        logger(3, " expired cached data, skipped");
+                        logger(3, " expired cached data, skipping");
                     }
                 }
             }
@@ -487,14 +488,15 @@ sub SnmpGetTable {
                 # $FileProperties[9] = LastModifyTime of file
                 # only read the cache file if it is not too old
                 if (time - $CacheTimer < $FileProperties[9]) {
+                    logger(3, " valid cached data, loading");
                     open (IN,"<$CacheDir/$OID");
                         @$refaLines = <IN>;
                     close (IN);
+                    logger(3, "   data: " . join(", ", @$refaLines));
                     # leave this subroutine with cached data found
-                    logger(3, " valid cached data, loaded");
                     $readFromCache = 1;
                 } else {
-                    logger(3, " expired cached data, skipped");
+                    logger(3, " expired cached data, skipping");
                 }
             }
         }
@@ -713,14 +715,15 @@ sub ExecuteCommand {
             # $FileProperties[9] = LastModifyTime of file
             # only read the cache file if it is not too old
             if ($Now-$refhStruct->{CacheTimer} < $FileProperties[9]) {
+                logger(3, " valid cached data, loading");
                 open (IN,"<$CacheFile");
                     @$refaLines=<IN>;
                 close (IN);
-                logger(3, " valid cached data, loaded");
+                logger(3, "   data: " . join(", ", @$refaLines));
                 # leave this subroutine with cached data found
                 return ($refaLines,0);
             } else {
-                logger(3, " expired cached data, skipped");
+                logger(3, " expired cached data, skipping");
             }
         }
     }
