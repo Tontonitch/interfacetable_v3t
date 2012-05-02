@@ -975,8 +975,8 @@ sub Get_InterfaceNames {
     }
     
     # get all interface mac addresses
-    $refaIfPhysAddressLines = ($ghOptions('usemacaddr')) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},$gLongCacheTimer)
+    $refaIfPhysAddressLines = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress,$ghOptions{'cachedir'},$gLongCacheTimer);
     if ($#$refaIfPhysAddressLines < 0 ) {
         logger(0, "Could not read ifPhysAddress information from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifPhysAddress\n");
         exit $ERRORS{"UNKNOWN"};
@@ -4124,7 +4124,7 @@ sub check_options () {
         'accessmethod=s@',                      # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'alias-matching!'                       # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
+        'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
         'community=s',                          # community string
