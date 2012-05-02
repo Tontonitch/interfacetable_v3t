@@ -49,7 +49,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-beta3';
+$REVISION       = '0.04-beta4';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);

@@ -8,8 +8,10 @@
 # Revision history:
 # 2011-06-08 v0.01   Y. Charton    First release
 # 2011-12-30 v0.02   Y. Charton    Fusion of the get table functions
-# 2012-04-02 v0.03   Y. Charton    Added transport domain selection and max-repetitions
-#                                  (idea by Bjorn Frostberg)
+# 2012-05-02 v0.03   Y. Charton    Added transport domain selection and max-repetitions
+#                                  (idea by Bjorn Frostberg), fix problem where 
+#                                  empty snmp query result from cache was not used
+#                                  and overwritten every time, better debug
 #
 ##############################################################################
 
