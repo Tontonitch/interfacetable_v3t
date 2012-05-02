@@ -123,10 +123,11 @@ sub SnmpGet {
             } else {
                 $CacheTimer = $GlobalCacheTimer;
             }
-
+            
+            my $readFromCache = 0;
             if ($CacheTimer > 0) {
                 if (-r "$CacheDir/$OID") {
-                    logger(3, "Cached data file found: $CacheDir/$OID");
+                    logger(3, "Cached data file found: $CacheDir/$OID, cacheTimer=${CacheTimer}s");
                     my @FileProperties=stat("$CacheDir/$OID");
 
                     # $FileProperties[9] = LastModifyTime of file
@@ -137,6 +138,8 @@ sub SnmpGet {
                             $SnmpValue = <IN>;
                         close (IN);
                         logger(3, "   data: \"$SnmpValue\"");
+                        # leave this subroutine with cached data found
+                        $readFromCache = 1;
                     } else {
                         logger(3, " expired cached data, skipping");
                     }
@@ -145,11 +148,12 @@ sub SnmpGet {
             
             unless (defined $SnmpValue) {$SnmpValue = "";}
             # snmp value not from cache - read it from the net
-            if ("X$SnmpValue" eq "X") {
+            if ($readFromCache == 0) {
                 # get the snmp value - we do not check errors
                 # here because of negative caching
                 my $refhValue = $refoSession->get_request(-varbindlist => ["$OID"]);
                 if (defined $refhValue->{"$OID"}) {
+                    logger(3, "Data collected from net: OID=${OID}, value='$refhValue->{\"$OID\"}', cacheTimer=${CacheTimer}s");
                     $SnmpValue  =   $refhValue->{"$OID"};
                     
                     # remove non ascii chars incl. \r and \n
@@ -166,10 +170,9 @@ sub SnmpGet {
                         close (OUT);
                     }
                 }
-                logger(3, "Data collected from net: OID=${OID}, value='${SnmpValue}', cache=${CacheTimer}s");
-            } else {
-                logger(3, "Data collected from file: ${CacheDir}/${OID}, value='${SnmpValue}', cache=${CacheTimer}s");
+                
             }
+            
             # check result validity
             if ($SnmpValue =~ /noSuchObject/) {
                 if ($strict == 0) {
@@ -482,7 +485,7 @@ sub SnmpGetTable {
         my $readFromCache = 0;
         if ($CacheTimer > 0) {
             if (-r "$CacheDir/$OID") {
-                logger(3, "Cached data file found: $CacheDir/$OID");
+                logger(3, "Cached data file found: $CacheDir/$OID, cacheTimer=${CacheTimer}s");
                 my @FileProperties=stat("$CacheDir/$OID");
 
                 # $FileProperties[9] = LastModifyTime of file
@@ -492,7 +495,10 @@ sub SnmpGetTable {
                     open (IN,"<$CacheDir/$OID");
                         @$refaLines = <IN>;
                     close (IN);
-                    logger(3, "   data: " . join(", ", @$refaLines));
+                    foreach (@$refaLines) {
+                        $_ =~ s/\n$//g;
+                        logger(3, "   data: $_");
+                    }
                     # leave this subroutine with cached data found
                     $readFromCache = 1;
                 } else {
@@ -502,7 +508,7 @@ sub SnmpGetTable {
         }
         # snmp value not from cache - read it from the net
         if ($readFromCache == 0) {
-            logger(3, "Data collected from net: base-OID=${OID}, cache=${CacheTimer}s");
+            logger(3, "Data collected from net: base-OID=${OID}, cacheTimer=${CacheTimer}s");
             my $refhValues = $refoSession->get_table(%$refhQuery);
             foreach my $k (keys(%{$refhValues})) {
                 logger(3, " OID=$k, value='$refhValues->{$k}'");
@@ -560,10 +566,7 @@ sub SnmpGetTable {
                 }
                 close (OUT);
             }
-        } else {
-            logger(3, "Data collected from file: ${CacheDir}/${OID}, cache=${CacheTimer}s");
         }
-
     }
     return $refaLines;
 }
@@ -709,7 +712,7 @@ sub ExecuteCommand {
     if ($refhStruct->{CacheTimer} > 0) {
         $CacheFile = $CacheDir . normalize ("$Command");
         if (-r "$CacheFile") {
-            logger(3, "Cached data file found: $CacheFile");
+            logger(3, "Cached data file found: $CacheFile, cacheTimer=$refhStruct->{CacheTimer}s");
             my @FileProperties=stat($CacheFile);
 
             # $FileProperties[9] = LastModifyTime of file
@@ -719,7 +722,10 @@ sub ExecuteCommand {
                 open (IN,"<$CacheFile");
                     @$refaLines=<IN>;
                 close (IN);
-                logger(3, "   data: " . join(", ", @$refaLines));
+                foreach (@$refaLines) {
+                    $_ =~ s/\n$//g;
+                    logger(3, "   data: $_");
+                }
                 # leave this subroutine with cached data found
                 return ($refaLines,0);
             } else {
