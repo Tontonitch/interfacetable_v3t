@@ -2,7 +2,9 @@
 # nagios: -epn
 
 # ------------------------------------------------------------------------
-# Program: @PKG_NAME@-@PKG_VERSION@
+# Program: @PKG_NAME@
+# Version: @PKG_VERSION@
+# Author:  Yannick Charton - tontonitch-pro@yahoo.fr
 # License: GPLv3
 # Copyright (c) 2009-2012 Yannick Charton (@PKG_HOME_URL@)
 
@@ -2717,7 +2719,7 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
         if (not defined $refhIfSpeed->{"$Index"} or $refhIfSpeed->{"$Index"} eq ""){
             $refhIfSpeed->{"$Index"} = -1;
         }
-        if ($refhIfSpeed->{"$Index"} == 4294967295) { # Too high for this counter (cf IF-MIB)
+        if ($refhIfSpeed->{"$Index"} >= 4294967294) { # Too high for this counter (cf IF-MIB)
             if ($ghSNMPOptions{'64bits'} && $refhIfSpeed64->{"$Index"} != 0) {
                 $refhIfSpeed->{"$Index"} = $refhIfSpeed64->{"$Index"} * 1000000;
             } elsif (! $ghSNMPOptions{'64bits'}) {
