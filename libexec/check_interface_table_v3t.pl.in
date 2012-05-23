@@ -2303,7 +2303,7 @@ sub CleanAndSelectHistoricalDataset {
     # loop through all historical perfdata
     logger(1, "Clean/select historical datasets");
     for my $time (sort keys %{$grefhFile->{History}}) {
-        if (($STARTTIME - ($ghOptions{'delta'} + 200)) > $time) {
+        if (($STARTTIME - ($ghOptions{'delta'} + $ghOptions{'delta'} / 3)) > $time) {
             # delete anything older than starttime - (delta + a bit buffer)
             # so we keep a sliding window following us
             delete $grefhFile->{History}->{$time};
