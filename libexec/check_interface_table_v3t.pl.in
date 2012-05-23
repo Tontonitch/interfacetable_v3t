@@ -51,7 +51,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-beta4';
+$REVISION       = '0.04-rc1';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -535,14 +535,14 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[7]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[7]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
     if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
-    else { $grefAoHInfoTableData->[0]->[8]->{Value} =  'no data to compare with'; }
+    else { $grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}<br>used: no data to compare with"; }
 } else {
     $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
     if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
-    else { $grefAoHInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
+    else { $grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}<br>used: no data to compare with"; }
 }
 
 # ------------------------------------------------------------------------------
@@ -1491,6 +1491,7 @@ sub WriteHtmlFile {
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
     <link rel="stylesheet" type="text/css" href="../css/button.css">
     <script type="text/javascript" src="../js/functions.js"></script>
+    <script type="text/javascript" src="../js/sorttable.js"></script>
   </head>
 <body>';
         # -- Body header --
@@ -3650,7 +3651,12 @@ sub Convert2HtmlTable {
     
         # ------------------------------------------------------------------
         # Build HTML format and table header
-        $HTML .= '<table '."class=$cssClass";
+        $HTML .= '<table';
+        if ($headerLineEnabled) { 
+            $HTML .= " class=\"$cssClass sortable\"";
+        } else {
+            $HTML .= " class=\"$cssClass\"";
+        }
         if ($highlightColor ne "") {
             $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'" . $highlightColor . "'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
         }
