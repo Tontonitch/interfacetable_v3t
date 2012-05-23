@@ -749,36 +749,12 @@ _ACEOF
 Installation directories:
   --prefix=PREFIX         install architecture-independent files in PREFIX
 			  [$ac_default_prefix]
-  --exec-prefix=EPREFIX   install architecture-dependent files in EPREFIX
-			  [PREFIX]
 
 By default, \`make install' will install all the files in
 \`$ac_default_prefix/bin', \`$ac_default_prefix/lib' etc.  You can specify
 an installation prefix other than \`$ac_default_prefix' using \`--prefix',
 for instance \`--prefix=\$HOME'.
 
-For better control, use the options below.
-
-Fine tuning of the installation directories:
-  --bindir=DIR           user executables [EPREFIX/bin]
-  --sbindir=DIR          system admin executables [EPREFIX/sbin]
-  --libexecdir=DIR       program executables [EPREFIX/libexec]
-  --datadir=DIR          read-only architecture-independent data [PREFIX/share]
-  --sysconfdir=DIR       read-only single-machine data [PREFIX/etc]
-  --sharedstatedir=DIR   modifiable architecture-independent data [PREFIX/com]
-  --localstatedir=DIR    modifiable single-machine data [PREFIX/var]
-  --libdir=DIR           object code libraries [EPREFIX/lib]
-  --includedir=DIR       C header files [PREFIX/include]
-  --oldincludedir=DIR    C header files for non-gcc [/usr/include]
-  --infodir=DIR          info documentation [PREFIX/info]
-  --mandir=DIR           man documentation [PREFIX/man]
-_ACEOF
-
-  cat <<\_ACEOF
-
-System types:
-  --build=BUILD     configure for building on BUILD [guessed]
-  --host=HOST       cross-compile to build programs to run on HOST [BUILD]
 _ACEOF
 fi
 
@@ -789,13 +765,9 @@ if test -n "$ac_init_help"; then
   cat <<\_ACEOF
 
 Optional Features:
-  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
-  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-testing                               Testing mode. All files and directories will be installed in <prefix>
 
 Optional Packages:
-  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
-  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-nagios-user=<user>                      Sets the owner of installed files
   --with-nagios-group=<grp>                      Sets group of installed files
   --with-nagios-base=/path/to/nagios/dir         Sets the nagios base directory
