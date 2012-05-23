@@ -534,14 +534,14 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[6]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[7]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[7]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[8]->{Value} = "$ghOptions{'delta'}" }
+    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
     else { $grefAoHInfoTableData->[0]->[8]->{Value} =  'no data to compare with'; }
 } else {
     $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($ghOptions{'delta'}) {$grefAoHInfoTableData->[0]->[6]->{Value} = "$ghOptions{'delta'}" }
+    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
     else { $grefAoHInfoTableData->[0]->[6]->{Value} =  'no data to compare with'; }
 }
 
