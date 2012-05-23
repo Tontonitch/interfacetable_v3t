@@ -50,6 +50,7 @@
 #           reported as a problem
 #         - better support of IP info for HP Procurve switches
 #         - support for Brocade with FabricOS < v5.3.0
+#         - nodetype "netapp(filer)" + model/product node info + 64bits counters
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
@@ -62,8 +63,9 @@
 #         - netscreen - handle secondary IPs
 #         - evaluate last traffic calculation by Netways, see commit:  https://git.netways.org/?p=check_interface_table.git;a=blobdiff;f=libexec/check_interface_table_v3t.pl.in;h=f6069fc8ee386bb75caf01461db620e9c8d394b8;hp=0a39069b702f2b383fe9d31a0e0f97b0d6a13f07;hb=be1587e1fcdda073ca9d034a8b38e91e4faa0580;hpb=4ff2b44cb89c289e1555dbee4b5c4dcabfda51e3
 #         - for cisco devices, retrieve CRC errors and collisions (in addition/instead of in errors and out errors?)
-#         -  nobulk option as an alias to max-repetitions=1
+#         - nobulk option as an alias to max-repetitions=1
 #         - detection of the case http://www.tontonitch.com/phpbb/viewtopic.php?f=5&t=1649, 
 #           where bulk requests are not well supported by the target device
+#         - column sorting
 #
 # ========================================================================
