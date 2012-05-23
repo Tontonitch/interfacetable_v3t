@@ -1070,6 +1070,19 @@ sub Get_InterfaceNames {
                 $Name="$1";
                 logger(2, "  Interface name matching old AIX interface pattern, name reduced to \"$Name\"");
             }
+            elsif ($Name =~ /^(.*) Ethernet Layer Intel .* Ethernet$/) {
+                #Nokia firewall (Checkpoint IPSO Firewall)
+                #Possibilities seem to be:
+                # Ethernet Layer Intel 10/100 Ethernet
+                # Ethernet Layer Intel Gigabit Ethernet
+                $Name="$1";
+                logger(2, "  Interface name matching long interface descriptions on a Nokia firewall, name reduced to \"$Name\"");
+            }
+            elsif ($Name =~ /^Firewall Services Module '(.*)' interface$/) {
+                #Firewall Services Module in Cisco Catalyst 6500 Series Switch or Cisco 7600 Internet Router
+                $Name="FWSM $1";
+                logger(2, "  Interface name matching a Cisco Firewall Services Module interface pattern, name reduced to \"$Name\"");
+            }
             
             # Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 30;
