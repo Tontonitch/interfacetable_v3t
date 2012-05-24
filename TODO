@@ -35,6 +35,7 @@
 # DONE    - update supported nodes list
 # DONE    - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
+# DONE    - column sorting
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
@@ -67,6 +68,5 @@
 #         - nobulk option as an alias to max-repetitions=1
 #         - detection of the case http://www.tontonitch.com/phpbb/viewtopic.php?f=5&t=1649, 
 #           where bulk requests are not well supported by the target device
-#         - column sorting
 #
 # ========================================================================
