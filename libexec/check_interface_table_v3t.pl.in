@@ -269,7 +269,7 @@ my $grefAoHInfoTableHeader = [                           # Header for the colomn
     {   Title => 'Location',            Enabled => 1 },
     {   Title => 'Contact',             Enabled => 1 },
     {   Title => 'Ports',               Enabled => 1 },
-    {   Title => 'Delta seconds used for bandwidth calculations', Enabled => 1 },
+    {   Title => 'Delta (bandwidth calculations)', Enabled => 1 },
 ];
 if ($ghOptions{'nodetype'} eq "cisco") { 
     # show some specific cisco info in the info table: type and serial
@@ -533,16 +533,16 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[5]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
     $grefAoHInfoTableData->[0]->[6]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[7]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-    $grefAoHInfoTableData->[0]->[7]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
-    else { $grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}<br>used: no data to compare with"; }
+    $grefAoHInfoTableData->[0]->[7]->{Value} .= "<br>AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}s (+".($ghOptions{'delta'}/3)."s)<br>used: ${gUsedDelta}s" }
+    else { $grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'} (+".($ghOptions{'delta'}/3)."s)<br>used: no data to compare with"; }
 } else {
     $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
-    $grefAoHInfoTableData->[0]->[5]->{Value} .= " AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}<br>used: $gUsedDelta" }
-    else { $grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}<br>used: no data to compare with"; }
+    $grefAoHInfoTableData->[0]->[5]->{Value} .= "<br>AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
+    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}s (+".($ghOptions{'delta'}/3)."s)<br>used: ${gUsedDelta}s" }
+    else { $grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'} (+".($ghOptions{'delta'}/3)."s)<br>used: no data to compare with"; }
 }
 
 # ------------------------------------------------------------------------------
