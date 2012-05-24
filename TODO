@@ -51,6 +51,7 @@
 #         - better support of IP info for HP Procurve switches
 #         - support for Brocade with FabricOS < v5.3.0
 #         - nodetype "netapp(filer)" + model/product node info + 64bits counters
+#         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
