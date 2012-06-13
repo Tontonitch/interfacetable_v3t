@@ -1,0 +1,17 @@
+=========
+THANK YOU
+=========
+
+First thanks to some authors of some pieces of code or tools used in this projects:
+ * Ilya Etingof - author of snmpsim/snmprec, a SNMP simulator used for for any testing
+ * Stuart Langridge - author of the SortTable javascript
+ * ITdesign Software Projects & Consulting and NETWAYS GmbH for the previous versions of the plugin
+
+Then, thanks to all the users/testers who provided bug reports and great ideas:
+ * Björn Frostberg
+ * Timo Soeder
+ * Brandon Mccorkle
+ * Marcee
+ * Jmaier
+ * Mana
+ * Rene Beaulieu
