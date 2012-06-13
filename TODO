@@ -13,10 +13,8 @@
 # DONE    - add options for hp, or other brands if relevant
 # DONE    - better handling of counters cleared manually or via node restart
 #            -> check if enough now
-# IN PROG - better non regression testing 
-#            -> test phase would include tests on simulated type of monitored nodes
-# DONE    - convert network masks to quad-dotted decimal representation (*/[0-32])
 #           to free space in the interface table
+# DONE    - convert network masks to quad-dotted decimal representation (*/[0-32])
 # DONE    - correctly handle devices where interfaces have the same ifdescr
 # DONE    - when interfaces have the same ifdescr, give the suffix choice between 
 #           idx or mac addr
@@ -36,10 +34,13 @@
 # DONE    - create a more detailed documentation on supported nodes, also to prevent
 #           regressions
 # DONE    - column sorting
-#
+# DONE    - timeout review
+# 
 # ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
+# IN PROG - better non regression testing 
+#            -> test phase would include tests on simulated type of monitored nodes
 #         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
 #           use stpxInconsistentState?
 #         - add a feature to anonymize the info in debug reports (script or option?)
@@ -53,6 +54,7 @@
 #         - support for Brocade with FabricOS < v5.3.0
 #         - nodetype "netapp(filer)" + model/product node info + 64bits counters
 #         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
+#         - epn support back
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
