@@ -715,7 +715,12 @@ if ($gPktDiscardCritCounter > 0 ) {
 }
 
 # Append html table link to text
-$gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '">[details]</a>';
+if(defined($ghOptions{'htmltablelinktarget'})) {
+    $gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
+}
+else {
+    $gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '">[details]</a>';
+}
 
 if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
@@ -3855,7 +3860,7 @@ sub print_usage () {
         [--wp <warning property change counter>] [--cp <critical property change counter>] [-r] [-f]
         [--cachedir <caching directory>] [--statedir <state files directory>] [--(no)duplex] [--(no)stp]
         [--(no)vlan] [--accessmethod <method>[:<target>]] [--htmltabledir <system path to html interface tables>] 
-        [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>] 
+        [--htmltableurl <url to html interface tables>] [--htmltablelinktarget <target window>] [-d <delta>] [--ifs <separator>] 
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
         [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort] 
@@ -4052,6 +4057,9 @@ sub print_usage () {
         Specifies the directory in the file system where HTML interface table are stored.
     --htmltableurl (optional)
         Specifies the URL by which the interface table are accessible.
+    --htmltablelinktarget (optional)
+        Specifies the html link target for the [details] link in plugin output.
+        (you may want use "_blank" as value to open the details view in a new window)
     --delta | -d (optional)
         Set the delta used for interface throuput calculation. In seconds.
     --ifs (optional)
@@ -4145,6 +4153,7 @@ sub check_options () {
         'accessmethod=s@',                      # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
+        'htmltablelinktarget=s',                # interface table link target for plugin output
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
@@ -4233,6 +4242,7 @@ sub check_options () {
         'accessmethod'              => undef,
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
+        'htmltablelinktarget'       => undef,
         'alias-matching'            => 0,
         'exclude'                   => undef,
         'include'                   => undef,
@@ -4393,6 +4403,9 @@ sub check_options () {
     }
     if (exists $commandline{htmltableurl}) {
         $ghOptions{'htmltableurl'} = "$commandline{htmltableurl}";
+    }
+    if (exists $commandline{htmltablelinktarget}) {
+        $ghOptions{'htmltablelinktarget'} = "$commandline{htmltablelinktarget}";
     }
     if (exists $commandline{delta}) {
         $ghOptions{'delta'} = "$commandline{delta}";

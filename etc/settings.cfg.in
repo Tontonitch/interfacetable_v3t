@@ -22,6 +22,9 @@ htmltabledir = "@htmldir@/tables"
 # interface table URL location
 htmltableurl = "@htmlurl@/tables"
 
+# open details link from plugin output in new window by default
+htmltablelinktarget = _blank
+
 reseturl = "@cgiurl@"
 
 # access method for the link to the host in the HTML page
