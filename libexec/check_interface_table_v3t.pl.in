@@ -51,7 +51,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-rc';
+$REVISION       = '0.04';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -60,7 +60,6 @@ my %COLORS      = ('HighLight' => '#81BEF7');
 my $UMASK       = "0000";
 my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
 my $STARTTIME   = time ();                      # time of program start
-# NOT USED - my $refhPath = {};
 
 # ------------------------------------------------------------------------
 # OIDs definitions
@@ -245,6 +244,14 @@ sub check_options();
 
 # Get command line options and adapt default values in %ghOptions
 check_options();
+
+# Set the timeout
+logger(1, "Set global plugin timeout to ${TIMEOUT}s");
+alarm($TIMEOUT);
+$SIG{ALRM} = sub { 
+  logger(0, "Plugin timed out (${TIMEOUT}s).\nYou may need to extend the plugin timeout by using the -t option.");
+  exit $ERRORS{"UNKNOWN"};
+};
 
 # ------------------------------------------------------------------------
 # Initializations depending on options
@@ -1192,9 +1199,10 @@ sub Get_IpAddress_SubnetMask {
         #        ];
 
         my ($Tmp,$NetMask) = split (" ",join ("",grep /$IpAddress /,@$refaNetMaskLines),2);
+        unless (defined $NetMask) {$NetMask = "";}
         $NetMask =~ s/\s+$//;    # remove invisible chars from the end
         logger(2, "Index: $Index,\tIpAddress: $IpAddress,\tNetmask: $NetMask");
-        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"}};        
+        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"};}        
         
         # get the interface name stored before from the index table
         my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
@@ -1211,7 +1219,8 @@ sub Get_IpAddress_SubnetMask {
             }
             # now we are finished with the puzzle of getting ip and subnet mask
             # add IpInfo as property to the interface
-            my $IpInfo = "$IpAddress/$NetMask";
+            my $IpInfo = "$IpAddress";
+            if ($NetMask) {$IpInfo .= "/$NetMask";}
             $grefhCurrent->{If}->{"$Name"}->{ifIpInfo} .= $IpInfo;
     
             # check if the IP address has changed to its first run
@@ -2953,9 +2962,10 @@ sub Get_Netscreen {
         $Index      =~  s/\D//g;                        # remove all but numbers
                 
         # extract the netmask
-        my $NetMask = $refhNsIfNetmask->{$Index};
+        my $NetMask = (defined $refhNsIfNetmask->{$Index}) ? $refhNsIfNetmask->{$Index} : "";
+        
         logger(2, "Index: $Index,\tIpAddress: $IpAddress,\tNetmask: $NetMask");
-        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"}};        
+        if (defined $quadmask2dec{"$NetMask"}) {$NetMask = $quadmask2dec{"$NetMask"};}      
         
         # get the interface name stored before from the index table
         # check that a mapping was possible between the ip info and an interface
@@ -2970,7 +2980,8 @@ sub Get_Netscreen {
             }
             # now we are finished with the puzzle of getting ip and subnet mask
             # add IpInfo as property to the interface
-            my $IpInfo = "$IpAddress/$NetMask";
+            my $IpInfo = "$IpAddress";
+            if ($NetMask) {$IpInfo .= "/$NetMask";}
             $grefhCurrent->{If}->{"$Name"}->{ifIpInfo} .= $IpInfo;
     
             # check if the IP address has changed to its first run
@@ -3859,6 +3870,7 @@ sub print_usage () {
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient] 
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
         [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort] 
+        [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
         [--(no)configtable] [--(no)unixsnmp]
         
     * other usages:
@@ -3994,6 +4006,12 @@ sub print_usage () {
     --max-repetitions=integer
         Available only for snmp v2c/v3. Increasing this value may enhance snmp query performances 
         by gathering more results at one time. Setting it to 1 would disable the use of get-bulk.
+    --snmp-timeout
+        Define the Transport Layer timeout for the snmp queries (default is 2s). Value can be from
+        1 to 60. Note: multiply it by the snmp-retries+1 value to calculate the complete timeout.
+    --snmp-retries
+        Define the number of times to retry sending a SNMP message (default is 2). Value can be 
+        from 0 to 20.
     --(no)unixsnmp
         Use unix snmp utilities for snmp requests (table/bulk requests), in place of perl bindings
         Default is to use perl bindings
@@ -4070,7 +4088,8 @@ sub print_usage () {
         Force the plugin to run like if it was the first launch. Cached data will be 
         ignored. Default is enabled.
     --timeout (optional)
-        Define the timeout limit of the plugin.
+        Define the global timeout limit of the plugin. By default, the nagios plugin 
+        global timeout is taken (default is 15s)
     --css (optional)
         Define the css stylesheet used by the generated html files.
         Can be: classical, icinga, icinga-alternate1 or nagiosxi
@@ -4164,6 +4183,7 @@ sub check_options () {
         'snapshot!',
         'version|V',
         'regexp|r',
+        'timeout=i',                            # global plugin timeout
         'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...). 
                                                 # By default, the plugin returns general counts (nb ports, nb changes,...) 
                                                 # + what changes has been detected
@@ -4194,7 +4214,8 @@ sub check_options () {
         'passwd|x=s',                           # Password for snmpv3 authentication
         'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
         'protocols|L=s',                        # Format: <authproto>,<privproto>; 
-        'timeout|t=i',
+        'snmp-timeout=i',                       # timeout for snmp requests
+        'snmp-retries=i',                       # retries for snmp requests
         '64bits',                               # Use 64 bits counters
         'max-repetitions=i',                    # Max-repetitions tells the get-bulk command to attempt up to M get-next operations to retrieve the remaining objects.
         'unixsnmp!',                            # Use unix snmp utilities in some cases, in place of perl bindings
@@ -4249,7 +4270,7 @@ sub check_options () {
         'human'                     => 1,
         'snapshot'                  => 0,
         'regexp'                    => 0,
-        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
+        'timeout'                   => $TIMEOUT,
         'outputshort'               => 0,
         #------ traffic tracking --------#
         'exclude-traffic'           => undef,
@@ -4286,7 +4307,8 @@ sub check_options () {
         'privpass'                  => "",
         'authproto'                 => "md5",       # md5, sha
         'privproto'                 => "des",       # des, aes
-        'timeout'                   => $TIMEOUT, # TODO: timeout of plugin or snmp requests?
+        'timeout'                   => 2,
+        'retries'                   => 2,
         '64bits'                    => 0,
         'max-repetitions'           => undef,
         'unixsnmp'                  => 0
@@ -4324,10 +4346,6 @@ sub check_options () {
     }
     
     #--- plugin specific options ----#
-    if (exists $commandline{timeout}) {
-        $ghOptions{'timeout'} = $commandline{timeout};
-        $TIMEOUT = $ghOptions{'timeout'};
-    }
     if (exists $commandline{ifs}) {
         $ghOptions{'ifs'} = "$commandline{ifs}";
     }
@@ -4450,6 +4468,10 @@ sub check_options () {
     }
     if (exists $commandline{snapshot}) {
         $ghOptions{'snapshot'} = $commandline{snapshot};
+    }
+    if (exists $commandline{timeout}) {
+        $ghOptions{'timeout'} = $commandline{timeout};
+        $TIMEOUT = $ghOptions{'timeout'};
     }
     if (exists $commandline{outputshort}) {
         $ghOptions{'outputshort'} = 1;
@@ -4634,10 +4656,12 @@ sub check_options () {
             exit $ERRORS{"UNKNOWN"};
         }
     }
-    if (exists $commandline{timeout}) {
-        $ghSNMPOptions{'timeout'} = "$commandline{timeout}";
-        $TIMEOUT = $ghSNMPOptions{'timeout'};
-    }   
+    if (exists $commandline{'snmp-timeout'}) {
+        $ghSNMPOptions{'timeout'} = "$commandline{'snmp-timeout'}";
+    }
+    if (exists $commandline{'snmp-retries'}) {
+        $ghSNMPOptions{'retries'} = "$commandline{'snmp-retries'}";
+    }
     if (exists $commandline{'64bits'}) {
         $ghSNMPOptions{'64bits'} = 1;
     }

@@ -257,6 +257,7 @@ sub GetDataWithSnmp {
                 -privpassword   => "$refhSNMPOptions->{'privpass'}",
                 -privprotocol   => "$refhSNMPOptions->{'privproto'}",
                 -timeout        => "$refhSNMPOptions->{'timeout'}",
+                -retries        => "$refhSNMPOptions->{'retries'}",
                 -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
                 OID         => $refaOID,
                 CacheDir    => "$CacheDir",
@@ -272,6 +273,7 @@ sub GetDataWithSnmp {
                 -authpassword   => "$refhSNMPOptions->{'passwd'}",
                 -authprotocol   => "$refhSNMPOptions->{'authproto'}",
                 -timeout        => "$refhSNMPOptions->{'timeout'}",
+                -retries        => "$refhSNMPOptions->{'retries'}",
                 -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
                 OID         => $refaOID,
                 CacheDir    => "$CacheDir",
@@ -286,6 +288,7 @@ sub GetDataWithSnmp {
             -version    => 2,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
+            -retries    => "$refhSNMPOptions->{'retries'}",
             -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
@@ -299,6 +302,7 @@ sub GetDataWithSnmp {
             -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
+            -retries    => "$refhSNMPOptions->{'retries'}",
             -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
@@ -346,6 +350,7 @@ sub GetMultipleDataWithSnmp {
                 -privpassword   => "$refhSNMPOptions->{'privpass'}",
                 -privprotocol   => "$refhSNMPOptions->{'privproto'}",
                 -timeout        => "$refhSNMPOptions->{'timeout'}",
+                -retries        => "$refhSNMPOptions->{'retries'}",
                 OID         => $refaOID,
                 CacheDir    => "$CacheDir",
                 CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -360,6 +365,7 @@ sub GetMultipleDataWithSnmp {
                 -authpassword   => "$refhSNMPOptions->{'passwd'}",
                 -authprotocol   => "$refhSNMPOptions->{'authproto'}",
                 -timeout        => "$refhSNMPOptions->{'timeout'}",
+                -retries        => "$refhSNMPOptions->{'retries'}",
                 OID         => $refaOID,
                 CacheDir    => "$CacheDir",
                 CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -373,6 +379,7 @@ sub GetMultipleDataWithSnmp {
             -version    => 2,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
+            -retries    => "$refhSNMPOptions->{'retries'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -385,6 +392,7 @@ sub GetMultipleDataWithSnmp {
             -version    => 1,
             -community  => "$refhSNMPOptions->{'community'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
+            -retries    => "$refhSNMPOptions->{'retries'}",
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
@@ -608,6 +616,7 @@ sub GetTableDataWithSnmp {
             -version    => "$refhSNMPOptions->{'version'}",
             -domain     => "$refhSNMPOptions->{'domain'}",
             -timeout    => "$refhSNMPOptions->{'timeout'}",
+            -retries    => "$refhSNMPOptions->{'retries'}",
             OID         => $OID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching;
@@ -631,7 +640,7 @@ sub GetTableDataWithSnmp {
     } else {
         # gather data via unix snmpwalk/snmpbulkwalk
         my $refhSnmpQueryCommand = "snmpbulkwalk"; 
-        my $refhSnmpQueryOptions = "-Oqn  -t $refhSNMPOptions->{'timeout'} ";
+        my $refhSnmpQueryOptions = "-Oqn -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
         $refhSnmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
