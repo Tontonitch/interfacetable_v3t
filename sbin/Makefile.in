@@ -43,8 +43,7 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/sbin
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(cgidir)
 	$(INSTALL) -m 755 $(INSTALL_OPTS) InterfaceTableReset_v3t.cgi $(cgidir)/InterfaceTableReset_v3t.cgi
 
 install-apache-config:
