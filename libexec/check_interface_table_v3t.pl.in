@@ -3835,10 +3835,11 @@ sub ExitPlugin {
     }
 
     print $refhStruct->{Text};
-    print "|";
-    if ($ghOptions{'enableperfdata'} and $basetime) {
-        print "$gPerfdata\n";
+    if ($ghOptions{'enableperfdata'} and $basetime and $gPerfdata) {
+        print " | ";
+        print "$gPerfdata";
     }
+    print "\n";
 
     exit $refhStruct->{ExitCode};
 }
