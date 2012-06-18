@@ -722,12 +722,7 @@ if ($gPktDiscardCritCounter > 0 ) {
 }
 
 # Append html table link to text
-if(defined($ghOptions{'htmltablelinktarget'})) {
-    $gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
-}
-else {
-    $gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '">[details]</a>';
-}
+$gText = $gText . ' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
 
 if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
@@ -4076,8 +4071,9 @@ sub print_usage () {
     --htmltableurl (optional)
         Specifies the URL by which the interface table are accessible.
     --htmltablelinktarget (optional)
-        Specifies the html link target for the [details] link in plugin output.
-        (you may want use "_blank" as value to open the details view in a new window)
+        Specifies the windows or the frame where the [details] link will load the generated html page.
+        Possible values are: _blank, _self, _parent, _top, or a frame name. Default is _self. For 
+		exemple, can be set to _blank to open the details view in a new window.
     --delta | -d (optional)
         Set the delta used for interface throuput calculation. In seconds.
     --ifs (optional)
@@ -4172,7 +4168,7 @@ sub check_options () {
         'accessmethod=s@',                      # access method for the link to the host in the HTML page
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
-        'htmltablelinktarget=s',                # interface table link target for plugin output
+        'htmltablelinktarget=s',                # interface table link target attribute for the plugin output
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
@@ -4263,7 +4259,7 @@ sub check_options () {
         'accessmethod'              => undef,
         'htmltabledir'              => "@htmldir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
-        'htmltablelinktarget'       => undef,
+        'htmltablelinktarget'       => "_self",
         'alias-matching'            => 0,
         'exclude'                   => undef,
         'include'                   => undef,
