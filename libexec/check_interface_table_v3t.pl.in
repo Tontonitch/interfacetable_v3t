@@ -1398,6 +1398,10 @@ sub perfdataout {
                     $gPerfdata .= "$perfdata";
                 }
             }
+            # write spoolfile to perfdatadir
+            if($ghOptions{'perfdatadir'}) {
+                perfdataout_spool();
+            }
         }
         
     #------  Nagiosgrapher  ------#
@@ -1481,6 +1485,57 @@ sub perfdataout {
         close (OUT);
     }
     return 0;
+}
+
+# ------------------------------------------------------------------------
+# write performance data to a spool file
+# perfdataout_spool ();
+# --------------------------------------------------------------------
+# Grapher: pnp4nagios or format compatible
+# ------------------------------------------------------------------------
+
+sub perfdataout_spool {
+    if($ghOptions{'grapher'} eq  "pnp4nagios") {
+        if(!defined($ghOptions{perfdataservicedesc})) {
+            print STDERR "please specify --perfdataservicedesc when you want to use --perfdatadir to output perfdata\n";
+            exit 3;
+        }
+        # PNP Data example: (without the linebreaks)
+        # DATATYPE::SERVICEPERFDATA\t
+        # TIMET::$TIMET$\t
+        # HOSTNAME::$HOSTNAME$\t                       -| this relies on getting the same hostname as in Icinga from -H or -h
+        # SERVICEDESC::$SERVICEDESC$\t
+        # SERVICEPERFDATA::$SERVICEPERFDATA$\t
+        # SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t -| not needed (interfacetables uses own templates)
+        # HOSTSTATE::$HOSTSTATE$\t                     -|
+        # HOSTSTATETYPE::$HOSTSTATETYPE$\t              | not available here
+        # SERVICESTATE::$SERVICESTATE$\t                | so its skipped
+        # SERVICESTATETYPE::$SERVICESTATETYPE$         -|
+        
+        # build the output
+        my $lPerfoutput;
+        $lPerfoutput .= "DATATYPE::SERVICEPERFDATA\tTIMET::$STARTTIME";
+        $lPerfoutput .= "\tHOSTNAME::".$ghOptions{'hostdisplay'};
+        $lPerfoutput .= "\tSERVICEDESC::".$ghOptions{perfdataservicedesc};
+        $lPerfoutput .= "\tSERVICEPERFDATA::".$gPerfdata;
+        $lPerfoutput .= "\n";
+        
+        # delete the perfdata so it is not printed to Nagios/Icinga
+        $gPerfdata = "";
+        
+        # flush to spoolfile
+        my $filename = $ghOptions{perfdatadir} . "/interfacetables_v3t.$STARTTIME";
+        umask "$UMASK";
+        open (OUT,">>$filename") or die "cannot open $filename $!";
+        flock (OUT, 2) or die "cannot flock $filename ($!)"; # get exclusive lock;
+        
+        print OUT $lPerfoutput;
+        
+        close(OUT);
+    }
+    else {
+        die "Perfdata Spool Output not available for grapher ".$ghOptions{'grapher'};
+    }
 }
 
 # ------------------------------------------------------------------------
@@ -4034,7 +4089,10 @@ sub print_usage () {
         can be extended by modifying MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources.
     --perfdatadir (optional)
         When specified, the performance data are also written directly to a file, in the specified 
-        location. Used by the Netways nagiosgrapher v1 graphing solution.
+        location. Please use the same hostname as in Icinga/Nagios for -H or -h.
+    --perfdataservicedesc (optional)
+        Specify additional parameters for output performance data to PNP
+        (only used when using --perfdatadir and --grapher pnp4nagios)
     -g, --grapher (optional)
         Specify the used graphing solution. 
         Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
@@ -4209,6 +4267,7 @@ sub check_options () {
         'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
         'perfdataformat=s',                     # define which performance data will be generated.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
+        'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
@@ -4295,6 +4354,7 @@ sub check_options () {
         'portperfunit'              => "bit",
         'perfdataformat',           => "full",
         'perfdatadir',              => undef,
+        'perfdataservicedesc',      => undef,
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
