@@ -1,4 +1,4 @@
-ScriptAlias @cgiurl@ "@cgidir@"
+ScriptAlias @cgiurlrel@ "@cgidir@"
 
 <Directory "@cgidir@">
     Options ExecCGI
@@ -11,7 +11,7 @@ ScriptAlias @cgiurl@ "@cgidir@"
     Require valid-user
 </Directory>
 
-Alias @htmlurl@ "@sharedir@"
+Alias @htmlurlrel@ "@sharedir@"
 
 <Directory "@sharedir@">
     Options None
