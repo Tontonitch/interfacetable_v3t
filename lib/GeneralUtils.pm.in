@@ -120,8 +120,8 @@ sub printArray
     my $prefix = shift;
     my $output = "";
     my ($i, $len);
-	
-	if (defined $array) {
+    
+    if (defined $array) {
         $len=length(@$array - 1);
         #$output = $output . "len: $len";
         for ($i=0; $i<@$array; $i++)
@@ -140,13 +140,13 @@ sub printArray
 
 sub printHash
 {
-	my $hash = shift;
-	my $prefix = shift || "";
+    my $hash = shift;
+    my $prefix = shift || "";
     my $output = "";
-	my ($key);
-	my $maxlen = 0;
+    my ($key);
+    my $maxlen = 0;
 
-	if(defined $hash) {
+    if(defined $hash) {
         foreach $key (keys %$hash)
         {
             if (length($key) > $maxlen)
@@ -172,49 +172,49 @@ sub fixedLen {
 
     ################################
     # SUB use: GeneralUtils::fixedLen($string [, $len [, "left"|"right" [, $fillchar]]])
-	#          brings a given string to a fixed length and returns the string afterwards
-	#          no matter if it is shorter or longer before
+    #          brings a given string to a fixed length and returns the string afterwards
+    #          no matter if it is shorter or longer before
     # SUB specs:
     #  * arg 0: the string
     #  * arg 1: the desired length (integer), defaults to 10 if omitted
     #  * arg 2: "left" or "right": tells on which side blanks are appended or characters are cut off
     #  * arg 3: fillcharacter: 1 character, which should be used to fill up short strings
-	#           defaults to blank " "
-	#  * return: the resulting string
+    #           defaults to blank " "
+    #  * return: the resulting string
     ################################
 
-	my $string = shift;
-	my $len = shift || 10;
-	my $side = shift || "right";
-	my $fillchar = shift || " ";
-	my $fillstring;
-	
-	if (length($string) > $len)
-	{
-		if ($side eq "left")
-		{
-			$string = substr($string, $len*(-1));
-		}
-		else
-		{
-			$string = substr($string, 0, $len);
-		}
-	}
-	if (length($string) < $len)
-	{
-		$fillchar = substr($fillchar, 0, 1);
-		$fillstring = $fillchar x ($len-length($string));
-		if ($side eq "left")
-		{
-			$string = $fillstring . $string;
-		}
-		else
-		{
-			$string .= $fillstring;
-		}
-	}
-	
-	return $string;
+    my $string = shift;
+    my $len = shift || 10;
+    my $side = shift || "right";
+    my $fillchar = shift || " ";
+    my $fillstring;
+    
+    if (length($string) > $len)
+    {
+        if ($side eq "left")
+        {
+            $string = substr($string, $len*(-1));
+        }
+        else
+        {
+            $string = substr($string, 0, $len);
+        }
+    }
+    if (length($string) < $len)
+    {
+        $fillchar = substr($fillchar, 0, 1);
+        $fillstring = $fillchar x ($len-length($string));
+        if ($side eq "left")
+        {
+            $string = $fillstring . $string;
+        }
+        else
+        {
+            $string .= $fillstring;
+        }
+    }
+    
+    return $string;
 }
 
 # ------------------------------------------------------------------------
@@ -225,14 +225,14 @@ sub cutOffSpaces {
     # SUB use: cuts of leading and trailing whitespace characters of a given string
     # SUB specs:
     #  * arg 0: the string
-	#  * return: the resulting string
+    #  * return: the resulting string
     ################################
 
-	my $string = shift;
-	$string =~ s/^\s*//;
-	$string =~ s/\s*$//;
-	# does the same as the two lines above, but takes twice as long
-	#$string =~ s/^\s*(.*?)\s*$/$1/;
+    my $string = shift;
+    $string =~ s/^\s*//;
+    $string =~ s/\s*$//;
+    # does the same as the two lines above, but takes twice as long
+    #$string =~ s/^\s*(.*?)\s*$/$1/;
     return ($string);
 }
 
@@ -242,55 +242,55 @@ sub getHostnameFromUrl {
 
     ################################
     # SUB use: from a given URL, we extract the hostname
-	#          give "s" as second parameter to get the short hostname (everything before the first dot)
-	#          give "l" or leave empty, to get the full qualified hostname, if it is in the URL as full qualified name
+    #          give "s" as second parameter to get the short hostname (everything before the first dot)
+    #          give "l" or leave empty, to get the full qualified hostname, if it is in the URL as full qualified name
     # SUB specs:
     #  * arg 0: the URL
     #  * arg 1: the return modifier
-	#  * return: the hostname as string
+    #  * return: the hostname as string
     ################################
 
-	my $url = shift;
-	my $switch = shift;
+    my $url = shift;
+    my $switch = shift;
 
-	if ($switch eq "s")
-	{
-		# if an IP is used instead a hostname there is no sense in cutting after the first dot
-		if ($url =~ m/^(.+:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)
-		{
-			if (defined($2))
-			{
-				return($2);
-			}
-			else
-			{
-				return($1);
-			}
-		}
+    if ($switch eq "s")
+    {
+        # if an IP is used instead a hostname there is no sense in cutting after the first dot
+        if ($url =~ m/^(.+:\/\/)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/)
+        {
+            if (defined($2))
+            {
+                return($2);
+            }
+            else
+            {
+                return($1);
+            }
+        }
 
-		$url =~ m/^(.+:\/\/)?([^.:\/]+)/;
-		if (defined($2))
-		{
-			return($2);
-		}
-		else
-		{
-			return($1);
-		}
-	}
-	else
-	{
-		$url =~ m/^(.+:\/\/)?([^:\/]+)/;
-		if (defined($2))
-		{
-			return($2);
-		}
-		else
-		{
-			return($1);
-		}
-	}
-	return(undef);
+        $url =~ m/^(.+:\/\/)?([^.:\/]+)/;
+        if (defined($2))
+        {
+            return($2);
+        }
+        else
+        {
+            return($1);
+        }
+    }
+    else
+    {
+        $url =~ m/^(.+:\/\/)?([^:\/]+)/;
+        if (defined($2))
+        {
+            return($2);
+        }
+        else
+        {
+            return($1);
+        }
+    }
+    return(undef);
 }
 
 # ------------------------------------------------------------------------
@@ -302,19 +302,19 @@ sub getProtocolFromUrl {
     # SUB specs:
     #  * arg 0: the URL
     #  * arg 1: The message to be logged
-	#  * return: the protocol as string
+    #  * return: the protocol as string
     ################################
 
-	my $url = shift;
-	$url =~ m/^(.+):\/\//;
-	if (defined($1))
-	{
-		return($1);
-	}
-	else
-	{
-		return("http");
-	}
+    my $url = shift;
+    $url =~ m/^(.+):\/\//;
+    if (defined($1))
+    {
+        return($1);
+    }
+    else
+    {
+        return("http");
+    }
 }
 
 # ------------------------------------------------------------------------
@@ -400,54 +400,56 @@ __END__
 
 =head1 SYNOPSIS
 
-	use GeneralUtils;
+    use GeneralUtils;
 
-	printArray(\@a);
-	printArray(\@a, "DEBUG: ");
+    printArray(\@a);
+    printArray(\@a, "DEBUG: ");
 
-	printHash(\%h);
-	printHash(\%h, "    ");  # e. g. if you want to print intended
-	
-	print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
-	# prints out: aVeryLongStringWitho
-	
-	$c = "short";
-	$c = fixedLen($c, 20, undef, ".");
-	# $c is now: short...............
+    printHash(\%h);
+    printHash(\%h, "    ");  # e. g. if you want to print intended
+    
+    print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
+    # prints out: aVeryLongStringWitho
+    
+    $c = "short";
+    $c = fixedLen($c, 20, undef, ".");
+    # $c is now: short...............
 
-	$string = cutOffSpaces("foo   ");
-	# $string = "foo"
+    $string = cutOffSpaces("foo   ");
+    # $string = "foo"
 
-	$hostname = getHostnameFromUrl("http://www.example.com:80/foo/");
-	# $hostname = "www.example.com";
-	$hostname = getHostnameFromUrl("http://myworkstation.example.com", "s");
-	# $hostname = "myworkstation";
+    $hostname = getHostnameFromUrl("http://www.example.com:80/foo/");
+    # $hostname = "www.example.com";
+    $hostname = getHostnameFromUrl("http://myworkstation.example.com", "s");
+    # $hostname = "myworkstation";
 
-	print getProtocolFromUrl("https://www.example.com/test/") ."\n";
-	# https
-	$p = getProtocolFromUrl("www.example.com");
-	# $p = "http";
+    print getProtocolFromUrl("https://www.example.com/test/") ."\n";
+    # https
+    $p = getProtocolFromUrl("www.example.com");
+    # $p = "http";
 
 =head1 DESCRIPTION
 
 =head2 GeneralUtils::printArray 
 
-	GeneralUtils::printArray(\@array [, $prefix])
-	
-	prints out the content of an array in a structured way
-	
-	parameter 1: reference to an array
-	parameter 2: prefix for every line of output
-	returns:     nothing of value
+    GeneralUtils::printArray(\@array [, $prefix])
+    
+    prints out the content of an array in a structured way
+    
+    parameter 1: reference to an array
+    parameter 2: prefix for every line of output
+    returns:     nothing of value
 
 =head2 GeneralUtils::printHash
 
-	GeneralUtils::printHash(\%hash [, $prefix])
-	
-	prints out the content of a hash in a structured way
-	
-	parameter 1: reference to a hash
-	parameter 2: prefix for every line of output
-	returns:     nothing of value
+    GeneralUtils::printHash(\%hash [, $prefix])
+    
+    prints out the content of a hash in a structured way
+    
+    parameter 1: reference to a hash
+    parameter 2: prefix for every line of output
+    returns:     nothing of value
 
 =cut
+
+# vi: set ts=4 sw=4 expandtab :
