@@ -3830,10 +3830,11 @@ sub ExitPlugin {
     }
 
     print $refhStruct->{Text};
-    print "|";
-    if ($ghOptions{'enableperfdata'} and $basetime) {
-        print "$gPerfdata\n";
+    if ($ghOptions{'enableperfdata'} and $basetime and $gPerfdata) {
+        print " | ";
+        print "$gPerfdata";
     }
+    print "\n";
 
     exit $refhStruct->{ExitCode};
 }
@@ -4073,7 +4074,7 @@ sub print_usage () {
     --htmltablelinktarget (optional)
         Specifies the windows or the frame where the [details] link will load the generated html page.
         Possible values are: _blank, _self, _parent, _top, or a frame name. Default is _self. For 
-		exemple, can be set to _blank to open the details view in a new window.
+        exemple, can be set to _blank to open the details view in a new window.
     --delta | -d (optional)
         Set the delta used for interface throuput calculation. In seconds.
     --ifs (optional)
@@ -5224,3 +5225,5 @@ with this program; if not, see <http://www.gnu.org/licenses/>.
  Website: www.tontonitch.com
 
 =cut
+
+# vi: set ts=4 sw=4 expandtab :

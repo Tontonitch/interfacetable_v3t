@@ -35,29 +35,31 @@ BEGIN {
 
 sub parseConfigFile
 {
-	my $file = shift;
+    my $file = shift;
     my $config = shift;
     my ($in, $var, $value);
     
     logger(3, "#==== Start of config ====#");
-	open(IN, "<$file") or die "unable to read file $file\n";
-		while ($in = <IN>)
-		{
-			chomp($in);          # Get rid of the trailling \n
+    open(IN, "<$file") or die "unable to read file $file\n";
+        while ($in = <IN>)
+        {
+            chomp($in);          # Get rid of the trailling \n
             $in =~ s/^\s*//;     # Remove spaces at the start of the line
             $in =~ s/\s*$//;     # Remove spaces at the end of the line
             if ($in !~ m/(^$|^#)/) {
-				($var, $value) = split(/=/, $in);
-				$var = cutOffSpaces($var);
-				$value = cutOffSpaces($value);
-				$$config{$var}=$value;
-				logger(3, "variable: ".$var.", value: ".$value);
-			}
-		}
-	close(IN);
-	logger(3, "#==== End of config ====#");
+                ($var, $value) = split(/=/, $in);
+                $var = cutOffSpaces($var);
+                $value = cutOffSpaces($value);
+                $$config{$var}=$value;
+                logger(3, "variable: ".$var.", value: ".$value);
+            }
+        }
+    close(IN);
+    logger(3, "#==== End of config ====#");
 }
 
 1;
 
 __END__
+
+# vi: set ts=4 sw=4 expandtab :
