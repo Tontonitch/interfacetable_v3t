@@ -3,40 +3,6 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.04
-# ----------------------------------------------------------------------
-# DONE    - review table building method for more flexibility
-# DONE    - review general structure of the plugin
-# DONE    - performance enhancement by prefering snmp table/bulk request
-# DONE    - add STP info
-# DONE    - extend debug if needed
-# DONE    - add options for hp, or other brands if relevant
-# DONE    - better handling of counters cleared manually or via node restart
-#            -> check if enough now
-#           to free space in the interface table
-# DONE    - convert network masks to quad-dotted decimal representation (*/[0-32])
-# DONE    - correctly handle devices where interfaces have the same ifdescr
-# DONE    - when interfaces have the same ifdescr, give the suffix choice between 
-#           idx or mac addr
-# DONE    - add Juniper Netscreen support (+ special columns)
-# DONE    - look review (buttons, html structure, css)
-# DONE    - detect 32/64 bits counter use changes
-# DONE    - detect release change
-# DONE    - add a 3rd table in the html page, summarizing the following options: 
-#               * inclusions/exclusions of any kind
-#               * thresholds of any kind
-# DONE    - add snmp transport domain selection
-# DONE    - handle old arg by telling what to change
-# REJECT  - tolerant option proposed when snmp request doesn't return anything
-# REJECT  - review generated link [details] to be not a relative URL, to be usable in 
-#           email notifications
-# DONE    - update supported nodes list
-# DONE    - create a more detailed documentation on supported nodes, also to prevent
-#           regressions
-# DONE    - column sorting
-# DONE    - timeout review
-# 
-# ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing 
@@ -55,11 +21,14 @@
 #         - nodetype "netapp(filer)" + model/product node info + 64bits counters
 #         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
 #         - epn support back
+#         - enhanced column sorting
+#         - bugfix: relative grapher url for apache config
+#         - libdir installer option support
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
 # ----------------------------------------------------------------------
-#         - review the netwaysgrapherv2 support + create templates
+#         - (cancelled as the solution is not developed anymore) review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
 #         - option to show mac addresses in the interface table
 #         - multiple tables (physical interfaces separated from logical interfaces)
@@ -70,5 +39,7 @@
 #         - nobulk option as an alias to max-repetitions=1
 #         - detection of the case http://www.tontonitch.com/phpbb/viewtopic.php?f=5&t=1649, 
 #           where bulk requests are not well supported by the target device
+#         - switch to full php + jquery
+#         - store state + table info in xml
 #
 # ========================================================================
