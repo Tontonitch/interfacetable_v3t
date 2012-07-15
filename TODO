@@ -13,6 +13,7 @@
 # IN PROG - contribution integration
 #         - new exception rules for operstatus
 #         - bugfix: reset cgi cannot write configfile doesn't push a message
+#         - option to add the ifAlias (if one) to the plugin output
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
