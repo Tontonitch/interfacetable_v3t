@@ -4,7 +4,7 @@ THANK YOU
 
 First thanks to some authors of some pieces of code or tools used in this projects:
  * Ilya Etingof - author of snmpsim/snmprec, a SNMP simulator used for for any testing
- * Stuart Langridge - author of the SortTable javascript
+ * frequency-decoder.com - author of the tablesort and some customsort javascripts
  * ITdesign Software Projects & Consulting and NETWAYS GmbH for the previous versions of the plugin
 
 Then, thanks to all the users/testers who provided bug reports and great ideas:

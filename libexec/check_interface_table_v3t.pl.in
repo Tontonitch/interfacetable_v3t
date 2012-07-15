@@ -290,26 +290,26 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    {   Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Enabled => 1 }, #0
-    {   Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Enabled => 1 }, #1
-    {   Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Enabled => 1 }, #2
-    {   Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Enabled => 1 }, #3
-    {   Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Enabled => 1 }, #4
-    {   Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Enabled => 1 }, #5
-    {   Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Enabled => 0 }, #6
-    {   Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Enabled => 0 }, #7
-    {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Enabled => 0 }, #8
-    {   Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Enabled => 0 }, #9
-    {   Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Enabled => 0 }, #10
-    {   Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Enabled => 0 }, #11
-    {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Enabled => 1 }, #12
-    {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Enabled => 1 }, #13
-    {   Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Enabled => 1 }, #14
-    {   Title => 'bpsIn',        Dataname => 'bpsIn',           Datatype => 'load',     Enabled => 1 }, #15
-    {   Title => 'bpsOut',       Dataname => 'bpsOut',          Datatype => 'load',     Enabled => 1 }, #16
-    {   Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Enabled => 1 }, #17
-    {   Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Enabled => 1 }, #18
-    {   Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Enabled => 1 }, #19
+    {   Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Enabled => 1 }, #0
+    {   Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Enabled => 1 }, #1
+    {   Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #2
+    {   Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #3
+    {   Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #4
+    {   Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #5
+    {   Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #6
+    {   Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #7
+    {   Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #8
+    {   Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #9
+    {   Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #10
+    {   Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
+    {   Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #12
+    {   Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #13
+    {   Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #14
+    {   Title => 'bpsIn',        Dataname => 'bpsIn',           Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #15
+    {   Title => 'bpsOut',       Dataname => 'bpsOut',          Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #16
+    {   Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #17
+    {   Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #18
+    {   Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #19
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -1513,7 +1513,8 @@ sub WriteHtmlFile {
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
     <link rel="stylesheet" type="text/css" href="../css/button.css">
     <script type="text/javascript" src="../js/functions.js"></script>
-    <script type="text/javascript" src="../js/sorttable.js"></script>
+    <script type="text/javascript" src="../js/tablesort.js"></script>
+    <script type="text/javascript" src="../js/customsort.js"></script>
   </head>
 <body>';
         # -- Body header --
@@ -3393,7 +3394,7 @@ sub TimeDiff {
     }
 
     #logger(1, "warn: $warn, crit: $crit, diff: $TimeDiff, status: $Status");
-    return wantarray ? ("${Days}d&nbsp;${Hours}h&nbsp;${Min}m", $Status) : "${Days}d&nbsp;${Hours}h&nbsp;${Min}m";
+    return wantarray ? ("${Days}d ${Hours}h ${Min}m", $Status) : "${Days}d ${Hours}h ${Min}m";
 }
 
 # ------------------------------------------------------------------------
@@ -3676,11 +3677,7 @@ sub Convert2HtmlTable {
         # ------------------------------------------------------------------
         # Build HTML format and table header
         $HTML .= '<table';
-        if ($headerLineEnabled) { 
-            $HTML .= " class=\"$cssClass sortable\"";
-        } else {
-            $HTML .= " class=\"$cssClass\"";
-        }
+        $HTML .= " class=\"$cssClass no-arrow\"";
         if ($highlightColor ne "") {
             $HTML .= ' onMouseOver="javascript:trackTableHighlight(event, ' . "'" . $highlightColor . "'" . ');" onMouseOut="javascript:highlightTableRow(0);"';
         }
@@ -3694,15 +3691,20 @@ sub Convert2HtmlTable {
             foreach my $Cell ( @$refAoHHeader ) {    
                 if ($Cell->{'Enabled'}) {
                     my $Title;
-                    my $SpecialCellFormat      = "";
+                    my $SpecialCellFormat = "";
         
                     $HTMLTable .= $trTagclose;
                     $trTagclose = '';
                     
+                    # Sorting
+                    if ( defined $Cell->{'Tablesort'} and $Cell->{'Tablesort'} ne '') {
+                        $SpecialCellFormat .= " class=\"$Cell->{'Tablesort'}\"";
+                    }
+                    
                     # Tips
                     if ( defined $Cell->{Tip} and $ghOptions{'enabletips'}) {
-                            #TODO 
-                            #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
+                        #TODO 
+                        #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
                     }
                     
                     # if we got a title write into cell
@@ -3719,7 +3721,7 @@ sub Convert2HtmlTable {
                     }
         
                     # finally build the table line;
-                    $HTMLTable .= "\n" . '<th ' . $SpecialCellFormat . '>' . $Title . '</th>';
+                    $HTMLTable .= "\n" . '<th' . $SpecialCellFormat . '>' . $Title . '</th>';
                 }
             }
             $HTMLTable .= "</tr>";
