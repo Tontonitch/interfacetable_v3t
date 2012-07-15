@@ -2286,8 +2286,8 @@ sub Get_OperStatus {
                 $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
             }
         }
-        # ifOperstatus has changed from 'empty'
-        elsif ("$OperStatusFile" eq "") {
+        # ifOperstatus has changed from 'empty' or 'down'
+        elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
             # update the state in the status file
             $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
             # delete the changed flag and reset the time when it was changed
