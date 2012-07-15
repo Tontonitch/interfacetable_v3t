@@ -1398,10 +1398,45 @@ sub perfdataout {
                     $gPerfdata .= "$perfdata";
                 }
             }
-            # write spoolfile to perfdatadir
-            if($ghOptions{'perfdatadir'}) {
-                perfdataout_spool();
+        }
+        # write perfdata to a spoolfile in perfdatadir instead of in plugin output
+        if($ghOptions{'perfdatadir'}) {
+            if(!defined($ghOptions{perfdataservicedesc})) {
+                logger(0, "please specify --perfdataservicedesc when you want to use --perfdatadir to output perfdata.");
+                exit $ERRORS{"UNKNOWN"};
             }
+            # PNP Data example: (without the linebreaks)
+            # DATATYPE::SERVICEPERFDATA\t
+            # TIMET::$TIMET$\t
+            # HOSTNAME::$HOSTNAME$\t                       -| this relies on getting the same hostname as in Icinga from -H or -h
+            # SERVICEDESC::$SERVICEDESC$\t
+            # SERVICEPERFDATA::$SERVICEPERFDATA$\t
+            # SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t -| not needed (interfacetables uses own templates)
+            # HOSTSTATE::$HOSTSTATE$\t                     -|
+            # HOSTSTATETYPE::$HOSTSTATETYPE$\t              | not available here
+            # SERVICESTATE::$SERVICESTATE$\t                | so its skipped
+            # SERVICESTATETYPE::$SERVICESTATETYPE$         -|
+            
+            # build the output
+            my $lPerfoutput;
+            $lPerfoutput .= "DATATYPE::SERVICEPERFDATA\tTIMET::$STARTTIME";
+            $lPerfoutput .= "\tHOSTNAME::".$ghOptions{'hostdisplay'};
+            $lPerfoutput .= "\tSERVICEDESC::".$ghOptions{perfdataservicedesc};
+            $lPerfoutput .= "\tSERVICEPERFDATA::".$gPerfdata;
+            $lPerfoutput .= "\n";
+            
+            # delete the perfdata so it is not printed to Nagios/Icinga
+            $gPerfdata = "";
+            
+            # flush to spoolfile
+            my $filename = $ghOptions{perfdatadir} . "/interfacetables_v3t.$STARTTIME";
+            umask "$UMASK";
+            open (OUT,">>$filename") or die "cannot open $filename $!";
+            flock (OUT, 2) or die "cannot flock $filename ($!)"; # get exclusive lock;
+            
+            print OUT $lPerfoutput;
+            
+            close(OUT);
         }
         
     #------  Nagiosgrapher  ------#
@@ -4356,7 +4391,7 @@ sub check_options () {
         'portperfunit'              => "bit",
         'perfdataformat',           => "full",
         'perfdatadir',              => undef,
-        'perfdataservicedesc',      => undef,
+        'perfdataservicedesc',      => "$ENV{'NAGIOS_SERVICEDESC'}",
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
@@ -4640,7 +4675,9 @@ sub check_options () {
     if (exists $commandline{perfdatadir}) {
         $ghOptions{'perfdatadir'} = "$commandline{perfdatadir}";
     }
-
+    if (exists $commandline{perfdataservicedesc}) {
+        $ghOptions{'perfdataservicedesc'} = "$commandline{perfdataservicedesc}";
+    }
     if ($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq "nagiosgrapher" and not defined $ghOptions{'perfdatadir'}) {
         logger(0, "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir");
         exit $ERRORS{"UNKNOWN"};
