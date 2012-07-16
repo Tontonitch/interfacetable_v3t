@@ -1825,7 +1825,11 @@ sub GenerateInterfaceTableData {
                     $gDifferenceCounter++;
                     
                     # Update the list of changes
-                    push @{$grefhListOfChanges->{"$Header->{Dataname}"}}, trim(denormalize($Name));
+                    if ( defined $refhInterFaceDataCurrent->{"ifAlias"} and $refhInterFaceDataCurrent->{"ifAlias"} ne "" ) {
+                        push @{$grefhListOfChanges->{"$Header->{Dataname}"}}, trim(denormalize($Name))." (".trim(denormalize($refhInterFaceDataCurrent->{"ifAlias"})).")";
+                    } else {
+                        push @{$grefhListOfChanges->{"$Header->{Dataname}"}}, trim(denormalize($Name));
+                    }
                 }
             } else {
                 # Filed will not be compared, just write the current field - value in the table.
@@ -2514,10 +2518,18 @@ sub CalculateBps {
                     if ($grefhCurrent->{If}->{$ifName}->{ifLoadExceedIfSpeed} eq "false") {
                         # just traffic light color codes for the lame
                         if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
-                            push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($ifName));
+                            if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                                push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                            } else {
+                                push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($ifName));
+                            }
                             $gIfLoadCritCounter++;
                         } elsif ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'}) {
-                            push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($ifName));
+                            if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                                push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                            } else {
+                                push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($ifName));
+                            }
                             $gIfLoadWarnCounter++;
                         }
                     } else {
@@ -2698,11 +2710,19 @@ sub EvaluatePackets {
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "false" and ($ppsErrIn > 0 or $ppsErrOut > 0)) {
             # just traffic light color codes for the lame
             if ($ghOptions{'critical-pkterr'} >= 0 and ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'})) {
-                push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($ifName));
+                if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                    push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                } else {
+                    push @{$grefhListOfChanges->{'critical-pkterr'}}, trim(denormalize($ifName));
+                }
                 $gPktErrCritCounter++;
                 $pcrit++;
             } elsif ($ghOptions{'warning-pkterr'} >= 0 and ($ppsErrIn > $ghOptions{'warning-pkterr'} or $ppsErrOut > $ghOptions{'warning-pkterr'})) {
-                push @{$grefhListOfChanges->{'warning-pkterr'}}, trim(denormalize($ifName));
+                if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                    push @{$grefhListOfChanges->{'warning-pkterr'}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                } else {
+                    push @{$grefhListOfChanges->{'warning-pkterr'}}, trim(denormalize($ifName));
+                }
                 $gPktErrWarnCounter++;
                 $pwarn++;
             } 
@@ -2714,11 +2734,19 @@ sub EvaluatePackets {
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "false" and ($ppsDiscardIn > 0 or $ppsDiscardOut > 0)) {
             # just traffic light color codes for the lame
             if ($ghOptions{'critical-pktdiscard'} >= 0 and ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'})) {
-                push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($ifName));
+                if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                    push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                } else {
+                    push @{$grefhListOfChanges->{'critical-pktdiscard'}}, trim(denormalize($ifName));
+                }
                 $gPktDiscardCritCounter++;
                 $pcrit++;
             } elsif ($ghOptions{'warning-pktdiscard'} >= 0 and ($ppsDiscardIn > $ghOptions{'warning-pktdiscard'} or $ppsDiscardOut > $ghOptions{'warning-pktdiscard'})) {
-                push @{$grefhListOfChanges->{'warning-pktdiscard'}}, trim(denormalize($ifName));
+                if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
+                    push @{$grefhListOfChanges->{'warning-pktdiscard'}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
+                } else {
+                    push @{$grefhListOfChanges->{'warning-pktdiscard'}}, trim(denormalize($ifName));
+                }
                 $gPktDiscardWarnCounter++;
                 $pwarn++;
             } 
@@ -4391,7 +4419,7 @@ sub check_options () {
         'portperfunit'              => "bit",
         'perfdataformat',           => "full",
         'perfdatadir',              => undef,
-        'perfdataservicedesc',      => "$ENV{'NAGIOS_SERVICEDESC'}",
+        'perfdataservicedesc',      => undef,
         'grapher'                   => "@grapher@",
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
@@ -4677,6 +4705,8 @@ sub check_options () {
     }
     if (exists $commandline{perfdataservicedesc}) {
         $ghOptions{'perfdataservicedesc'} = "$commandline{perfdataservicedesc}";
+    } elsif (defined $ENV{'NAGIOS_SERVICEDESC'} and $ENV{'NAGIOS_SERVICEDESC'} ne "") {
+        $ghOptions{'perfdataservicedesc'} = $ENV{'NAGIOS_SERVICEDESC'};
     }
     if ($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq "nagiosgrapher" and not defined $ghOptions{'perfdatadir'}) {
         logger(0, "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir");
