@@ -11,7 +11,7 @@
 #         - epn support back
 # IN PROG - enhanced column sorting
 # IN PROG - contribution integration
-#         - new exception rules for operstatus
+# DONE    - new exception rules for operstatus
 #         - bugfix: reset cgi cannot write configfile doesn't push a message
 # DONE    - option to add the ifAlias (if one) to the plugin output
 #
