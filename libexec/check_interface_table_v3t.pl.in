@@ -382,6 +382,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 # and reformatted interface names.
 Get_InterfaceNames ();
 
+# Gather interface administration status
+Get_AdminStatus ();
+
 # Gather interface operational status
 Get_OperStatus ();
 
@@ -394,7 +397,7 @@ if ($ghOptions{'nodetype'} ne "netscreen") {
 Get_Traffic ();
 
 # Gather interface admin status, speed, alias and vlan
-Get_AdminStatus_Speed_Duplex_Alias_Vlan ($grefhCurrent);
+Get_Speed_Duplex_Alias_Vlan ($grefhCurrent);
 
 # Gather Spanning Tree specific info (--stp)
 if ($ghOptions{'stp'}) {
@@ -771,6 +774,7 @@ exit $ERRORS{"UNKNOWN"};
 # * mcompare
 # * GenerateInterfaceTableData
 # * EvaluateInterfaces
+# * Get_AdminStatus
 # * Get_OperStatus
 # * Get_TrafficInOut
 # * Get_IfErrInOut
@@ -778,7 +782,7 @@ exit $ERRORS{"UNKNOWN"};
 # * CleanAndSelectHistoricalDataset
 # * CalculateBps
 # * EvaluatePackets
-# * Get_AdminStatus_Speed_Duplex_Alias_Vlan
+# * Get_Speed_Duplex_Alias_Vlan
 # * Get_Stp
 # * Get_Netscreen
 # * ConvertSpeedToReadable
@@ -2200,6 +2204,40 @@ sub EvaluateInterfaces {
     return $grefhCurrent;
 }
 
+
+# ------------------------------------------------------------------------
+# get ifAdminStatus
+# ------------------------------------------------------------------------
+sub Get_AdminStatus {
+
+    my $refaIfAdminStatusLines;       # Lines returned from snmpwalk storing ifAdminStatus
+    
+    # get all interface adminstatus - no caching !
+    $refaIfAdminStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAdminStatus,$ghOptions{'cachedir'},0);
+    if ($#$refaIfAdminStatusLines < 0 ) {
+        logger(0, "Could not read ifAdminStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAdminStatus\n");
+        exit $ERRORS{"UNKNOWN"};
+    }    
+    my $refhIfAdminStatus = ();
+    foreach (@$refaIfAdminStatusLines) {
+        $refhIfAdminStatus->{"$1"}=$2 if /$oid_ifAdminStatus\.([0-9]*) (.*)$/;
+    }
+
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        logger(2, "Index=$Index ($ifName)");
+        
+        # Store ifAdminStatus converted from a digit to "up" or "down"
+        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} =
+            ConvertIfStatusToReadable ($refhIfAdminStatus->{"$Index"});
+        logger(2, "  AdminStatus=".$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus});
+    }
+    return 0;
+}
+
 # ------------------------------------------------------------------------
 # get ifOperStatus
 # ------------------------------------------------------------------------
@@ -2229,6 +2267,9 @@ sub Get_OperStatus {
         # Store the oper status as property of the current interface
         $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
         
+        # Retrieve adminstatus for special rules
+        my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
+        
         #
         # Store a CacheTimer (seconds) where we cache the next
         # reads from the net - we have the following possibilities
@@ -2250,7 +2291,6 @@ sub Get_OperStatus {
         #
         my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
         unless ($OperStatusFile) {$OperStatusFile = "";}
-        
         logger(2, "  Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
         # set cache timer for further reads
         if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
@@ -2262,16 +2302,31 @@ sub Get_OperStatus {
             $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
                 "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
         }
-
+        logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
+        
         # remember change time of the interface property
         if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
-                        # umkopieren damit am Ende die Info erhalten bleibt
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
-                    $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
+                $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
         } else {
             $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
         }
-
+        
+        #
+        # Some rules with ifOperStatus
+        #
+        # Between initial ifOperStatus and current ifOperStatus
+        # current ifOperStatus | initial ifOperStatus | action
+        # ---------------------------------------------------------------------
+        # up                   | *                    | no alarm and update ifOperStatus initial state
+        # *                    | empty,down           | no alarm and update ifOperStatus initial state
+        #
+        # Between current ifOperStatus and current ifAdminStatus
+        # current ifOperStatus | current ifAdminStatus | action
+        # ---------------------------------------------------------------------
+        # down                 | *                     | no alarm and update ifOperStatus initial state
+        #
+        
         # track changes of the oper status
         if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
             # delete the changed flag and reset the time when it was changed
@@ -2292,6 +2347,16 @@ sub Get_OperStatus {
         }
         # ifOperstatus has changed from 'empty' or 'down'
         elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed to 'down' and ifAdminstatus is 'down'
+        elsif ("$OperStatusNow" eq "down" and "$AdminStatusNow" eq "down") {
             # update the state in the status file
             $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
             # delete the changed flag and reset the time when it was changed
@@ -2770,18 +2835,7 @@ sub EvaluatePackets {
 # walk through each interface and read ifAdminStatus, ifSpeed and ifAlias,
 # ifVlan, ifDuplexStatus
 # ------------------------------------------------------------------------
-sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
-
-    # get ifAdminStatus table
-    my $refaIfAdminStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifAdminStatus,$ghOptions{'cachedir'},0);
-    if ($#$refaIfAdminStatus < 0 ) {
-        logger(0, "Could not read ifAdminStatus table from host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_ifAdminStatus\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
-    my $refhIfAdminStatus = ();
-    foreach (@$refaIfAdminStatus) {
-        $refhIfAdminStatus->{"$1"}=$2 if /$oid_ifAdminStatus\.([0-9]*) (.*)$/;
-    }
+sub Get_Speed_Duplex_Alias_Vlan {
 
     # get ifDuplexStatus table
     my $refhIfDuplexStatus = ();
@@ -2832,30 +2886,9 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
 
-        my $debuginfo = "";
-        my $CacheTimer = 0;
-
         # Extract the index out of the MetaData
         my $Index           = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         logger(2, "Index=$Index ($ifName)");
-        
-        # Current state | first state  |  CacheTimer
-        # -----------------------------------------
-        # down            down            $gLongCacheTimer
-        # *               *               0
-        my $OperStatusNow  = $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus};
-        my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
-        unless ($OperStatusFile) {$OperStatusFile = "";}
-        
-        # Set cachtimer to the long cache timer value if the operstatus is now down
-        # and was down in the past.
-        if ( ( "$OperStatusNow" eq "down" ) and ( "$OperStatusFile" eq "down" ) ) {
-           $CacheTimer = $gLongCacheTimer;
-        }
-        
-        # Store ifAdminStatus converted from a digit to "up" or "down"
-        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} =
-            ConvertIfStatusToReadable ($refhIfAdminStatus->{"$Index"});
         
         # Get the speed in normal or highperf speed counters
         if (not defined $refhIfSpeed->{"$Index"} or $refhIfSpeed->{"$Index"} eq ""){
@@ -2884,9 +2917,7 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
             $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
         }
 
-        logger(2, "  CacheTimer=$CacheTimer\t".
-            "AdminStatus=".$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus}."\t".
-            "Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable}."\t".
+        logger(2, "  Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable}."\t".
             "Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
         
         # Store ifDuplexStatus converted from a digit to string
@@ -2894,7 +2925,7 @@ sub Get_AdminStatus_Speed_Duplex_Alias_Vlan {
             # Store ifDuplexStatus converted from a digit to string
             $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} =
                 ConvertIfDuplexStatusToReadable ($refhIfDuplexStatus->{"$Index"});
-            logger(2, "  CacheTimer=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+            logger(2, "  ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
         }
             
         if ($ghOptions{vlan}) { # show VLANs per port
