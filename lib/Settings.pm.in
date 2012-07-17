@@ -38,7 +38,7 @@ sub parseConfigFile
     my $file = shift;
     my $config = shift;
     my ($in, $var, $value);
-    
+
     logger(3, "#==== Start of config ====#");
     open(IN, "<$file") or die "unable to read file $file\n";
         while ($in = <IN>)

@@ -44,13 +44,13 @@ td {
     margin-top:4px;
 }
 #toplink a {
-    font:8px/70% Arial, Helvetica, sans-serif; 
-    text-transform: uppercase; 
-    text-decoration: none; 
+    font:8px/70% Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    text-decoration: none;
     color: #bbb;
 }
 
-/* Information table */ 
+/* Information table */
 #info table {
     width: 100%;
 }
@@ -71,7 +71,7 @@ td {
     vertical-align:bottom;
 }
 
-/* Configuration table */ 
+/* Configuration table */
 #config table {
     width: 100%;
 }

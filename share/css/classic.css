@@ -45,13 +45,13 @@ td {
     margin-top:4px;
 }
 #toplink a {
-    font:8px/70% Arial, Helvetica, sans-serif; 
-    text-transform: uppercase; 
-    text-decoration: none; 
+    font:8px/70% Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    text-decoration: none;
     color: #bbb;
 }
 
-/* Information table */ 
+/* Information table */
 #info table {
     width: 100%;
 }
@@ -72,7 +72,7 @@ td {
     vertical-align:bottom;
 }
 
-/* Configuration table */ 
+/* Configuration table */
 #config table {
     width: 100%;
 }
@@ -89,11 +89,11 @@ td {
     color: #808000;
 }
 .cellTrackedOk {
-    background-color: #00CC33; 
+    background-color: #00CC33;
     color: #fff;
 }
 .cellTrackedChange {
-    background-color: #FF3300; 
+    background-color: #FF3300;
     color: #fff;
 }
 .cellNotTracked {

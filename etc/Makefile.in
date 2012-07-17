@@ -48,55 +48,55 @@ install-apache-config:
 	@echo ""
 	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
 	@echo ""
-    
+	
 install-sudo-config:
 	#TODO sudoers.d 
 	SUDOERS_OK=0
 	if [ "$(sudoers)" != "no" ] ; then \
-		chmod 0640 $(sudoers); \
-		if test -w $(sudoers); then \
-			if [ `$(GREP) -c "$(cgidir)/InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
-				echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(sudoers); \
-				SUDOERS_OK=1; \
-				echo ""; \
-				echo "***************************"; \
-				echo ""; \
-				echo "Sudo configuration updated."; \
-				echo ""; \
-				echo "***************************"; \
-				echo ""; \
-			else \
-				echo ""; \
-				echo "****************************************************************************"; \
-				echo ""; \
-				echo "NOTICE: A rule concerning InterfaceTableReset_v3t.cgi is already configured."; \
-				echo "        Assuming that sudo configuration have been already done."; \
-				echo ""; \
-				echo "****************************************************************************"; \
-				echo ""; \
-			fi; \
-		else \
-			echo ""; \
-			echo "*********************************************************************************"; \
-			echo ""; \
-			echo "WARNING: The file $sudoers cannot be found, or is not writable"; \
-			echo "         You need to add the following rule manually:"; \
-			echo '         $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
-			echo ""; \
-			echo "*********************************************************************************"; \
-			echo ""; \
-		fi; \
-		chmod 0440 $(sudoers); \
+	    chmod 0640 $(sudoers); \
+	    if test -w $(sudoers); then \
+	        if [ `$(GREP) -c "$(cgidir)/InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
+	            echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(sudoers); \
+	            SUDOERS_OK=1; \
+	            echo ""; \
+	            echo "***************************"; \
+	            echo ""; \
+	            echo "Sudo configuration updated."; \
+	            echo ""; \
+	            echo "***************************"; \
+	            echo ""; \
+	        else \
+	            echo ""; \
+	            echo "****************************************************************************"; \
+	            echo ""; \
+	            echo "NOTICE: A rule concerning InterfaceTableReset_v3t.cgi is already configured."; \
+	            echo "        Assuming that sudo configuration have been already done."; \
+	            echo ""; \
+	            echo "****************************************************************************"; \
+	            echo ""; \
+	        fi; \
+	    else \
+	        echo ""; \
+	        echo "*********************************************************************************"; \
+	        echo ""; \
+	        echo "WARNING: The file $sudoers cannot be found, or is not writable"; \
+	        echo "         You need to add the following rule manually:"; \
+	        echo '         $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
+	        echo ""; \
+	        echo "*********************************************************************************"; \
+	        echo ""; \
+	    fi; \
+	    chmod 0440 $(sudoers); \
 	else \
-		echo ""; \
-		echo "********************************************************************************"; \
-		echo ""; \
-		echo "NOTICE: The sudoers file was neither automatically found nor manually specified."; \
-		echo "        You need to add the following rule manually:"; \
-		echo '        $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
-		echo ""; \
-		echo "********************************************************************************"; \
-		echo ""; \
+	    echo ""; \
+	    echo "********************************************************************************"; \
+	    echo ""; \
+	    echo "NOTICE: The sudoers file was neither automatically found nor manually specified."; \
+	    echo "        You need to add the following rule manually:"; \
+	    echo '        $(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi'; \
+	    echo ""; \
+	    echo "********************************************************************************"; \
+	    echo ""; \
 	fi
-    
+	
 fullinstall: install install-apache-config install-sudo-config

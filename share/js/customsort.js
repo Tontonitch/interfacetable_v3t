@@ -7,9 +7,9 @@
     1st January 2003, 23:32:01
     23/03/1972 à 10:22:22
     1970/13/03 at 23:22:01
-    
+
     The function is "safe" i.e. non-dateTime data (like the word "Unknown") can be passed in and is sorted properly.
-    
+
     UPDATE 08/01/2009: 1. Full or Short-hand english month names (e.g. "March" or "Mar") now require a space
                        or a comma after them to be properly parsed.
                        2. If no timestamp is given, a fake timestamp "00:00:00" is added to the string this enables
@@ -22,23 +22,23 @@ function sortEnglishDateTimePrepareData(tdNode, innerText) {
         var months = ['january','february','march','april','may','june','july','august','september','october','november','december','jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 
         // Lowercase the text
-        var aa = innerText.toLowerCase();         
-        
+        var aa = innerText.toLowerCase();
+
         // Replace the longhand and shorthand months with an integer equivalent
-        for(var i = 0; i < months.length; i++) {                 
+        for(var i = 0; i < months.length; i++) {
                 aa = aa.replace(new RegExp(months[i] + '([\\s|,]{1})'), (i+13)%12 + " ");
         };
 
         // Replace multiple spaces and anything that is not valid in the parsing of the date, then trim
         aa = aa.replace(/\s+/g, " ").replace(/([^\d\s\/-:.])/g, "").replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-        
+
         // REMOVED: No timestamp at the end, then return -1
         //if(aa.search(/(\d){2}:(\d){2}(:(\d){2})?$/) == -1) { return -1; };
 
-        // No timestamp at the end, then create a false one         
+        // No timestamp at the end, then create a false one
         if(aa.search(/(\d){2}:(\d){2}(:(\d){2})?$/) == -1) { aa += " 00:00:00"; };
-        
-        
+
+
         // Grab the timestamp
         var timestamp = aa.match(/(\d){2}:(\d){2}(:(\d){2})?$/)[0].replace(/:/g, "");
 
@@ -85,7 +85,7 @@ function sortEnglishDateTimePrepareData(tdNode, innerText) {
     ----------------
 
     This function sorts alphaNumeric values e.g. 1, e, 1a, -23c, 54z
-    
+
     Notice how the prepareData function actually returns an Array i.e. you are not limited
     in the type of data you return to the tableSort script.
 */
@@ -116,7 +116,7 @@ function sortAlphaNumeric(a, b){
                 if(aa[0] == "" && bb[0] != "") { return -1; };
                 return 1;
         };
-        
+
         // Check alpha parts if numeric parts equal
         if(aa[1] == bb[1]) return 0;
         if(aa[1] < bb[1])  return -1;
@@ -254,7 +254,7 @@ function sortIPAddressPrepareData(tdNode, innerText) {
         // Remove spaces
         aa = aa.replace(" ","");
         aa = aa.replace(/\/.*$/,"");
-        
+
         // If not an IP address then return -1
         if(aa.search(/^([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3}).([0-9]{1,3})$/) == -1) return -1;
 
@@ -486,7 +486,7 @@ var sortDuration = fdTableSort.sortNumeric;
 function sortDurationPrepareData(tdNode, innerText) {
         var aa = innerText;
         var durationRegExp = /^([0-9]*)d ([0-9]*)h ([0-9]*)m/;
-		
+
         // If not the proper format then return -1
         aa = aa.match(durationRegExp);
         if(!aa || aa.length != 4) return -1;
@@ -494,9 +494,9 @@ function sortDurationPrepareData(tdNode, innerText) {
         var retVal = 0;
 
         // Sum everything
-        retVal = parseFloat(aa[1]) * 24 * 60 
-		    + parseFloat(aa[2]) * 60
-			+ parseFloat(aa[3]);
+        retVal = parseFloat(aa[1]) * 24 * 60
+            + parseFloat(aa[2]) * 60
+            + parseFloat(aa[3]);
 
         return retVal;
 }

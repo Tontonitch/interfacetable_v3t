@@ -13,7 +13,7 @@ var savedStates=new Array();
 var savedStateCount=0;
 
 /////////////////////////////////////////////////////
-// This function takes an element as a parameter and 
+// This function takes an element as a parameter and
 //   returns an object which contain the saved state
 //   of the element's background color.
 /////////////////////////////////////////////////////
@@ -23,11 +23,11 @@ function saveBackgroundStyle(myElement)
   saved.element=myElement;
   saved.className=myElement.className;
   saved.backgroundColor=myElement.style["backgroundColor"];
-  return saved;   
+  return saved;
 }
 
 /////////////////////////////////////////////////////
-// This function takes an element as a parameter and 
+// This function takes an element as a parameter and
 //   returns an object which contain the saved state
 //   of the element's background color.
 /////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ function restoreBackgroundStyle(savedState)
   savedState.element.style["backgroundColor"]=savedState.backgroundColor;
   if (savedState.className)
   {
-    savedState.element.className=savedState.className;    
+    savedState.element.className=savedState.className;
   }
 }
 
@@ -52,12 +52,12 @@ function findNode(startingNode, tagName)
   {
     myElement=startingNode.childNodes[i];
     i++;
-  }  
+  }
   if (myElement && myElement.tagName && myElement.tagName==tagName)
   {
     return myElement;
   }
-  // on IE, the TD node might be the firstChild node of the TR node  
+  // on IE, the TD node might be the firstChild node of the TR node
   else if (startingNode.firstChild)
     return findNode(startingNode.firstChild, tagName);
   return 0;
@@ -74,11 +74,11 @@ function highlightTableRow(myElement, highlightColor)
   // Restore color of the previously highlighted row
   for (i; i<savedStateCount; i++)
   {
-    restoreBackgroundStyle(savedStates[i]);          
+    restoreBackgroundStyle(savedStates[i]);
   }
   savedStateCount=0;
 
-  // To get the node to the row (ie: the <TR> element), 
+  // To get the node to the row (ie: the <TR> element),
   // we need to traverse the parent nodes until we get a row element (TR)
   // Netscape has a weird node (if the mouse is over a text object, then there's no tagName
   while (myElement && ((myElement.tagName && myElement.tagName!="TR") || !myElement.tagName))
@@ -90,21 +90,21 @@ function highlightTableRow(myElement, highlightColor)
   // If you don't want a particular row to be highlighted, set it's id to "header"
   if (!myElement || (myElement && myElement.id && myElement.id=="header") )
     return;
-		  
+
   // Highlight every cell on the row
   if (myElement)
   {
     var tableRow=myElement;
-    
+
     // Save the backgroundColor style OR the style class of the row (if defined)
     if (tableRow)
     {
-	  savedStates[savedStateCount]=saveBackgroundStyle(tableRow);
+      savedStates[savedStateCount]=saveBackgroundStyle(tableRow);
       savedStateCount++;
     }
 
     // myElement is a <TR>, then find the first TD
-    var tableCell=findNode(myElement, "TD");    
+    var tableCell=findNode(myElement, "TD");
 
     var i=0;
     // Loop through every sibling (a sibling of a cell should be a cell)
@@ -114,7 +114,7 @@ function highlightTableRow(myElement, highlightColor)
       // Make sure it's actually a cell (a TD)
       if (tableCell.tagName=="TD")
       {
-        // If no style has been assigned, assign it, otherwise Netscape will 
+        // If no style has been assigned, assign it, otherwise Netscape will
         // behave weird.
         if (!tableCell.style)
         {
@@ -122,7 +122,7 @@ function highlightTableRow(myElement, highlightColor)
         }
         else
         {
-          savedStates[savedStateCount]=saveBackgroundStyle(tableCell);        
+          savedStates[savedStateCount]=saveBackgroundStyle(tableCell);
           savedStateCount++;
         }
         // Assign the highlight color
@@ -147,7 +147,7 @@ function trackTableHighlight(mEvent, highlightColor)
 {
   if (!mEvent)
     mEvent=window.event;
-		
+
   // Internet Explorer
   if (mEvent.srcElement)
   {
@@ -156,7 +156,7 @@ function trackTableHighlight(mEvent, highlightColor)
   // Netscape and Firefox
   else if (mEvent.target)
   {
-    highlightTableRow( mEvent.target, highlightColor);		
+    highlightTableRow( mEvent.target, highlightColor);
   }
 }
 
@@ -171,28 +171,28 @@ function highlightTableRowVersionA(myElement, highlightColor)
   // Restore color of the previously highlighted row
   for (i; i<savedStateCount; i++)
   {
-    restoreBackgroundStyle(savedStates[i]);          
+    restoreBackgroundStyle(savedStates[i]);
   }
   savedStateCount=0;
 
   // If you don't want a particular row to be highlighted, set it's id to "header"
   if (!myElement || (myElement && myElement.id && myElement.id=="header") )
     return;
-		  
+
   // Highlight every cell on the row
   if (myElement)
   {
     var tableRow=myElement;
-    
+
     // Save the backgroundColor style OR the style class of the row (if defined)
     if (tableRow)
     {
-	  savedStates[savedStateCount]=saveBackgroundStyle(tableRow);
+      savedStates[savedStateCount]=saveBackgroundStyle(tableRow);
       savedStateCount++;
     }
 
     // myElement is a <TR>, then find the first TD
-    var tableCell=findNode(myElement, "TD");    
+    var tableCell=findNode(myElement, "TD");
 
     var i=0;
     // Loop through every sibling (a sibling of a cell should be a cell)
@@ -202,7 +202,7 @@ function highlightTableRowVersionA(myElement, highlightColor)
       // Make sure it's actually a cell (a TD)
       if (tableCell.tagName=="TD")
       {
-        // If no style has been assigned, assign it, otherwise Netscape will 
+        // If no style has been assigned, assign it, otherwise Netscape will
         // behave weird.
         if (!tableCell.style)
         {
@@ -210,7 +210,7 @@ function highlightTableRowVersionA(myElement, highlightColor)
         }
         else
         {
-          savedStates[savedStateCount]=saveBackgroundStyle(tableCell);        
+          savedStates[savedStateCount]=saveBackgroundStyle(tableCell);
           savedStateCount++;
         }
         // Assign the highlight color

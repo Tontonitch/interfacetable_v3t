@@ -45,7 +45,7 @@ fdTableSort = {
         rowspan:                "rowspan",
         /*@end
         @*/
-        
+
         addEvent: function(obj, type, fn, tmp) {
                 tmp || (tmp = true);
                 if( obj.attachEvent ) {
@@ -74,7 +74,7 @@ fdTableSort = {
                         e.stopPropagation();
                         e.preventDefault();
                 };
-                
+
                 /*@cc_on@*/
                 /*@if(@_win32)
                 e.cancelBubble = true;
@@ -212,7 +212,7 @@ fdTableSort = {
                                                 };
 
                                                 thtext = fdTableSort.getInnerText(workArr[c][i], true);
-                                                
+
                                                 for(var cn = workArr[c][i].childNodes.length; cn--;) {
                                                         // Skip image nodes and links created by the filter script.
                                                         if(workArr[c][i].childNodes[cn].nodeType == 1 && (workArr[c][i].childNodes[cn].className == "fdFilterTrigger" || /img/i.test(workArr[c][i].childNodes[cn].nodeName))) {
@@ -370,7 +370,7 @@ fdTableSort = {
         callback: function(tblId, cb) {
                 var func, parts;
                 try {
-                        if(cb.indexOf(".") != -1) {                              
+                        if(cb.indexOf(".") != -1) {
                                 parts = cb.split('.');
                                 obj   = window;
                                 for (var x = 0, part; part = obj[parts[x]]; x++) {
@@ -391,9 +391,9 @@ fdTableSort = {
                                 func = null;
                         };
                  } catch(err) {};
-                           
+
                 if(!(func instanceof Function)) return;
-                func(tblId, fdTableSort.tableCache[tblId].thList);                               
+                func(tblId, fdTableSort.tableCache[tblId].thList);
         },
         prepareTableData: function(table) {
                 var data = [];

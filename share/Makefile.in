@@ -53,22 +53,22 @@ install:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/share/tables
 	
 	for file in css/*; \
-		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/css; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/css; done
 	
 	for file in img/*; \
-		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/img; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/img; done
 	
 	for file in js/*; \
-		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/js; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/js; done
 	
 	for file in tables/*; \
-		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/tables; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/share/tables; done
 
 install-apache-config:
-    
+	
 install-sudo-config:
 
 fullinstall: install install-apache-config install-sudo-config
-    
-    
-    
+	
+	
+	

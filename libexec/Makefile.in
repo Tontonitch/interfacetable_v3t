@@ -47,7 +47,7 @@ install:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) check_interface_table_v3t.pl $(nagios_libexec)/check_interface_table_v3t.pl
 
 install-apache-config:
-    
+	
 install-sudo-config:
 
 fullinstall: install install-apache-config install-sudo-config

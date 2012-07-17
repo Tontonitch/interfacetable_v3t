@@ -74,7 +74,7 @@ distclean: clean
 	cd $(SRC_LIB) && $(MAKE) $@
 	cd $(SRC_SHARE) && $(MAKE) $@
 	-rm -f Makefile
-    
+	
 install:
 	cd $(SRC_SBIN) && $(MAKE) $@
 	cd $(SRC_ETC) && $(MAKE) $@

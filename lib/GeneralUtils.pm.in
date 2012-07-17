@@ -62,7 +62,7 @@ sub logger {
     ################################
     # loglevel - message category
     #        0 - criticals
-    #        1 - information 
+    #        1 - information
     #        1 - warnings
     #        2 - calculations
     #        2 - html output
@@ -73,8 +73,8 @@ sub logger {
     #        3 - config file
     #        3 - options
     #        3 - history file content
-    #        3 - current status 
-    #        5 - hash/array dumps     
+    #        3 - current status
+    #        5 - hash/array dumps
     ################################
 
     my $loglevel = 0;
@@ -120,7 +120,7 @@ sub printArray
     my $prefix = shift;
     my $output = "";
     my ($i, $len);
-    
+
     if (defined $array) {
         $len=length(@$array - 1);
         #$output = $output . "len: $len";
@@ -188,7 +188,7 @@ sub fixedLen {
     my $side = shift || "right";
     my $fillchar = shift || " ";
     my $fillstring;
-    
+
     if (length($string) > $len)
     {
         if ($side eq "left")
@@ -213,7 +213,7 @@ sub fixedLen {
             $string .= $fillstring;
         }
     }
-    
+
     return $string;
 }
 
@@ -407,10 +407,10 @@ __END__
 
     printHash(\%h);
     printHash(\%h, "    ");  # e. g. if you want to print intended
-    
+
     print fixedLen("aVeryLongStringWithoutAnySpace", 20, "right") . "\n";
     # prints out: aVeryLongStringWitho
-    
+
     $c = "short";
     $c = fixedLen($c, 20, undef, ".");
     # $c is now: short...............
@@ -430,12 +430,12 @@ __END__
 
 =head1 DESCRIPTION
 
-=head2 GeneralUtils::printArray 
+=head2 GeneralUtils::printArray
 
     GeneralUtils::printArray(\@array [, $prefix])
-    
+
     prints out the content of an array in a structured way
-    
+
     parameter 1: reference to an array
     parameter 2: prefix for every line of output
     returns:     nothing of value
@@ -443,9 +443,9 @@ __END__
 =head2 GeneralUtils::printHash
 
     GeneralUtils::printHash(\%hash [, $prefix])
-    
+
     prints out the content of a hash in a structured way
-    
+
     parameter 1: reference to a hash
     parameter 2: prefix for every line of output
     returns:     nothing of value

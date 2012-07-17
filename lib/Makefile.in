@@ -40,7 +40,7 @@ clean:
 	-rm -f GeneralUtils.pm
 	-rm -f Settings.pm
 	-rm -f SnmpUtils.pm
-    
+	
 distclean: clean
 	-rm -f Makefile
 
@@ -49,10 +49,10 @@ install:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/lib
 
 	for file in ./*.pm; \
-		do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/lib; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(prefix)/lib; done
 
 install-apache-config:
-    
+	
 install-sudo-config:
 
 fullinstall: install install-apache-config install-sudo-config

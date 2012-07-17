@@ -14,20 +14,20 @@ body {
     font-size: 8pt;
     font-style: italic;
 }
-    
+
 /***** TABLES *****/
 table {
-    background-color: #fff; 
-    padding: 2px; 
+    background-color: #fff;
+    padding: 2px;
     border: 0;
 }
 tr {
     background-color: #E7E7E7;
 }
 th {
-    font-size: 10pt; 
-    background-color: #707677; 
-    color: #fff; 
+    font-size: 10pt;
+    background-color: #707677;
+    color: #fff;
     border: 0;
     padding: 2px 5px 2px 5px;
 }
@@ -42,13 +42,13 @@ td {
     margin-top:4px;
 }
 #toplink a {
-    font:8px/70% Arial, Helvetica, sans-serif; 
-    text-transform: uppercase; 
-    text-decoration: none; 
+    font:8px/70% Arial, Helvetica, sans-serif;
+    text-transform: uppercase;
+    text-decoration: none;
     color: #bbb;
 }
 
-/* Information table */ 
+/* Information table */
 #info table {
     width: 100%;
 }
@@ -69,7 +69,7 @@ td {
     vertical-align:bottom;
 }
 
-/* Configuration table */ 
+/* Configuration table */
 #config table {
     width: 100%;
 }
@@ -80,7 +80,7 @@ td {
 /* Cell styles */
 .cellFirstColumn {
     background-color: #707677;
-    color: #fff; 
+    color: #fff;
     font-size: 10pt;
     font-weight:bold;
 }

@@ -69,7 +69,7 @@
 
 /***** BUTTONS 2 *****/
 
-.button2 a, button.button2 { 
+.button2 a, button.button2 {
     background-color: #2999B9;
     border: 1px solid #FFFFFF;
     border-radius: 4px;
@@ -83,12 +83,12 @@
     vertical-align: baseline;
 }
 
-.button2 a.accessmethod { 
+.button2 a.accessmethod {
     background-color: #E4E4E4;
     color: #333333;
 }
 
-.button2 a:hover, .button2 a.accessmethod:hover, button.button2:hover { 
+.button2 a:hover, .button2 a.accessmethod:hover, button.button2:hover {
     background-color: #333333;
     color: #FFFFFF;
 }
