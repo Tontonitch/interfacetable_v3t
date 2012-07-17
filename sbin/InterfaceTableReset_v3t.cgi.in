@@ -25,7 +25,6 @@ use Config::General;
 use Data::Dumper;
 use CGI qw(:standard);
 
-
 # grab command line options
 my $grefhOpt={};
 
@@ -43,9 +42,13 @@ $grefhOpt->{Debug} and $ENV{WIT_DBG}="1";
 
 # ------------------------------------------------------------------------
 
+# variables
+my $has_error=0;
 my $grefhFile;                                       # Properties from the interface file
+my $url = url(-path_info=>1,-query=>1);
 my $gInterfaceInformationFile = param('What');
-
+my $DebugParam = param('Debug');
+defined $DebugParam and $ENV{WIT_DBG}="1";
 
 print header;
 # print start_html('<script type="text/javascript"><!--history.go(-1);--></script>');
@@ -102,15 +105,22 @@ print "</ul>";
 
 WriteConfigFileNew ("$gInterfaceInformationFile",$grefhFile);
 
-print "New set of reference data saved. The interface table and the raised alarms will be reset at the next check launch.",
-    hr;
+if (not $has_error) {
+    print "New set of reference data saved. The interface table and the raised alarms will be reset at the next check launch.";
+}
+print hr;
 
-print q(    <div class="buttons">
-        <a class="green" href="javascript:history.back();">
+print q(    <div class="buttons">);
+print q(            <a class="green" href="javascript:history.back();">
             <img src="../img/arrow_left.png" alt="back to table"/>
-            back to table
-        </a>
-    </div>);
+            back
+        </a>);
+if (not $ENV{WIT_DBG}) { 
+    print q(            <a href="),$url."&Debug",q(">
+                re-run with debug
+            </a>);
+}
+print q(    </div>);
 
 print end_html;
 
@@ -171,15 +181,19 @@ sub WriteConfigFileNew {
         -ConfigPath => "$Directory"
     );
 
-    # Write Config File
-    if (-f "$ConfigFile" and not -w "$ConfigFile") {
+    # Permission checks
+    if (not -w "$Directory") {
+        print "Directory $Directory not writable $!\n";
+        $has_error=1;
+    } elsif (-f "$ConfigFile" and not -w "$ConfigFile") {
         print "Unable to write to file $ConfigFile $!\n";
-        #exit $STATE_UNKNOWN;
+        $has_error=1;
+    } else {
+        # Write Config File
+        $refoConfig->save_file("$ConfigFile", $refhStruct);
+        $ENV{WIT_DBG} and print "Wrote interface data to file: $ConfigFile\n";
     }
-
-    $refoConfig->save_file("$ConfigFile", $refhStruct);
-    $ENV{WIT_DBG} and print "Wrote interface data to file: $ConfigFile\n";
-
+    
     return 0;
 }
 
