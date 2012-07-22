@@ -4525,7 +4525,7 @@ sub check_options () {
     if (exists $commandline{hostdisplay}) {
         $ghOptions{'hostdisplay'} = "$commandline{hostdisplay}";
     } elsif (defined $ENV{'NAGIOS_HOSTNAME'} and $ENV{'NAGIOS_HOSTNAME'} ne "") {
-        $ghOptions{'perfdataservicedesc'} = $ENV{'NAGIOS_HOSTNAME'};
+        $ghOptions{'hostdisplay'} = $ENV{'NAGIOS_HOSTNAME'};
     } else {
         $ghOptions{'hostdisplay'} = "$commandline{hostquery}";
     }
