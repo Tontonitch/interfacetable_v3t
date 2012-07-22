@@ -7,12 +7,10 @@
 # ----------------------------------------------------------------------
 # DONE    - bugfix: relative grapher url for apache config
 #         - libdir installer option support
-#         - nodetype "netapp(filer)" + model/product node info + 64bits counters
-#         - epn support back
-# IN PROG - enhanced column sorting
+# DONE    - enhanced column sorting
 # IN PROG - contribution integration
 # DONE    - new exception rules for operstatus
-#         - bugfix: reset cgi cannot write configfile doesn't push a message
+# DONE    - bugfix: reset cgi cannot write configfile doesn't push a message
 # DONE    - option to add the ifAlias (if one) to the plugin output
 #
 # ----------------------------------------------------------------------
@@ -32,6 +30,8 @@
 #         - better support of IP info for HP Procurve switches
 #         - support for Brocade with FabricOS < v5.3.0
 #         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
+#         - nodetype "netapp(filer)" + model/product node info + 64bits counters
+#         - epn support back
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
