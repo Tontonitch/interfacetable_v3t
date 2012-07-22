@@ -2572,7 +2572,7 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$ifName}->{ifLoadIn}  = sprintf("%.2f", $ifLoadIn);
             $grefhCurrent->{If}->{$ifName}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
 
-            if ($grefhCurrent->{If}->{$ifName}->{ifLoadIn} > 105 or $grefhCurrent->{If}->{$ifName}->{ifLoadOut} > 105) {
+            if ($grefhCurrent->{If}->{$ifName}->{ifLoadIn} > 115 or $grefhCurrent->{If}->{$ifName}->{ifLoadOut} > 115) {
                 $grefhCurrent->{If}->{$ifName}->{ifLoadExceedIfSpeed} = "true";
             }
 
