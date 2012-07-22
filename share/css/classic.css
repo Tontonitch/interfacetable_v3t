@@ -1,10 +1,10 @@
 /***** GENERAL *****/
 body {
-    font-size: 1em;
+    color: #000000;
     font-family: Verdana Geneva Arial Helvetica sans-serif;
+    font-size: 12pt;
 }
 #header {
-    text-align: middle;
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size: 9pt;
 }
@@ -27,8 +27,12 @@ table {
 }
 tr {
     background-color: rgb(220, 250, 201);
+    margin: 0;
+    padding: 0;
 }
 th {
+    font-style:normal;
+    text-decoration:none;
     background-color: #D2D2D2;
     border-width: 1px;
     border-style: inset;
@@ -38,6 +42,7 @@ td {
     border-width: 1px;
     border-style: inset;
     padding: 2px 5px 2px 5px;
+    margin: 0;
 }
 #toplink {
     text-align: right;
@@ -102,4 +107,48 @@ td {
 .cellExcluded {
     background-image: url(../img/overlay.png);
     /*background-color: #D2D2D2;*/
+}
+
+/***** TABLE SORTING *****/
+
+/* Column header style */
+a.fdTableSortTrigger{
+    font-style:normal;
+    text-decoration:none;
+    background-color: #D2D2D2;
+    color: black;
+    border: 0;
+    padding: 2px 5px 2px 5px;
+    margin: 0;
+}
+
+/* Trigger icons */
+th.sortable,
+th.sortable-text,
+th.sortable-date,
+th.sortable-keep,
+th.sortable-date-dmy,
+th.sortable-numeric,
+th.sortable-currency,
+th.sortable-sortByTwelveHourTimestamp,
+th.sortable-sortIPAddress,
+th.sortable-sortEnglishLonghandDateFormat,
+th.sortable-sortScientificNotation,
+th.sortable-sortImage,
+th.sortable-sortFileSize,
+th.sortable-sortNetworkTraffic,
+th.sortable-sortNetworkSpeed,
+th.sortable-sortPktErrors,
+th.sortable-sortDuration,
+th.sortable-sortAlphaNumeric,
+th.sortable-sortEnglishDateTime{
+    cursor:pointer;
+    background: #D2D2D2 url(../img/sort_dark_none.png) no-repeat;
+    padding: 4px 12px 4px 16px;
+}
+th.forwardSort{
+    background: #D2D2D2 url(../img/sort_dark_up.png) no-repeat 0 0;
+}
+th.reverseSort{
+    background: #D2D2D2 url(../img/sort_dark_down.png) no-repeat 0 0;
 }

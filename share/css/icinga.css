@@ -113,7 +113,6 @@ td {
 
 /* Column header style */
 a.fdTableSortTrigger{
-    font-size: 10pt;
     font-style:normal;
     text-decoration:none;
     background-color: #707677;
@@ -148,8 +147,8 @@ th.sortable-sortEnglishDateTime{
     padding: 4px 12px 4px 16px;
 }
 th.forwardSort{
-    background: #707677 url(../img/sort_light_down.png) no-repeat 0 0;
+    background: #707677 url(../img/sort_light_up.png) no-repeat 0 0;
 }
 th.reverseSort{
-    background: #707677 url(../img/sort_light_up.png) no-repeat 0 0;
+    background: #707677 url(../img/sort_light_down.png) no-repeat 0 0;
 }

@@ -2,9 +2,9 @@
 body {
     color: #000000;
     font-family: arial;
+    font-size: 12pt;
 }
 #header {
-    text-align: middle;
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size: 9pt;
 }
@@ -24,9 +24,13 @@ table {
 }
 tr {
     background-color: #FFFFFF;
+    margin: 0;
+    padding: 0;
 }
 th {
-    font-size: 10pt;
+    font-size: 9pt;
+    font-style:normal;
+    text-decoration:none;
     background-color: #D3D3D3;
     color: black;
     border: 1px solid gray;
@@ -37,6 +41,7 @@ td {
     font-size: 8pt;
     color: #3D3D3D;
     padding: 2px 5px 2px 5px;
+    margin: 0;
 }
 #toplink {
     text-align: right;
@@ -55,7 +60,7 @@ td {
     width: 100%;
 }
 #info tr {
-   background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 /* Interface table */
@@ -102,4 +107,48 @@ td {
 }
 .cellExcluded {
     background-image: url(../img/overlay.png);
+}
+
+/***** TABLE SORTING *****/
+
+/* Column header style */
+a.fdTableSortTrigger{
+    font-style:normal;
+    text-decoration:none;
+    background-color: #D3D3D3;
+    color: black;
+    border: 0;
+    padding: 2px 5px 2px 5px;
+    margin: 0;
+}
+
+/* Trigger icons */
+th.sortable,
+th.sortable-text,
+th.sortable-date,
+th.sortable-keep,
+th.sortable-date-dmy,
+th.sortable-numeric,
+th.sortable-currency,
+th.sortable-sortByTwelveHourTimestamp,
+th.sortable-sortIPAddress,
+th.sortable-sortEnglishLonghandDateFormat,
+th.sortable-sortScientificNotation,
+th.sortable-sortImage,
+th.sortable-sortFileSize,
+th.sortable-sortNetworkTraffic,
+th.sortable-sortNetworkSpeed,
+th.sortable-sortPktErrors,
+th.sortable-sortDuration,
+th.sortable-sortAlphaNumeric,
+th.sortable-sortEnglishDateTime{
+    cursor:pointer;
+    background: #D3D3D3 url(../img/sort_dark_none.png) no-repeat;
+    padding: 4px 12px 4px 16px;
+}
+th.forwardSort{
+    background: #D3D3D3 url(../img/sort_dark_up.png) no-repeat 0 0;
+}
+th.reverseSort{
+    background: #D3D3D3 url(../img/sort_dark_down.png) no-repeat 0 0;
 }
