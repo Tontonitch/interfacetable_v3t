@@ -2,7 +2,7 @@
 ### Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(interfacetable_v3t, 0.04, tontonitch-pro@yahoo.fr)
+AC_INIT(interfacetable_v3t, 0.04-1, tontonitch-pro@yahoo.fr)
 
 ### For later filesystem permissions
 AC_DEFINE([DEFAULT_USER], [nagios], [Default User])
@@ -11,8 +11,11 @@ AC_SUBST(DEFAULT_USER)
 AC_SUBST(DEFAULT_GROUP)
 AC_PREFIX_DEFAULT(/usr/local/interfacetable_v3t)
 # $prefix variable initialisation seems to be tricky
-if test "$prefix" = "NONE"; then
-   prefix=$ac_default_prefix
+if test "x$prefix" = "xNONE" ; then
+    prefix=$ac_default_prefix
+fi
+if test "x$exec_prefix" = "xNONE" ; then
+    exec_prefix=$prefix
 fi
 
 ### What OS are we running
@@ -20,9 +23,9 @@ AC_CANONICAL_HOST
 
 ### Some information about the project
 PKG_NAME=interfacetable_v3t
-PKG_VERSION="0.04"
+PKG_VERSION="0.04-1"
 PKG_HOME_URL="http://www.tontonitch.com"
-PKG_REL_DATE="XX-XX-2012"
+PKG_REL_DATE="XX-07-2012"
 AC_SUBST(PKG_NAME)
 AC_SUBST(PKG_VERSION)
 AC_SUBST(PKG_HOME_URL)
@@ -130,7 +133,6 @@ AC_ARG_WITH(nagios_base,   [  --with-nagios-base=/path/to/nagios/dir         Set
 AC_ARG_WITH(nagios_libexec,[  --with-nagios-libexec=/path/to/nagios/dir      Sets the nagios libexec directory, if not standard],nagios_libexec=$withval,nagios_libexec=${nagios_base}/libexec)
 AC_ARG_WITH(cachedir,     [  --with-cachedir=/path/to/cache/dir             Sets the directory where snmp responses are cached],cachedir=$withval,cachedir=/tmp/.ifCache)
 AC_ARG_WITH(statedir,     [  --with-statedir=/path/to/cache/dir             Sets the directory where the interface states are stored],statedir=$withval,statedir=/tmp/.ifState)
-AC_ARG_WITH(htmldir,      [  --with-htmldir=/path/to/html/dir               Sets software HTML directory],htmldir=$withval,htmldir=${prefix}/share)
 AC_ARG_WITH(htmlurl,      [  --with-htmlurl=<local-url>                     Sets interface table URL location],htmlurl=$withval,htmlurl=/interfacetable_v3t)
 AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets software cgi programs directory],cgidir=$withval,cgidir=${prefix}/sbin)
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
@@ -140,20 +142,18 @@ AC_ARG_ENABLE(testing,    [  --enable-testing                               Test
 
 dnl Testing mode
 if test x$enable_testing = xyes; then
-  nagios_base=${prefix}/nagios/sbin
-  nagios_libexec=${prefix}/nagios/libexec
+  nagios_base=${prefix}/nagios
+  nagios_libexec=${nagios_base}/libexec
+  cgidir=${nagios_base}/sbin
+  cgiurl=/interfacetable_v3t_testing/cgi-bin
+  htmlurl=/interfacetable_v3t_testing
   cachedir=${prefix}/tmp/.ifCache
   statedir=${prefix}/tmp/.ifState
-  htmldir=${prefix}/share
-  htmlurl=/interfacetable_v3t_testing
-  cgidir=${prefix}/sbin
-  cgiurl=/interfacetable_v3t_testing/cgi-bin
 fi
 AC_SUBST(nagios_base)
 AC_SUBST(nagios_libexec)
 AC_SUBST(cachedir)
 AC_SUBST(statedir)
-AC_SUBST(htmldir)
 AC_SUBST(htmlurl)
 AC_SUBST(cgidir)
 AC_SUBST(cgiurl)
@@ -256,38 +256,52 @@ echo ""
 echo ""
 AC_MSG_RESULT([*** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DATE ***:])
 
-echo ""
-echo " General Options:"
-echo " -------------------------"
-
 if test x$enable_testing = xyes; then
   echo ""
   echo "                               --- TESTING MODE ENABLED ---"
+  echo " Note: dur to testing mode, you will need to"
+  echo "    * copy the utils.pm file from the non-testing nagios libexec directory to the testing nagios"
+  echo "      testing nagios libexec directory specified below"
+  echo "    * copy the generated interfacetable_v3t.conf httpd config file from the testing apache conf.d dir"
+  echo "      to the httpd configuration directory on the system, renamed as you want"
   echo ""
 fi
 
+echo ""
+echo " Global installation directories:"
+echo " --------------------------------"
+AC_MSG_RESULT([                           \${prefix}:  ${prefix}])
+AC_MSG_RESULT([                      \${exec_prefix}:  $exec_prefix])
+AC_MSG_RESULT([         libdir (for perl libraries):  ${libdir}])
+AC_MSG_RESULT([        sysconfdir (for config file):  ${sysconfdir}])
+AC_MSG_RESULT([     datadir (for html, css, js,...):  ${datadir}])
+AC_MSG_RESULT([ Note: exec_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations])
+
+echo ""
+echo " Nagios & related options:"
+echo " -------------------------"
 AC_MSG_RESULT([                  Install user/group:  $nagios_user,$nagios_grp])
-AC_MSG_RESULT([                   Install \${prefix}:  ${prefix}])
-AC_MSG_RESULT([              Install \${exec_prefix}:  $exec_prefix])
 AC_MSG_RESULT([                     Nagios base dir:  $nagios_base])
 AC_MSG_RESULT([                  Nagios libexec dir:  $nagios_libexec])
-AC_MSG_RESULT([                     Cache files dir:  $cachedir])
-AC_MSG_RESULT([                     State files dir:  $statedir])
-AC_MSG_RESULT([   InterfaceTable_v3t addon HTML dir:  $htmldir])
-AC_MSG_RESULT([   InterfaceTable_v3t addon HTML url:  $htmlurl])
 AC_MSG_RESULT([    InterfaceTable_v3t addon CGI dir:  $cgidir])
 AC_MSG_RESULT([    InterfaceTable_v3t addon CGI url:  $cgiurl])
-AC_MSG_RESULT([                   Apache conf.d Dir:  $httpd_conf])
+AC_MSG_RESULT([   InterfaceTable_v3t addon HTML url:  $htmlurl])
+AC_MSG_RESULT([                     Cache files dir:  $cachedir])
+AC_MSG_RESULT([                     State files dir:  $statedir])
+
+echo ""
+echo " Graphing options:"
+echo " -----------------"
+AC_MSG_RESULT([              Graphing solution name:  $grapher])
+AC_MSG_RESULT([               Graphing solution url:  $grapher_url])
+
+echo ""
+echo " Apache & sudo options:"
+echo " ----------------------"
+AC_MSG_RESULT([                   Apache conf.d dir:  $httpd_conf])
 AC_MSG_RESULT([                         Apache User:  $apache_user])
 AC_MSG_RESULT([                     Apache AuthName:  $apache_authname])
 AC_MSG_RESULT([                        Sudoers file:  $sudoers])
-
-echo ""
-echo " Graphing Options:"
-echo " -------------------------"
-
-AC_MSG_RESULT([              Graphing solution name:  $grapher])
-AC_MSG_RESULT([               Graphing solution url:  $grapher_url])
 
 echo ""
 echo ""

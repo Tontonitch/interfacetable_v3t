@@ -4,23 +4,36 @@
 # Variable load
 #================================#
 
-###Generalities
-my ${prefix}="@prefix@";
-my ${exec_prefix}="@exec_prefix@";
-#my ${datarootdir}="@datarootdir@";
-#my ${datadir}="@datadir@";
+#----------------
+# Host info
+#----------------
 my $host_os="@host_os@";
-###Package info
+#----------------
+# Package info
+#----------------
 my $PKG_NAME="@PKG_NAME@";
 my $PKG_VERSION="@PKG_VERSION@";
 my $PKG_HOME_URL="@PKG_HOME_URL@";
 my $PKG_REL_DATE="@PKG_REL_DATE@";
-###Installation user/group
+#----------------
+# Global installation directories
+#----------------
+my ${prefix}="@prefix@";
+my ${exec_prefix}="@exec_prefix@";
+#my ${datarootdir}="@datarootdir@";
+my ${libdir}="@libdir@";
+my ${etcdir}="@sysconfdir@";
+my ${sharedir}="@datadir@";
+#----------------
+# Installation user/group
+#----------------
 my $DEFAULT_USER="@DEFAULT_USER@";
 my $DEFAULT_GROUP="@DEFAULT_GROUP@";
 my $nagios_user="@nagios_user@";
 my $nagios_grp="@nagios_grp@";
-###Programs
+#----------------
+# Program locations
+#----------------
 my $STRIP="@STRIP@";
 my $CP="@CP@";
 my $TOUCH="@TOUCH@";
@@ -29,7 +42,9 @@ my $PERL="@PERL@";
 my $SNMPGET="@SNMPGET@";
 my $SNMPWALK="@SNMPWALK@";
 my $SUDO="@SUDO@";
-###Install specific
+#----------------
+# Install specific
+#----------------
 my $INSTALL="@INSTALL@";
 if($INSTALL =~ /^\.\//){
     $INSTALL =~ s/^\.\//\.\.\//;
@@ -38,19 +53,24 @@ my $INSTALL_OPTS="@INSTALL_OPTS@";
 #my $INSTALL_PROGRAM="@INSTALL_PROGRAM@";
 #my $INSTALL_SCRIPT="@INSTALL_SCRIPT@";
 #my $INSTALL_DATA="@INSTALL_DATA@";
-#Http server
+#----------------
+# Http server
+#----------------
 my ${httpd_conf}="@httpd_conf@";
 my ${apache_user}="@apache_user@";
 my ${apache_authname}="@apache_authname@";
-#Sudo specific
+#----------------
+# Sudo specific
+#----------------
 my ${sudoers}="@sudoers@";
-#Software configuration
+#----------------
+# Nagios and related configuration
+#----------------
 my ${nagios_base}="@nagios_base@";
 my ${nagios_etc}="@nagios_base@/etc";
 my ${nagios_libexec}="@nagios_libexec@";
 my ${cachedir}="@cachedir@";
 my ${statedir}="@statedir@";
-my ${htmldir}="@htmldir@";
 my ${htmlurl}="@htmlurl@";
 my ${htmlurlrel}="@htmlurl@";
 ${htmlurlrel} =~ s/^https*:\/\/[^\/]*\//\//;
@@ -58,9 +78,9 @@ my ${cgidir}="@cgidir@";
 my ${cgiurl}="@cgiurl@";
 my ${cgiurlrel}="@cgiurl@";
 ${cgiurlrel} =~ s/^https*:\/\/[^\/]*\//\//;
-my ${libdir}="@prefix@/lib";
-my ${etcdir}="@prefix@/etc";
-my ${sharedir}="@prefix@/share";
+#----------------
+# Grapher
+#----------------
 my ${grapher}="@grapher@";
 my ${grapher_url}="@grapher_url@";
 
@@ -86,7 +106,6 @@ while ($f = shift @ARGV) {
         s|\@{prefix}\@|$prefix|g;
         s|\@{exec_prefix}\@|$exec_prefix|g;
 #        s|\@{datarootdir}\@|$datarootdir|g;
-#        s|\@{datadir}\@|$datadir|g;
         s|\@host_os\@|$host_os|g;
         s|\@PKG_NAME\@|$PKG_NAME|g;
         s|\@PKG_VERSION\@|$PKG_VERSION|g;
@@ -118,7 +137,6 @@ while ($f = shift @ARGV) {
         s|\@nagios_libexec\@|$nagios_libexec|g;
         s|\@cachedir\@|$cachedir|g;
         s|\@statedir\@|$statedir|g;
-        s|\@htmldir\@|$htmldir|g;
         s|\@htmlurl\@|$htmlurl|g;
         s|\@htmlurlrel\@|$htmlurlrel|g;
         s|\@cgidir\@|$cgidir|g;
@@ -138,7 +156,7 @@ while ($f = shift @ARGV) {
     if ((! -e $f) || (`diff $f $TEMP`)) {
         `mv $TEMP $f`;
     } else {
-             unlink $TEMP;
+        unlink $TEMP;
     }
 
 }

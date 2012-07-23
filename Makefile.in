@@ -12,6 +12,9 @@ SRC_SHARE=@srcdir@/share
 # Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+libdir=@libdir@
+etcdir=@sysconfdir@
+sharedir=@datadir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 

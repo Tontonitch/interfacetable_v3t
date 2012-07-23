@@ -6,7 +6,7 @@
 # Todo for 0.04-1
 # ----------------------------------------------------------------------
 # DONE    - bugfix: relative grapher url for apache config
-#         - libdir installer option support
+# DONE    - libdir, sysconfdir, datadir installer option support
 # DONE    - enhanced column sorting
 # IN PROG - contribution integration
 # DONE    - new exception rules for operstatus

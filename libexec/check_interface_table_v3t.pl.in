@@ -4413,7 +4413,7 @@ sub check_options () {
         'cachedir'                  => "@cachedir@",
         'statedir'                  => "@statedir@",
         'accessmethod'              => undef,
-        'htmltabledir'              => "@htmldir@/tables",
+        'htmltabledir'              => "@sharedir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
         'htmltablelinktarget'       => "_self",
         'alias-matching'            => 0,

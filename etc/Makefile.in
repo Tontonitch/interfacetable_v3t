@@ -12,6 +12,9 @@ SRC_SHARE=@srcdir@/share
 # Installation directories
 prefix=@prefix@
 exec_prefix=@exec_prefix@
+libdir=@libdir@
+etcdir=@sysconfdir@
+sharedir=@datadir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 
@@ -38,9 +41,8 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(prefix)/etc
-	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(prefix)/etc/settings.cfg
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(etcdir)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg $(etcdir)/settings.cfg
 
 install-apache-config:
 	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(httpd_conf)
