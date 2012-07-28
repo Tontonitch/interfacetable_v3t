@@ -32,6 +32,9 @@
 #         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
 #         - nodetype "netapp(filer)" + model/product node info + 64bits counters
 #         - epn support back
+#         - add an option for debug output in a file
+#         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
+#           modem) where the download and upload speeds are different 
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
