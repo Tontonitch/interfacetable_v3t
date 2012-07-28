@@ -14,7 +14,7 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 etcdir=@sysconfdir@
-sharedir=@datadir@
+sharedir=@datarootdir@
 INSTALL=@INSTALL@
 INSTALL_OPTS=@INSTALL_OPTS@
 

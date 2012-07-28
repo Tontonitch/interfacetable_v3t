@@ -20,10 +20,10 @@ my $PKG_REL_DATE="@PKG_REL_DATE@";
 #----------------
 my ${prefix}="@prefix@";
 my ${exec_prefix}="@exec_prefix@";
-#my ${datarootdir}="@datarootdir@";
+my ${datarootdir}="@datarootdir@";
 my ${libdir}="@libdir@";
 my ${etcdir}="@sysconfdir@";
-my ${sharedir}="@datadir@";
+my ${sharedir}="@datarootdir@";
 #----------------
 # Installation user/group
 #----------------

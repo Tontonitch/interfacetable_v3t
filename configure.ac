@@ -274,7 +274,7 @@ AC_MSG_RESULT([                           \${prefix}:  ${prefix}])
 AC_MSG_RESULT([                      \${exec_prefix}:  $exec_prefix])
 AC_MSG_RESULT([         libdir (for perl libraries):  ${libdir}])
 AC_MSG_RESULT([        sysconfdir (for config file):  ${sysconfdir}])
-AC_MSG_RESULT([     datadir (for html, css, js,...):  ${datadir}])
+AC_MSG_RESULT([ datarootdir (for html, css, js,...):  ${datarootdir}])
 AC_MSG_RESULT([ Note: exec_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations])
 
 echo ""
