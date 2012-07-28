@@ -829,9 +829,11 @@ sub ReadInterfaceInformationFile {
             $gInitialRun = 1;
         } elsif ($grefhCurrent->{MD}->{Node}->{sysUpTime} < $grefhFile->{MD}->{Node}->{sysUpTime}) {
             # check if the node has just rebooted
-            logger(1, "The node has been restarted (sysUpTime retrieved is snmaller than the one in the state file). Any cache timers are disactivated for that run");
+            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Any cache timers are disactivated for that run");
             $gShortCacheTimer = 0;
             $gLongCacheTimer  = 0;
+            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Purging the counters from history as not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
         }
 
         # detect if the user has just changed between using the 64bits option or not.
@@ -2533,7 +2535,7 @@ sub CalculateBps {
 
         # Skip interface if no load stats
         if (not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn}
-            and not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut}) {
+            or not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut}) {
             logger(2, "  -> not load statistics, skipping");
             next;
         }
@@ -2572,7 +2574,9 @@ sub CalculateBps {
             $grefhCurrent->{If}->{$ifName}->{ifLoadIn}  = sprintf("%.2f", $ifLoadIn);
             $grefhCurrent->{If}->{$ifName}->{ifLoadOut} = sprintf("%.2f", $ifLoadOut);
 
+            # Check abnormal load compared to interface speed
             if ($grefhCurrent->{If}->{$ifName}->{ifLoadIn} > 115 or $grefhCurrent->{If}->{$ifName}->{ifLoadOut} > 115) {
+                logger(2, "  -> load exceeds 115% of the interface speed, related alerts and perfdata disabled");
                 $grefhCurrent->{If}->{$ifName}->{ifLoadExceedIfSpeed} = "true";
             }
 
@@ -4740,6 +4744,8 @@ sub check_options () {
         $ghOptions{'perfdataservicedesc'} = "$commandline{perfdataservicedesc}";
     } elsif (defined $ENV{'NAGIOS_SERVICEDESC'} and $ENV{'NAGIOS_SERVICEDESC'} ne "") {
         $ghOptions{'perfdataservicedesc'} = $ENV{'NAGIOS_SERVICEDESC'};
+    }  elsif (defined $ENV{'ICINGA_SERVICEDESC'} and $ENV{'ICINGA_SERVICEDESC'} ne "") {
+        $ghOptions{'perfdataservicedesc'} = $ENV{'ICINGA_SERVICEDESC'};
     }
     if ($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq "nagiosgrapher" and not defined $ghOptions{'perfdatadir'}) {
         logger(0, "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir");
