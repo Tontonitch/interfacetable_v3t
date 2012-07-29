@@ -3,17 +3,6 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.04-1
-# ----------------------------------------------------------------------
-# DONE    - bugfix: relative grapher url for apache config
-# DONE    - libdir, sysconfdir, datadir installer option support
-# DONE    - enhanced column sorting
-# IN PROG - contribution integration
-# DONE    - new exception rules for operstatus
-# DONE    - bugfix: reset cgi cannot write configfile doesn't push a message
-# DONE    - option to add the ifAlias (if one) to the plugin output
-#
-# ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing 
