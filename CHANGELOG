@@ -3,6 +3,33 @@
 # ========================================================================
 #
 #   ----------------------------------------------------------------------
+# * 0.04-1
+#   ----------------------------------------------------------------------
+#
+#    - enhancement: history stats reset if node restart
+#    - enhancement: revamped table sorting feature: new design, all column sortable even with 
+#      unusual data types
+#    - enhancement: new ifOperstatus status rules, preventing unexpected alarms:
+#       * no ifOperstatus alarms when ifAdminstatus is down
+#       * no ifOperstatus alarms when ifOperstatus is changing from down to anything
+#    - enhancement: added directory perm check, debug option, always back button
+#    - enhancement: added ifAlias in plugin output
+#    - feature: installer reviewed to support tuned installation via the following ./configure 
+#      options: --exec_prefix, --libdir, --sysconfdir, --datarootdir
+#    - feature: nagios/icinga environment macros automatically used as default values for some 
+#      options:
+#       * hostdisplay can take the NAGIOS_HOSTNAME macro value
+#       * perfdataservicedesc can take the NAGIOS_SERVICEDESC macro value
+#    - feature: when using pnp4nagios as graphing solution, performance data can now be written 
+#      in a spool directory directly without going throught nagios/icinga. It could be used in 
+#      case of monitored nodes with huge number of interfaces. Thanks to Markus Frosch
+#    - feature: option --htmltablelinktarget to specify the target (new page, current frame,...) 
+#      for opening the html table page. Thanks to Markus Frosch
+#    - bugfix: correction on icinga-alternate1 for firefox web browser
+#    - bugfix: installer options --with-htmlurl and --with-cgiurl (for apache config file) now 
+#      accept correctly all kind of url
+#
+#   ----------------------------------------------------------------------
 # * 0.04
 #   ----------------------------------------------------------------------
 #    - enhancement: extended info on used delta for bw calculations
