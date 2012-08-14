@@ -2,11 +2,12 @@
 # "GeneralUtils" library
 # A collection of shared functions for general usage.
 #
-# Version 0.1
+# Version 0.02
 # Written by Y. Charton, extracts some libraries of Nconf and NagiosBp
 #
 # Revision history:
-# 2011-06-08 v0.1   Y. Charton    First release
+# 2011-06-08 v0.01   Y. Charton    First release
+# 2012-08-13 v0.02   Y. Charton    Added hexToString and stringToHex
 #
 ##############################################################################
 
@@ -25,7 +26,7 @@ $LOGLEVEL = 0;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim);
+    @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
@@ -34,6 +35,26 @@ BEGIN {
 ##############################################################################
 ### S U B S ##################################################################
 ##############################################################################
+
+#----------------------------------------------------------------------------#
+# setLoglevel
+# logger
+# printArray
+# printHash
+# fixedLen
+# cutOffSpaces
+# getHostnameFromUrl
+# getProtocolFromUrl
+# MyMkdir
+# normalize
+# denormalize
+# trim
+# GetDataWithSnmp
+# GetMultipleDataWithSnmp
+# stringToHex
+# hexToString
+#----------------------------------------------------------------------------#
+
 
 sub setLoglevel {
 
@@ -362,16 +383,11 @@ sub MyMkdir {
 
 sub normalize {
     my $Text=shift;
-    $Text=~s/Q/Q51/g;                                                                                   # Q normalisieren
-    $Text=~s/[\000-\017]/sprintf ("Q0%X",ord($&))/ge;                   # einstellige HEX Zahlen mit 0 davor konvertieren
-    $Text=~s/[\W_]/sprintf ("Q%X",ord($&))/ge;                                  # alle anderen Zeichen durch Q + HEX code ersetzen
-    return $Text;                                                                                               # fertig
+    $Text=~s/Q/Q51/g;                                        # Q normalisieren
+    $Text=~s/[\000-\017]/sprintf ("Q0%X",ord($&))/ge;        # einstellige HEX Zahlen mit 0 davor konvertieren
+    $Text=~s/[\W_]/sprintf ("Q%X",ord($&))/ge;               # alle anderen Zeichen durch Q + HEX code ersetzen
+    return $Text;                                            # fertig
 }
-
-# ------------------------------------------------------------------------
-# normalize and denormalize subroutines
-# - used to get rid of special characters
-
 sub denormalize {
     my $Text=shift;
     $Text=~s/Q../pack "H2",substr($&,1,3)/ge;
@@ -390,6 +406,32 @@ sub trim {
     return wantarray ? @out : $out[0];
 }
 
+# ------------------------------------------------------------------------
+#  string from/to hex conversion
+
+sub stringToHex {
+    my $string=shift;
+    my $hstring="";
+    logger(5, "To convert: $string");  
+    # Convert to hex
+    $hstring = unpack ("H*",$string);
+    logger(5, "Converted to: $hstring");  
+    return $hstring;                                            
+}
+sub hexToString {
+    my $hstring=shift;
+    my $string="";
+    logger(5, "To convert: $hstring");  
+    if ($hstring =~ m/0x[0-9a-f]+/i) {
+        # Convert to string
+        $string = pack (qq{H*},qq{$hstring});
+        logger(5, "Converted to: $string");  
+    } else {
+        logger(5, "Not a hexadecimal, no conversion");
+        $string="$hstring";
+    }
+    return $string;                                            
+}
 1;
 
 __END__

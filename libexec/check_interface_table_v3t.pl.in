@@ -51,7 +51,7 @@ use SnmpUtils;
 # ------------------------------------------------------------------------
 use vars qw($PROGNAME $REVISION $CONTACT $TIMEOUT);
 $PROGNAME       = $0;
-$REVISION       = '0.04-1';
+$REVISION       = '0.04-2';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 #$TIMEOUT       = 120;
 #my %ERRORS     = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
@@ -540,14 +540,14 @@ $grefAoHInfoTableData->[0]->[2]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysDes
 if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_type}";
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
-    $grefAoHInfoTableData->[0]->[5]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
+    $grefAoHInfoTableData->[0]->[5]->{Value} = hexToString($grefhCurrent->{MD}->{Node}->{sysLocation});
     $grefAoHInfoTableData->[0]->[6]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[7]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[7]->{Value} .= "<br>AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
     if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'}s (+".($ghOptions{'delta'}/3)."s)<br>used: ${gUsedDelta}s" }
     else { $grefAoHInfoTableData->[0]->[8]->{Value} = "configured: $ghOptions{'delta'} (+".($ghOptions{'delta'}/3)."s)<br>used: no data to compare with"; }
 } else {
-    $grefAoHInfoTableData->[0]->[3]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysLocation}";
+    $grefAoHInfoTableData->[0]->[3]->{Value} = hexToString($grefhCurrent->{MD}->{Node}->{sysLocation});
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[5]->{Value} .= "<br>AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
