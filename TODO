@@ -3,6 +3,13 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
+# Todo for 0.04-2
+# ----------------------------------------------------------------------
+# DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
+# DONE    - convert sysLocation from hex to string when needed
+# DONE    - fix wrong old variable in settings.cfg
+#
+# ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing 
