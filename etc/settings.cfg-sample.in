@@ -8,6 +8,8 @@
 # version 3, as published by the Free Software Foundation
 # ------------------------------------------------------------------------
 
+# ====== This is a sample of the settings.cfg  configuration file ========
+
 # ---------------------- plugin configuration ----------------------------
 
 # caching directory
@@ -17,7 +19,7 @@ cachedir = "@cachedir@"
 statedir = "@statedir@"
 
 # interface table HTML directory
-htmltabledir = "@htmldir@/tables"
+htmltabledir = "@sharedir@/tables"
 
 # interface table URL location
 htmltableurl = "@htmlurl@/tables"
