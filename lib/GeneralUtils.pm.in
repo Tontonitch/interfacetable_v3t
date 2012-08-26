@@ -7,7 +7,8 @@
 #
 # Revision history:
 # 2011-06-08 v0.01   Y. Charton    First release
-# 2012-08-13 v0.02   Y. Charton    Added hexToString and stringToHex
+# 2012-08-26 v0.02   Y. Charton    Added hexToString and stringToHex
+#                                  Some conversion functions
 #
 ##############################################################################
 
@@ -26,7 +27,7 @@ $LOGLEVEL = 0;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString);
+    @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString format_volume format_volume_bytes);
     @EXPORT_OK   = qw();
     $VERSION     = 0.1;
     $AUTHOR      = "Y. Charton";
@@ -407,7 +408,7 @@ sub trim {
 }
 
 # ------------------------------------------------------------------------
-#  string from/to hex conversion
+# string from/to hex conversion
 
 sub stringToHex {
     my $string=shift;
@@ -432,6 +433,129 @@ sub hexToString {
     }
     return $string;                                            
 }
+
+# ------------------------------------------------------------------------
+# bytes and bits conversions
+
+sub bytes2bits {
+ return unit2bytes(@_)*8;
+};
+
+#Converts an input value to value in bytes
+sub unit2bytes {
+ my ( $value, $unit ) = @_;
+ #given ($unit) {
+ # when ('T') { return $value*1099511627776; }
+ # when ('G') { return $value*1073741824; }
+ # when ('M') { return $value*1048576; }
+ # when ('K') { return $value*1024; }
+ # default { return $value }
+ #};
+ if ($unit eq 'T') {
+   return $value*1099511627776;
+ } 
+ elsif ($unit eq 'G') {
+   return $value*1073741824;
+ } 
+ elsif ($unit eq 'M') {
+   return $value*1048576;
+ }
+ elsif ($unit eq 'K') {
+   return $value*1024;
+ }
+ else { return $value }
+
+};
+
+sub unit2bits {
+ my ( $value, $unit ) = @_;
+ #given ($unit) {
+ # when ('t') { return $value*1000000000000; }
+ # when ('g') { return $value*1000000000; }
+ # when ('m') { return $value*1000000; }
+ # when ('k') { return $value*1000; }
+ # default { return $value }
+ #};
+ if ($unit eq 't') {
+   return $value*1_000_000_000_000;
+ }
+ elsif ($unit eq 'g') {
+   return $value*1_000_000_000;
+ }
+ elsif ( $unit eq 'm' ) {
+   return $value*1_000_000;
+ }
+ elsif ( $unit eq 'k' ) {
+   return $value*1000
+ } 
+ else { return $value }
+
+};
+
+sub format_volume {
+ my $prefix_x="";
+ my ($x)=@_;
+
+ if ( $x>1000000000000000000 ) {
+  $x=$x/1000000000000000000;
+  $prefix_x="E";
+ };
+ if ( $x>1000000000000000 ) {
+  $x=$x/1000000000000000;
+  $prefix_x="P";
+ };
+ if ( $x>1000000000000 ) {
+  $x=$x/1000000000000;
+  $prefix_x="T";
+ };
+ if ( $x>1000000000 ) {
+  $x=$x/1000000000;
+  $prefix_x="G";
+ };
+ if ( $x>1000000 ) {
+  $x=$x/1000000;
+  $prefix_x="M";
+ };
+ if ( $x>1000 ) {
+  $x=$x/1000;
+  $prefix_x="K";
+ };
+ $x=sprintf("%.2f",$x);
+ return $x.$prefix_x;
+};
+
+sub format_volume_bytes {
+ my $prefix_x;
+ my ($x)=@_;
+
+ if ( $x>1152921504606846976 ) {
+  $x=$x/1152921504606846976;
+  $prefix_x="E";
+ };
+ if ( $x>1125899906842624 ) {
+  $x=$x/1125899906842624;
+  $prefix_x="P";
+ };
+ if ( $x>1099511627776 ) {
+  $x=$x/1099511627776;
+  $prefix_x="T";
+ };
+ if ( $x>1073741824 ) {
+  $x=$x/1073741824;
+  $prefix_x="G";
+ };
+ if ( $x>1048576 ) {
+  $x=$x/1048576;
+  $prefix_x="M";
+ };
+ if ( $x>1024 ) {
+  $x=$x/1024;
+  $prefix_x="K";
+ };
+ $x=sprintf("%.2f",$x);
+ return $x.$prefix_x;
+};
+
 1;
 
 __END__
