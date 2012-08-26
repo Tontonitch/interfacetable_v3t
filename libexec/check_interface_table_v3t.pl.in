@@ -551,8 +551,8 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[4]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
     $grefAoHInfoTableData->[0]->[5]->{Value} = "ports:&nbsp;$gNumberOfInterfacesWithoutTrunk free:&nbsp;$gNumberOfFreeInterfaces";
     $grefAoHInfoTableData->[0]->[5]->{Value} .= "<br>AdminUpFree:&nbsp;$gNumberOfFreeUpInterfaces";
-    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}s (+".($ghOptions{'delta'}/3)."s)<br>used: ${gUsedDelta}s" }
-    else { $grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'} (+".($ghOptions{'delta'}/3)."s)<br>used: no data to compare with"; }
+    if ($gUsedDelta) {$grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'}s (+".sprintf("%0.2fs",$ghOptions{'delta'}/3).")<br>used: ${gUsedDelta}s" }
+    else { $grefAoHInfoTableData->[0]->[6]->{Value} = "configured: $ghOptions{'delta'} (+".sprintf("%0.2fs",$ghOptions{'delta'}/3).")<br>used: no data to compare with"; }
 }
 
 # ------------------------------------------------------------------------------
@@ -578,6 +578,7 @@ if ( $ghOptions{'critical-property'} > 0 ) {
 } else {
     $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
 }
+$grefAoHConfigTableData->[7] = [ {Value => "Bandwidth monitoring capacity"}, {Value => CalculateBandwidthMonitoringCapacity()} ];
 
 # Loop through all interfaces
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -1367,41 +1368,85 @@ sub perfdataout {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
 
-                if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
-                    and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
-                    and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
-                    my $port = sprintf("%03d", $InterfaceIndex);
-                    #my $servicename = "Port$port";
-                    my $servicename = "If_" . trim(denormalize($Name));
-                    $servicename =~ s/[: ]/_/g;
-                    $servicename =~ s/[()']//g;
-                    my $perfdata = "";
-                    #Add interface status if available
-                    if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
-                        if ($ghOptions{'portperfunit'} eq "octet") {
-                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
-                                "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                        } else {
-                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
-                                "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
-                                "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
-                        }
-                        #Add pkt errors/discards if available and wanted
-                        unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                            if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
-                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
-                                    "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
-                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
-                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
+                if ($ghOptions{'portperfunit'} eq "bit" or $ghOptions{'portperfunit'} eq "octet") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                        and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+                        and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $port = sprintf("%03d", $InterfaceIndex);
+                        #my $servicename = "Port$port";
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/[()']//g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            if ($ghOptions{'portperfunit'} eq "octet") {
+                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
+                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
+                            } else {
+                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
+                                    "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
+                            } 
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
+                                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
+                                        "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
+                                        "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
+                                        "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
+                                }
                             }
                         }
+    
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        $gPerfdata .= "$perfdata";
                     }
-
-                    logger(2, "collected perfdata: $Name\t$perfdata");
-                    $gPerfdata .= "$perfdata";
+                } elsif ($ghOptions{'portperfunit'} eq "bps") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                        and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn}
+                        and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $port = sprintf("%03d", $InterfaceIndex);
+                        #my $servicename = "Port$port";
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/[()']//g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            if ($ghOptions{'portperfunit'} eq "bps") {
+                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "in=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} " .
+                                    "out=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsOut};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} ";
+                            } elsif ($ghOptions{'portperfunit'} eq "octet") {
+                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
+                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
+                            } else {
+                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
+                                    "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
+                            } 
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
+                                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
+                                        "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
+                                        "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
+                                        "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
+                                }
+                            }
+                        }
+    
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        $gPerfdata .= "$perfdata";
+                    }                
                 }
             }
         }
@@ -2581,19 +2626,18 @@ sub CalculateBps {
             }
 
             # check interface utilization in percent
-
             if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "false") {
                 if ($ifLoadIn > 0 or $ifLoadOut > 0) {
                     if ($grefhCurrent->{If}->{$ifName}->{ifLoadExceedIfSpeed} eq "false") {
                         # just traffic light color codes for the lame
-                        if ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'}) {
+                        if ($ghOptions{'critical-load'} > 0 and ($ifLoadIn > $ghOptions{'critical-load'} or $ifLoadOut > $ghOptions{'critical-load'})) {
                             if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
                                 push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
                             } else {
                                 push @{$grefhListOfChanges->{loadcritical}}, trim(denormalize($ifName));
                             }
                             $gIfLoadCritCounter++;
-                        } elsif ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'}) {
+                        } elsif ($ghOptions{'warning-load'} > 0 and ($ifLoadIn > $ghOptions{'warning-load'} or $ifLoadOut > $ghOptions{'warning-load'})) {
                             if ( defined $grefhCurrent->{If}->{$ifName}->{"ifAlias"} and $grefhCurrent->{If}->{$ifName}->{"ifAlias"} ne "" ) {
                                 push @{$grefhListOfChanges->{loadwarning}}, trim(denormalize($ifName))." (".trim(denormalize($grefhCurrent->{If}->{$ifName}->{"ifAlias"})).")";
                             } else {
@@ -2619,37 +2663,42 @@ sub CalculateBps {
         #print OUT "BandwidthUsageIn=${bpsIn}bps;0;0;0;$grefhCurrent->{If}->{$ifName}->{ifSpeed} ";
         #print OUT "BandwidthUsageOut=${bpsOut}bps;0;0;0;$grefhCurrent->{If}->{$ifName}->{ifSpeed} ";
 
-        my $SpeedUnitOut='';
+        $grefhCurrent->{If}->{$ifName}->{bpsIn} = sprintf("%.2f", $bpsIn);
+        $grefhCurrent->{If}->{$ifName}->{bpsOut} = sprintf("%.2f", $bpsOut);
+        
         my $SpeedUnitIn='';
+        my $SpeedUnitOut='';
+        my $bpsInReadable=$bpsIn;
+        my $bpsOutReadable=$bpsOut;
         if ($ghOptions{human}) {
             # human readable bandwidth usage in (G/M/K)bits per second
             $SpeedUnitIn=' bps';
-            if ($bpsIn > 1000000000) {        # in Gbit/s = 1000000000 bit/s
-                  $bpsIn = $bpsIn / 1000000000;
+            if ($bpsInReadable > 1000000000) {        # in Gbit/s = 1000000000 bit/s
+                  $bpsInReadable = $bpsInReadable / 1000000000;
                   $SpeedUnitIn=' Gbps';
-            } elsif ($bpsIn > 1000000) {      # in Mbit/s = 1000000 bit/s
-                  $bpsIn = $bpsIn / 1000000;
+            } elsif ($bpsInReadable > 1000000) {      # in Mbit/s = 1000000 bit/s
+                  $bpsInReadable = $bpsInReadable / 1000000;
                   $SpeedUnitIn=' Mbps';
-            } elsif ($bpsIn > 1000) {         # in Kbits = 1000 bit/s
-                  $bpsIn = $bpsIn / 1000;
+            } elsif ($bpsInReadable > 1000) {         # in Kbits = 1000 bit/s
+                  $bpsInReadable = $bpsInReadable / 1000;
                   $SpeedUnitIn=' Kbps';
             }
 
             $SpeedUnitOut=' bps';
-            if ($bpsOut > 1000000000) {       # in Gbit/s = 1000000000 bit/s
-                  $bpsOut = $bpsOut / 1000000000;
+            if ($bpsOutReadable > 1000000000) {       # in Gbit/s = 1000000000 bit/s
+                  $bpsOutReadable = $bpsOutReadable / 1000000000;
                   $SpeedUnitOut=' Gbps';
-            } elsif ($bpsOut > 1000000) {     # in Mbit/s = 1000000 bit/s
-                  $bpsOut = $bpsOut / 1000000;
+            } elsif ($bpsOutReadable > 1000000) {     # in Mbit/s = 1000000 bit/s
+                  $bpsOutReadable = $bpsOutReadable / 1000000;
                   $SpeedUnitOut=' Mbps';
-            } elsif ($bpsOut > 1000) {        # in Kbit/s = 1000 bit/s
-                  $bpsOut = $bpsOut / 1000;
+            } elsif ($bpsOutReadable > 1000) {        # in Kbit/s = 1000 bit/s
+                  $bpsOutReadable = $bpsOutReadable / 1000;
                   $SpeedUnitOut=' Kbps';
             }
+            
+            $grefhCurrent->{If}->{$ifName}->{bpsInReadable} = sprintf("%.2f$SpeedUnitIn", $bpsInReadable);
+            $grefhCurrent->{If}->{$ifName}->{bpsOutReadable} = sprintf("%.2f$SpeedUnitOut", $bpsOutReadable);
         }
-
-        $grefhCurrent->{If}->{$ifName}->{bpsIn} = sprintf("%.2f$SpeedUnitIn", $bpsIn);
-        $grefhCurrent->{If}->{$ifName}->{bpsOut} = sprintf("%.2f$SpeedUnitOut", $bpsOut);
 
         # ---------- Last traffic calculation -----------
 
@@ -3481,6 +3530,26 @@ sub ConvertIfDuplexStatusToReadable {
         $status = '';
     }
     return $status;
+}
+
+# ------------------------------------------------------------------------
+# Calculate the bandwidth monitoring capacity, according to the used 
+# delta and the used snmp counter type
+# ------------------------------------------------------------------------
+sub CalculateBandwidthMonitoringCapacity {
+    my $recommendations = "";
+    my $maxbps;
+    my $maxbps_readable;
+    if ( $ghSNMPOptions{'64bits'} ) {
+        $recommendations .= "Using 64-bit counters, with delta $ghOptions{'delta'}. ";
+        $maxbps = 147573952589676412920 / ($ghOptions{'delta'} * 4/3);
+    } else {
+        $recommendations .= "Using 32-bit counters, with delta $ghOptions{'delta'}. ";
+        $maxbps = 34359738360 / ($ghOptions{'delta'} * 4/3);
+    }
+    $maxbps_readable = format_volume($maxbps)."bps";
+    $recommendations .= "Can monitor a bandwidth of $maxbps_readable maximum. If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
+    return $recommendations;
 }
 
 # ------------------------------------------------------------------------
@@ -4368,7 +4437,7 @@ sub check_options () {
         'critical-property|cp=i',
         #------- performance data -------#
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
-        'portperfunit=s',                       # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
+        'portperfunit=s',                       # bit|octet|bps: in/out traffic in perfdata could be reported in octets, in bits or in bps
         'perfdataformat=s',                     # define which performance data will be generated.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
