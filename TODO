@@ -8,6 +8,7 @@
 # DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
 # DONE    - convert sysLocation from hex to string when needed
 # DONE    - fix wrong old variable in settings.cfg
+# DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
@@ -31,6 +32,8 @@
 #         - add an option for debug output in a file
 #         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
 #           modem) where the download and upload speeds are different 
+#         - css theme switching feature (mostly for validity checks)
+#         - option for (re-)adding/remove some bw stats
 #
 # ----------------------------------------------------------------------
 # Todo not classified yet
