@@ -71,6 +71,14 @@ if($display_traffic == 1){
     $def[$num_graph] .= rrd::gprint  ("bits_in_redef",  array("LAST","MAX","AVERAGE"), "%8.2lf%Sbps");
     $def[$num_graph] .= rrd::line1   ("bits_out_redef", '#0000CD', 'out_bps       ');
     $def[$num_graph] .= rrd::gprint  ("bits_out_redef", array("LAST","MAX","AVERAGE"), "%8.2lf%Sbps");
+    # Total Values in
+    $def[$num_graph] .= rrd::cdef    ("octets_in", "bits_in,8,/");
+    $def[$num_graph] .= rrd::vdef    ("total_in", "octets_in,TOTAL");
+    $def[$num_graph] .= "GPRINT:total_in:\"Total in  %3.0lf %sB total\\n\" ";
+    # Total Values out
+    $def[$num_graph] .= rrd::cdef    ("octets_out", "bits_out,8,/");
+    $def[$num_graph] .= rrd::vdef    ("total_out", "octets_out,TOTAL");
+    $def[$num_graph] .= "GPRINT:total_out:\"Total out %3.0lf %sB total\\n\" ";
 }
 
 ###############################
