@@ -9,6 +9,7 @@
 # DONE    - convert sysLocation from hex to string when needed
 # DONE    - fix wrong old variable in settings.cfg
 # DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
+# DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
 #
 # ----------------------------------------------------------------------
 # Todo for 0.05
