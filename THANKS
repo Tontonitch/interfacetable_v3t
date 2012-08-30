@@ -6,11 +6,15 @@ First thanks to some authors of some pieces of code or tools used in this projec
  * Ilya Etingof - author of snmpsim/snmprec, a SNMP simulator used for for any testing
  * frequency-decoder.com - author of the tablesort and some customsort javascripts
  * ITdesign Software Projects & Consulting and NETWAYS GmbH for the previous versions of the plugin
+ * Mark James, Famfamfam.com - author of the "Silk" icon sets
 
 Then, thanks for the generous donators:
  * Rene Beaulieu
+
+Also, thanks to the code contributors:
+ * Markus Frosch
  
-Also, thanks to all the users/testers who provided bug reports and great ideas:
+Finally, thanks to all the users/testers who provided bug reports and great ideas:
  * Bjorn Frostberg
  * Timo Soeder
  * Brandon Mccorkle
@@ -19,6 +23,3 @@ Also, thanks to all the users/testers who provided bug reports and great ideas:
  * Mana
  * Rene Beaulieu
  * Pascal Dufour
-
-Finally, thanks to the code contributors:
- * Markus Frosch
