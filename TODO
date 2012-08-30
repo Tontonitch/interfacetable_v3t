@@ -4,6 +4,7 @@
 # 
 # ----------------------------------------------------------------------
 # Todo for 0.04-2
+#  => (cancelled as no major bugs and no time to release. everything will be available in 0.05)
 # ----------------------------------------------------------------------
 # DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
 # DONE    - convert sysLocation from hex to string when needed
@@ -14,7 +15,7 @@
 # ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
-# IN PROG - better non regression testing 
+# IN PROG - better non regression testing
 #            -> test phase would include tests on simulated type of monitored nodes
 #         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
 #           use stpxInconsistentState?
@@ -28,18 +29,23 @@
 #         - better support of IP info for HP Procurve switches
 #         - support for Brocade with FabricOS < v5.3.0
 #         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
-#         - nodetype "netapp(filer)" + model/product node info + 64bits counters
+# IN PROG - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
+#           + extended 32-bit counters (low/high)
 #         - epn support back
 #         - add an option for debug output in a file
 #         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
 #           modem) where the download and upload speeds are different 
 #         - css theme switching feature (mostly for validity checks)
 #         - option for (re-)adding/remove some bw stats
+#         - in unixsnmp mode, switching any remaining use of net-snmp perl binding
+# IN PROG - enhance code flexibility for easier device support extension
+#         - infobulle pkt err/discard
+#         - notes and recommendations in the config table
+# IN PROG - perfdata in bps instead of counters. experimental phase
 #
 # ----------------------------------------------------------------------
-# Todo not classified yet
+# Ideas in vrac
 # ----------------------------------------------------------------------
-#         - (cancelled as the solution is not developed anymore) review the netwaysgrapherv2 support + create templates
 #         - add support (+ templates) for other graphers (nagiosgraph, perfparse,...)
 #         - option to show mac addresses in the interface table
 #         - multiple tables (physical interfaces separated from logical interfaces)
@@ -52,5 +58,11 @@
 #           where bulk requests are not well supported by the target device
 #         - switch to full php + jquery
 #         - store state + table info in xml
+#
+# ----------------------------------------------------------------------
+# Cancelled
+# ----------------------------------------------------------------------
+#         - review the netwaysgrapherv2 support + create templates
+#            -> the solution is not developed anymore
 #
 # ========================================================================
