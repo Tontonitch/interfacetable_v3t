@@ -22,6 +22,7 @@ function nodename( $filename ) {
     $filename = preg_replace("/(Q2E)/", ".", $filename);
     $filename = preg_replace("/(Q5F)/", "_", $filename);
     $filename = preg_replace("/(Q51)/", "Q", $filename);
+    $filename = preg_replace("/(Q20)/", " ", $filename); 
     if (($res = strrpos($filename, '-Interface')) !== FALSE) {
         return substr($filename, 0, $res);
     } else {

@@ -42,6 +42,8 @@
 #         - infobulle pkt err/discard
 #         - notes and recommendations in the config table
 # IN PROG - perfdata in bps instead of counters. experimental phase
+# IN PROG - contribution integrations
+#           http://exchange.nagios.org/directory/Reviews/idroj/1
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac

@@ -66,27 +66,28 @@ my $STARTTIME   = time ();                      # time of program start
 
 # Standard OIDs
 # ------------------------------------------------------------------------
-my %oid_sysDescr        = ( name => "sysDescr",     oid => ".1.3.6.1.2.1.1.1.0" );
-my %oid_sysUpTime       = ( name => "sysUpTime",    oid => ".1.3.6.1.2.1.1.3.0" );
-my %oid_sysContact      = ( name => "sysContact",   oid => ".1.3.6.1.2.1.1.4.0" );
-my %oid_sysName         = ( name => "sysName",      oid => ".1.3.6.1.2.1.1.5.0" );
-my %oid_sysLocation     = ( name => "sysLocation",  oid => ".1.3.6.1.2.1.1.6.0" );
+my %oid_sysDescr        = ( name => "sysDescr",     mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.1.0" );
+my %oid_sysUpTime       = ( name => "sysUpTime",    mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.3.0" );
+my %oid_sysContact      = ( name => "sysContact",   mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.4.0" );
+my %oid_sysName         = ( name => "sysName",      mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.5.0" );
+my %oid_sysLocation     = ( name => "sysLocation",  mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.6.0" );
 
-my %oid_ifDescr         = ( name => "ifDescr",      oid => ".1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
-my %oid_ifAlias         = ( name => "ifAlias",      oid => ".1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
-my %oid_ifSpeed         = ( name => "ifSpeed",      oid => ".1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
-my %oid_ifHighSpeed     = ( name => "ifHighSpeed",  oid => ".1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
+my %oid_ifDescr         = ( name => "ifDescr",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
+my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
+my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
+my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => ".1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
+my %oid_ifPhysAddress   = ( name => "ifPhysAddress", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.6" );     # + ".<index>"
+my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.7" );     # + ".<index>"
+my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.8" );     # + ".<index>"
+#my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
 
-my %oid_ifPhysAddress   = ( name => "ifPhysAddress",   oid => ".1.3.6.1.2.1.2.2.1.6" );      # + ".<index>"
-my %oid_ifAdminStatus   = ( name => "ifAdminStatus",   oid => ".1.3.6.1.2.1.2.2.1.7" );      # + ".<index>"
-my %oid_ifOperStatus    = ( name => "ifOperStatus",    oid => ".1.3.6.1.2.1.2.2.1.8" );      # + ".<index>"
-#my %oid_ifLastChange    = ( name => "ifLastChange",    oid => ".1.3.6.1.2.1.2.2.1.9" );      # + ".<index>", not used
-my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", oid => ".1.3.6.1.2.1.10.7.2.1.19" );  # + ".<index>"
-my %oid_ipAdEntIfIndex  = ( name => "ipAdEntIfIndex",  oid => ".1.3.6.1.2.1.4.20.1.2" );     # + ".<IP address>"
-my %oid_ipAdEntNetMask  = ( name => "ipAdEntNetMask",  oid => ".1.3.6.1.2.1.4.20.1.3" );     # + ".<index>"
-my %oid_ifVlanName      = ( name => "entLogicalDescr", oid => ".1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
+my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => ".1.3.6.1.2.1.10.7.2.1.19" );  # + ".<index>"
 
-#dot1dBridge: .1.3.6.1.2.1.17
+my %oid_ipAdEntIfIndex  = ( name => "ipAdEntIfIndex",  mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.2" );     # + ".<IP address>"
+my %oid_ipAdEntNetMask  = ( name => "ipAdEntNetMask",  mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.3" );     # + ".<index>"
+
+my %oid_ifVlanName      = ( name => "entLogicalDescr", mib => "ENTITY-MIB", oid => ".1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
+
 my %oid_dot1dBasePortIfIndex = ( name => "dot1dBasePortIfIndex", mib => 'BRIDGE-MIB', oid => '.1.3.6.1.2.1.17.1.4.1.2' ); # map from dot1base port table to ifindex table
 my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-MIB', oid => '.1.3.6.1.2.1.17.2.15.1.3', 
     convertToReadable => {0=>'unknown',1=>'disabled',2=>'blocking',3=>'listening',4=>'learning',5=>'forwarding',6=>'broken'} ); # stp port states
@@ -103,14 +104,14 @@ my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-
 # ifOutDiscards:  The number of outbound packets which were chosen to be discarded even though no errors had been
 #                 detected to prevent their being transmitted. One possible reason for discarding such a packet could
 #                 be to free up buffer space.
-my %oid_ifInOctets      = ( name => "ifInOctets",     oid => '1.3.6.1.2.1.2.2.1.10' );    # + ".<index>"
-my %oid_ifInDiscards    = ( name => "ifInDiscards",   oid => '1.3.6.1.2.1.2.2.1.13' );    # + ".<index>"
-my %oid_ifInErrors      = ( name => "ifInErrors",     oid => '1.3.6.1.2.1.2.2.1.14' );    # + ".<index>"
-my %oid_ifOutOctets     = ( name => "ifOutOctets",    oid => '1.3.6.1.2.1.2.2.1.16' );    # + ".<index>"
-my %oid_ifOutDiscards   = ( name => "ifOutDiscards",  oid => '1.3.6.1.2.1.2.2.1.19' );    # + ".<index>"
-my %oid_ifOutErrors     = ( name => "ifOutErrors",    oid => '1.3.6.1.2.1.2.2.1.20' );    # + ".<index>"
-my %oid_ifHCInOctets    = ( name => "ifHCInOctets",   oid => '1.3.6.1.2.1.31.1.1.1.6' );  # + ".<index>"
-my %oid_ifHCOutOctets   = ( name => "ifHCOutOctets",  oid => '1.3.6.1.2.1.31.1.1.1.10' ); # + ".<index>"
+my %oid_ifInOctets      = ( name => "ifInOctets",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.10' );    # + ".<index>"
+my %oid_ifInDiscards    = ( name => "ifInDiscards",   mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.13' );    # + ".<index>"
+my %oid_ifInErrors      = ( name => "ifInErrors",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.14' );    # + ".<index>"
+my %oid_ifOutOctets     = ( name => "ifOutOctets",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.16' );    # + ".<index>"
+my %oid_ifOutDiscards   = ( name => "ifOutDiscards",  mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.19' );    # + ".<index>"
+my %oid_ifOutErrors     = ( name => "ifOutErrors",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.20' );    # + ".<index>"
+my %oid_ifHCInOctets    = ( name => "ifHCInOctets",   mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.6' );  # + ".<index>"
+my %oid_ifHCOutOctets   = ( name => "ifHCOutOctets",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.10' ); # + ".<index>"
 
 # Cisco specific OIDs
 # ------------------------------------------------------------------------
@@ -189,6 +190,12 @@ my %oid_netapp_ifHighInOctets   = ( name => "ifHighInOctets",   mib => "NETWORK-
 my %oid_netapp_ifLowInOctets    = ( name => "ifLowInOctets",    mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.4" );  # + ".<index>"
 my %oid_netapp_ifHighOutOctets  = ( name => "ifHighOutOctets",  mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.15" ); # + ".<index>"
 my %oid_netapp_ifLowOutOctets   = ( name => "ifLowOutOctets",   mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.16" ); # + ".<index>"
+
+# F5 BIG-IP specific OIDs (from F5-BIGIP-SYSTEM-MIB)
+# ------------------------------------------------------------------------
+my %oid_bigip_sysGeneralHwName    = ( name => "sysGeneralHwName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.3.3.1.0" );     # since 9.0.5
+my %oid_bigip_sysInterfaceName    = ( name => "sysInterfaceName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.1" ); # + ".<index>" ex: 3.49.46.49
+my %oid_bigip_sysInterfaceMacAddr = ( name => "sysInterfaceMacAddr", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.6" ); # + ".<index>"
 
 
 # ------------------------------------------------------------------------
@@ -308,37 +315,44 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Enabled => 1 }, #0
     { Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Enabled => 1 }, #1
     { Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #2
-    { Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #3
-    { Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #4
-    { Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #5
-    { Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #6
-    { Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #7
-    { Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #8
-    { Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #9
-    { Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #10
-    { Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
-    { Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #12
-    { Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #13
-    { Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #14
-    { Title => 'bpsIn',        Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #15
-    { Title => 'bpsOut',       Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #16
-    { Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #17
-    { Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #18
-    { Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #19
+    { Title => 'Status',       Dataname => 'sysInterfaceStatus',   Datatype => 'property', Tablesort => 'sortable-text',          Enabled => 0 }, #3
+    { Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #4
+    { Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #5
+    { Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #6
+    { Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #7
+    { Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #8
+    { Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #9
+    { Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #10
+    { Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
+    { Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #12
+    { Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #13
+    { Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #14
+    { Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #15
+    { Title => 'bpsIn',        Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #16
+    { Title => 'bpsOut',       Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #17
+    { Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #18
+    { Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #19
+    { Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #20
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
 # show duplex mode
-if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[6]->{Enabled} = 1;}
+if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;}
 # show Spanning Tree port state
-if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;}
+if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
 # show VLANs per port
-if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
+if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;}
 # show Netscreen specific info
 if ($ghOptions{'nodetype'} eq "netscreen") {
-    $grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;
     $grefAoHInterfaceTableHeader->[10]->{Enabled} = 1;
     $grefAoHInterfaceTableHeader->[11]->{Enabled} = 1;
+    $grefAoHInterfaceTableHeader->[12]->{Enabled} = 1;
+}
+# show BigIP specific info
+if ($ghOptions{'nodetype'} eq "bigip") {
+    $grefAoHInterfaceTableHeader->[3]->{Enabled} = 1;
+    $grefAoHInterfaceTableHeader->[4]->{Enabled} = 0;
+    $grefAoHInterfaceTableHeader->[5]->{Enabled} = 0;
 }
 
 # ------------------------------------------------------------------------
@@ -391,40 +405,98 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 if ($ghOptions{'nodetype'} eq "netapp") {
     $grefhCurrent->{MD}->{Node}->{netapp_model} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_netapp_productModel{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 }
+if ($ghOptions{'nodetype'} eq "bigip") {
+    $grefhCurrent->{MD}->{Node}->{bigip_model} = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_bigip_sysGeneralHwName{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+}
+
 
 # ------------------------------------------------------------------------------
 # Read interface related data (from snmp/cache)
 # ------------------------------------------------------------------------------
 
-# Gather interface indexes, descriptions, and mac addresses, to generate unique
-# and reformatted interface names.
-Get_InterfaceNames ();
+if ($ghOptions{'nodetype'} eq "cisco") {
 
-# Gather interface administration status
-Get_AdminStatus ();
+    # Gather interface indexes, descriptions, and mac addresses, to generate unique
+    # and reformatted interface names.
+    Get_InterfaceNames ();
+    
+    # Gather interface administration status
+    Get_AdminStatus ();
+    
+    # Gather interface operational status
+    Get_OperStatus ();
+    
+    # Gather interface ip addresses and masks
+    Get_IpAddress_SubnetMask ();
+    
+    # Gather interface traffics (in/out and packet errors/discards)
+    Get_Traffic ();
+    
+    # Gather interface admin status, speed, alias and vlan
+    Get_Speed_Duplex_Alias_Vlan ();
+    
+    # Gather Spanning Tree specific info (--stp)
+    if ($ghOptions{'stp'}) {
+        Get_Stp ();
+    }
+    
+} elsif ($ghOptions{'nodetype'} eq "netscreen") {
 
-# Gather interface operational status
-Get_OperStatus ();
-
-# Gather interface ip addresses and masks
-if ($ghOptions{'nodetype'} ne "netscreen") {
-   Get_IpAddress_SubnetMask ();
-}
-
-# Gather interface traffics (in/out and packet errors/discards)
-Get_Traffic ();
-
-# Gather interface admin status, speed, alias and vlan
-Get_Speed_Duplex_Alias_Vlan ($grefhCurrent);
-
-# Gather Spanning Tree specific info (--stp)
-if ($ghOptions{'stp'}) {
-    Get_Stp ();
-}
-
-# Gather Juniper Netscreen specific info (--nodetype=netscreen)
-if ($ghOptions{'nodetype'} eq "netscreen") {
+    # Gather interface indexes, descriptions, and mac addresses, to generate unique
+    # and reformatted interface names.
+    Get_InterfaceNames ();
+    
+    # Gather interface administration status
+    Get_AdminStatus ();
+    
+    # Gather interface operational status
+    Get_OperStatus ();
+    
+    # Gather interface traffics (in/out and packet errors/discards)
+    Get_Traffic ();
+    
+    # Gather interface admin status, speed, alias and vlan
+    Get_Speed_Duplex_Alias_Vlan ();
+    
+    # Gather Spanning Tree specific info (--stp)
+    if ($ghOptions{'stp'}) {
+        Get_Stp ();
+    }
+    
+    # Gather Juniper Netscreen specific info (--nodetype=netscreen)
     Get_Netscreen ();
+
+} elsif ($ghOptions{'nodetype'} eq "bigip") {
+
+    # Gather BigIp specific info (--nodetype=bigip)
+    Get_Bigip ();
+
+} else {
+
+    # Gather interface indexes, descriptions, and mac addresses, to generate unique
+    # and reformatted interface names.
+    Get_InterfaceNames ();
+    
+    # Gather interface administration status
+    Get_AdminStatus ();
+    
+    # Gather interface operational status
+    Get_OperStatus ();
+    
+    # Gather interface ip addresses and masks
+    Get_IpAddress_SubnetMask ();
+    
+    # Gather interface traffics (in/out and packet errors/discards)
+    Get_Traffic ();
+    
+    # Gather interface admin status, speed, alias and vlan
+    Get_Speed_Duplex_Alias_Vlan ();
+    
+    # Gather Spanning Tree specific info (--stp)
+    if ($ghOptions{'stp'}) {
+        Get_Stp ();
+    }
+    
 }
 
 logger(5, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
@@ -561,6 +633,8 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
 } elsif ($ghOptions{'nodetype'} eq "netapp") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{netapp_model}";
+} elsif ($ghOptions{'nodetype'} eq "bigip") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{bigip_model}";
 }
 $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = hexToString($grefhCurrent->{MD}->{Node}->{sysLocation});
 $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
@@ -595,7 +669,8 @@ if ( $ghOptions{'critical-property'} > 0 ) {
 } else {
     $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
 }
-$grefAoHConfigTableData->[7] = [ {Value => "Bandwidth monitoring capacity"}, {Value => CalculateBandwidthMonitoringCapacity()} ];
+$grefAoHConfigTableData->[7] = [ {Value => "Bandwidth monitoring capacity"}, {Value => ""} ];
+$grefAoHConfigTableData->[8] = [ {Value => "Other"}, {Value => ""} ];
 
 # Loop through all interfaces
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -862,6 +937,14 @@ sub ReadInterfaceInformationFile {
             logger(1, "Detected a change in the use of the --64bits option. Purging the counters from history as not usable anymore");
             delete $grefhFile->{History};  # purge the History part in $grefhFile hash
         }
+        # detect if the user has just changed the node type.
+        # In case of change, purge the history datasets as they can be not correct anymore
+        $grefhCurrent->{MD}->{CachedInfo}->{'nodetype'} = $ghOptions{'nodetype'};
+        if (defined $grefhFile->{MD}->{CachedInfo}->{'nodetype'} and $ghOptions{'nodetype'} != $grefhFile->{MD}->{CachedInfo}->{'nodetype'}) {
+            logger(1, "Detected a change in the use of the --nodetype option. Purging the counters from history as can be not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
+        }
+        
     } else {
         # the file with interface information was not found - this is the first
         # run of the program or it was deleted before.
@@ -1002,11 +1085,20 @@ sub Get_InterfaceNames {
     #------------------------------------------
 
     # get all interface descriptions
-    $refaIfDescriptionLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifDescr,$ghOptions{'cachedir'},0,1);
+    if ($ghOptions{'nodetype'} eq "bigip") {
+        $refaIfDescriptionLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceName,$ghOptions{'cachedir'},0,1);
+    } else {
+        $refaIfDescriptionLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifDescr,$ghOptions{'cachedir'},0,1);
+    }
 
     # get all interface mac addresses
-    $refaIfPhysAddressLines = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifPhysAddress,$ghOptions{'cachedir'},0,0)
+    if ($ghOptions{'nodetype'} eq "bigip") {
+        $refaIfPhysAddressLines = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMacAddr,$ghOptions{'cachedir'},0,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMacAddr,$ghOptions{'cachedir'},$gLongCacheTimer);
+    } else {
+        $refaIfPhysAddressLines = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifPhysAddress,$ghOptions{'cachedir'},0,0)
         : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifPhysAddress,$ghOptions{'cachedir'},$gLongCacheTimer);
+    }
 
     # Look for duplicate values
     #------------------------------------------
@@ -1014,8 +1106,12 @@ sub Get_InterfaceNames {
     # Find interface description duplicates
     for (@$refaIfDescriptionLines) {
         my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        if ($ghOptions{'nodetype'} eq "bigip") {
+            $Index =~ s/^\.*$oid_bigip_sysInterfaceName{'oid'}\.//g; # remove all but the index
+        } else {
+            $Index =~ s/^\.*$oid_ifDescr{'oid'}\.//g;                # remove all but the index
+        }
+        $Value =~ s/\s+$//g;                                         # remove invisible chars from the end
         unless(defined $refhIfDescriptionCounts->{"$Value"}){
             $refhIfDescriptionCounts->{"$Value"} = 0;
         }
@@ -1025,8 +1121,12 @@ sub Get_InterfaceNames {
     # Find physical address duplicates
     for (@$refaIfPhysAddressLines) {
         my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        if ($ghOptions{'nodetype'} eq "bigip") {
+            $Index =~ s/^\.*$oid_bigip_sysInterfaceMacAddr{'oid'}\.//g; # remove all but the index
+        } else {
+            $Index =~ s/^\.*$oid_ifPhysAddress{'oid'}\.//g;             # remove all but the index
+        }
+        $Value =~ s/\s+$//g;                                            # remove invisible chars from the end
         unless(defined $refhIfPhysAddressCounts->{"$Value"}){
             $refhIfPhysAddressCounts->{"$Value"} = 0;
         }
@@ -1041,7 +1141,11 @@ sub Get_InterfaceNames {
     #    TOADD
     for (@$refaIfDescriptionLines) {
         my ($Index,$Desc) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
+        if ($ghOptions{'nodetype'} eq "bigip") {
+            $Index =~ s/^\.*$oid_bigip_sysInterfaceName{'oid'}\.//g; # remove all but the index
+        } else {
+            $Index =~ s/^\.*$oid_ifDescr{'oid'}\.//g;                # remove all but the index
+        }
         $Desc =~ s/\s+$//g;             # remove invisible chars from the end
         my $MacAddr = (defined $refhIfPhysAddressIndex->{$Index}) ? "$refhIfPhysAddressIndex->{$Index}" : "";
 
@@ -1112,6 +1216,7 @@ sub Get_InterfaceNames {
             my $name_warning_length = 30;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
+                $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface name quite long! (> $name_warning_length). Name: \"$Name\"<br>";
             }
         }
 
@@ -1272,9 +1377,9 @@ sub Get_IpAddress_SubnetMask {
 #  None
 # ------------------------------------------------------------------------------
 sub Get_Traffic {
-    my $refaOctetInLines;                               # Lines returned from snmpwalk storing ifOctetsIn
-    my $refaOctetOutLines;                              # Lines returned from snmpwalk storing ifOctetsOut
-
+    my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
+    my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+    
     # Get info from snmp/cache
     #------------------------------------------
     
@@ -1283,29 +1388,72 @@ sub Get_Traffic {
             # get all interface in/out traffic octet counters - no caching !
             $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64InOctets,$ghOptions{'cachedir'},0,1);
             $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64OutOctets,$ghOptions{'cachedir'},0,1);
+            $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+                "Can monitor a bandwidth of".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+                If not enough, consider decreasing delta";
 
         } else {
-            # get all interface in/out traffic octet counters - no caching !
+            # Netapp provide a 64 bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
+            # get all interface in/out traffic octet counters (Low and High counters) - no caching !
             my $refaOctetInLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighInOctets,$ghOptions{'cachedir'},0,1);
             my $refaOctetInLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowInOctets,$ghOptions{'cachedir'},0,1);
             my $refaOctetOutLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighOutOctets,$ghOptions{'cachedir'},0,1);
             my $refaOctetOutLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowOutOctets,$ghOptions{'cachedir'},0,1);
-            
-            #$refaOctetInLines
-            #$refaOctetOutLines
+            # build a table from gathered low+high in octet counters
+            my $refhOctetInLinesHigh = ();
+            foreach (@$refaOctetInLinesHigh) {
+                $refhOctetInLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighInOctets{'oid'}\.([0-9]*) (.*)$/;
+            }
+            my $refhOctetInLinesLow = ();
+            foreach (@$refaOctetInLinesLow) {
+                my $res = 0;
+                my ($index,$low) = split / /,$_,2;
+                $index =~ s/^.*\.//g;    # remove all but the index
+                $low =~ s/\s+$//g;     # remove invisible chars from the end
+                $res = $low;
+                if ( defined $refhOctetInLinesHigh->{"$index"} and $refhOctetInLinesHigh->{"$index"} > 0 ) {
+                    $res += $refhOctetInLinesHigh->{"$index"}<<32;
+                } 
+                push(@$refaOctetInLines,"$index $res");
+            }
+            # build a table from gathered low+high out octet counters
+            my $refhOctetOutLinesHigh = ();
+            foreach (@$refaOctetOutLinesHigh) {
+                $refhOctetOutLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighOutOctets{'oid'}\.([0-9]*) (.*)$/;
+            }
+            my $refhOctetOutLinesLow = ();
+            foreach (@$refaOctetOutLinesLow) {
+                my $res = 0;
+                my ($index,$low) = split / /,$_,2;
+                $index =~ s/^.*\.//g;    # remove all but the index
+                $low =~ s/\s+$//g;     # remove invisible chars from the end
+                $res = $low;
+                if ( defined $refhOctetOutLinesHigh->{"$index"} and $refhOctetOutLinesHigh->{"$index"} > 0 ) {
+                    $res += $refhOctetOutLinesHigh->{"$index"}<<32;
+                } 
+                push(@$refaOctetOutLines,"$index $res");
+            }
+            $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
+                "Can monitor a bandwidth of".format_volume((2**(32+32)-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+                If not enough, consider decreasing delta";
         
         }
-    
     
     } else {
         if ($ghSNMPOptions{'64bits'}) {
             # get all interface in/out traffic octet counters - no caching !
             $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInOctets,$ghOptions{'cachedir'},0,1);
             $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutOctets,$ghOptions{'cachedir'},0,1);
+            $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Standard MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+                "Can monitor a bandwidth of".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+                If not enough, consider decreasing delta";
         } else {
             # get all interface in/out traffic octet counters - no caching !
             $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInOctets,$ghOptions{'cachedir'},0,1);
             $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutOctets,$ghOptions{'cachedir'},0,1);
+            $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using standard MIB 32-bit counters, with delta $ghOptions{'delta'}. " .
+                "Can monitor a bandwidth of".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+                If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
         }
     
     }
@@ -1400,8 +1548,10 @@ sub perfdataout {
                         my $port = sprintf("%03d", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()']//g;
+                        $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
                         if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -1437,8 +1587,10 @@ sub perfdataout {
                         my $port = sprintf("%03d", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()']//g;
+                        $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
                         if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -1550,9 +1702,10 @@ sub perfdataout {
                     and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
 
                     my $servicename = "If_" . trim(denormalize($Name));
+                    $servicename =~ s/#/%23/g;
                     $servicename =~ s/[: ]/_/g;
                     $servicename =~ s/[()']//g;
-
+                    $servicename =~ s/,/./g;
                     my $perfdata = "";
                     #Add interface status if available
                     if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -1924,6 +2077,7 @@ sub GenerateInterfaceTableData {
                         $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()']//g;
+                        $servicename =~ s/,/./g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
                             $CellContent .= '<a href="' .
                                            $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
@@ -2945,7 +3099,7 @@ sub Get_Speed_Duplex_Alias_Vlan {
     for my $ifName (keys %{$grefhCurrent->{If}}) {
 
         # Extract the index out of the MetaData
-        my $Index           = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         logger(2, "Index=$Index ($ifName)");
 
         # Get the speed in normal or highperf speed counters
@@ -2959,6 +3113,7 @@ sub Get_Speed_Duplex_Alias_Vlan {
                 logger(1, " --->>> WARNING");
                 logger(1, " $ifName($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.")");
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
+                $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface speed exceeding standard counters for interface $ifName($Index). If possible, consider the use of highperf mib (--64bits).<br>";
             }
         }
 
@@ -3364,6 +3519,146 @@ sub Get_Netscreen {
 }
 
 # ------------------------------------------------------------------------
+# 
+# ------------------------------------------------------------------------
+sub Get_BigIp {
+
+    my $refaOperStatusLines;       # Lines returned from snmpwalk storing ifOperStatus
+
+    # get all interface operstatus - no caching !
+    $refaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOperStatus,$ghOptions{'cachedir'},0,1);
+
+    # Example of $refaOperStatusLines
+    #    .1.3.6.1.2.1.2.2.1.8.1 up
+    #    .1.3.6.1.2.1.2.2.1.8.2 down
+    for (@$refaOperStatusLines) {
+        my ($Index,$OperStatusNow) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
+        $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow");
+        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
+
+        logger(2, "Index=$Index ($ifName)");
+
+        # Store the oper status as property of the current interface
+        $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+
+        # Retrieve adminstatus for special rules
+        my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
+
+        #
+        # Store a CacheTimer (seconds) where we cache the next
+        # reads from the net - we have the following possibilities
+        #
+        # ifOperStatus:
+        #
+        # Current state | first state  |  CacheTimer
+        # -----------------------------------------
+        # up              up              $gShortCacheTimer
+        # up              down            0
+        # down            down            $gLongCacheTimer
+        # down            up              0
+        # other           *               0
+        # *               other           0
+        #
+        # One exception to that logic is the "Changed" flag. If this
+        # is set we detected a change on an interface property and do not
+        # cache !
+        #
+        my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
+        unless ($OperStatusFile) {$OperStatusFile = "";}
+        logger(2, "  Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
+        # set cache timer for further reads
+        if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gShortCacheTimer;
+        } elsif ("$OperStatusNow" eq "down" and "$OperStatusFile" eq "down") {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gLongCacheTimer;
+        } else {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = 0;
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
+                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
+        }
+        logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
+
+        # remember change time of the interface property
+        if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
+                $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
+        } else {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+        }
+
+        #
+        # Some rules with ifOperStatus
+        #
+        # Between initial ifOperStatus and current ifOperStatus
+        # current ifOperStatus | initial ifOperStatus | action
+        # ---------------------------------------------------------------------
+        # up                   | *                    | no alarm and update ifOperStatus initial state
+        # *                    | empty,down           | no alarm and update ifOperStatus initial state
+        #
+        # Between current ifOperStatus and current ifAdminStatus
+        # current ifOperStatus | current ifAdminStatus | action
+        # ---------------------------------------------------------------------
+        # down                 | *                     | no alarm and update ifOperStatus initial state
+        #
+
+        # track changes of the oper status
+        if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed to up, no alert
+        elsif ("$OperStatusNow" eq "up") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed from 'empty' or 'down'
+        elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed to 'down' and ifAdminstatus is 'down'
+        elsif ("$OperStatusNow" eq "down" and "$AdminStatusNow" eq "down") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+        }
+        # ifOperstatus has changed, alerting
+        else {
+            # flag if changes already tracked
+            if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+
+            # remember the change every run of this program, this is useful if the
+            # ifOperStatus changes from "up" to "testing" to "down"
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
+                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
+        }
+
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
 # get the interface speed as integer and convert it to a readable format
 # return a string
 # ------------------------------------------------------------------------
@@ -3457,26 +3752,6 @@ sub ConvertIfDuplexStatusToReadable {
         $status = '';
     }
     return $status;
-}
-
-# ------------------------------------------------------------------------
-# Calculate the bandwidth monitoring capacity, according to the used 
-# delta and the used snmp counter type
-# ------------------------------------------------------------------------
-sub CalculateBandwidthMonitoringCapacity {
-    my $recommendations = "";
-    my $maxbps;
-    my $maxbps_readable;
-    if ( $ghSNMPOptions{'64bits'} ) {
-        $recommendations .= "Using 64-bit counters, with delta $ghOptions{'delta'}. ";
-        $maxbps = 147573952589676412920 / ($ghOptions{'delta'} * 4/3);
-    } else {
-        $recommendations .= "Using 32-bit counters, with delta $ghOptions{'delta'}. ";
-        $maxbps = 34359738360 / ($ghOptions{'delta'} * 4/3);
-    }
-    $maxbps_readable = format_volume($maxbps)."bps";
-    $recommendations .= "Can monitor a bandwidth of $maxbps_readable maximum. If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
-    return $recommendations;
 }
 
 # ------------------------------------------------------------------------
@@ -4628,10 +4903,10 @@ sub check_options () {
         $ghOptions{'stp'} = $commandline{stp};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^cisco$|^hp$|^netscreen$|^netapp$/i) {
+        if ($commandline{nodetype} =~ /^cisco$|^hp$|^netscreen$|^netapp$|^bigip$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
-            logger(0, "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: cisco, hp, netscreen, netapp.");
+            logger(0, "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: cisco, hp, netscreen, netapp, bigip.");
             exit $ERRORS{"UNKNOWN"};
         }
     }
