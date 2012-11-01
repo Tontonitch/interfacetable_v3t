@@ -43,7 +43,8 @@
 #         - notes and recommendations in the config table
 # IN PROG - perfdata in bps instead of counters. experimental phase
 # IN PROG - contribution integrations
-#           http://exchange.nagios.org/directory/Reviews/idroj/1
+#           (DONE) http://exchange.nagios.org/directory/Reviews/idroj/1
+#           http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
