@@ -77,8 +77,8 @@ my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => ".1
 my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
 my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => ".1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
 my %oid_ifPhysAddress   = ( name => "ifPhysAddress", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.6" );     # + ".<index>"
-my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.7" );     # + ".<index>"
-my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.8" );     # + ".<index>"
+my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.7", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
+my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.8", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
 #my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
 
 my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => ".1.3.6.1.2.1.10.7.2.1.19" );  # + ".<index>"
@@ -196,7 +196,25 @@ my %oid_netapp_ifLowOutOctets   = ( name => "ifLowOutOctets",   mib => "NETWORK-
 my %oid_bigip_sysGeneralHwName    = ( name => "sysGeneralHwName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.3.3.1.0" );     # since 9.0.5
 my %oid_bigip_sysInterfaceName    = ( name => "sysInterfaceName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.1" ); # + ".<index>" ex: 3.49.46.49
 my %oid_bigip_sysInterfaceMacAddr = ( name => "sysInterfaceMacAddr", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.6" ); # + ".<index>"
+my %oid_bigip_sysIfxStatAlias     = ( name => "sysIfxStatAlias",     mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.17" ); # + ".<index>"
 
+my %oid_bigip_sysInterfaceEnabled = ( name => "sysInterfaceEnabled", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.8", convertToReadable => {0=>'false',1=>'true'}); # + ".<index>"
+my %oid_bigip_sysInterfaceStatus  = ( name => "sysInterfaceStatus",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.17", convertToReadable => {0=>'up',1=>'down',2=>'disabled',3=>'uninitialized',4=>'loopback',5=>'unpopulated'}); # + ".<index>"
+my %oid_bigip_sysIfxStatHighSpeed = ( name => "sysIfxStatHighSpeed", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.14" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceStatBytesIn  = ( name => "sysInterfaceStatBytesIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.3" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatBytesOut = ( name => "sysInterfaceStatBytesOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.5" ); # + ".<index>"
+my %oid_bigip_sysIfxStatHcInOctets     = ( name => "sysIfxStatHcInOctets",     mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.6" ); # + ".<index>"
+my %oid_bigip_sysIfxStatHcOutOctets    = ( name => "sysIfxStatHcOutOctets",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.10" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceStatErrorsIn   = ( name => "sysInterfaceStatErrorsIn",   mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.8" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatErrorsOut  = ( name => "sysInterfaceStatErrorsOut",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.9" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatDropsIn    = ( name => "sysInterfaceStatDropsIn",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.10" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatDropsOut   = ( name => "sysInterfaceStatDropsOut",   mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.11" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatCollisions = ( name => "sysInterfaceStatCollisions", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.12" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceStatPktsIn  = ( name => "sysInterfaceStatPktsIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.2" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatPktsOut = ( name => "sysInterfaceStatPktsOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.4" ); # + ".<index>"
 
 # ------------------------------------------------------------------------
 # Other global variables
@@ -319,43 +337,45 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Enabled => 1 }, #0
     { Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Enabled => 1 }, #1
     { Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #2
-    { Title => 'Status',       Dataname => 'sysInterfaceStatus',   Datatype => 'property', Tablesort => 'sortable-text',          Enabled => 0 }, #3
-    { Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #4
-    { Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #5
-    { Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #6
-    { Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #7
-    { Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #8
-    { Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #9
-    { Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #10
-    { Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
-    { Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #12
-    { Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #13
-    { Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #14
-    { Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #15
-    { Title => 'bpsIn',        Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #16
-    { Title => 'bpsOut',       Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #17
-    { Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #18
-    { Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #19
-    { Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #20
+    { Title => 'Enabled',      Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #3
+    { Title => 'Status',       Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #4
+    { Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #5
+    { Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #6
+    { Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #7
+    { Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #8
+    { Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #9
+    { Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #10
+    { Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
+    { Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #12
+    { Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #13
+    { Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #14
+    { Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #15
+    { Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #16
+    { Title => 'bpsIn',        Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #17
+    { Title => 'bpsOut',       Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #18
+    { Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #19
+    { Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #20
+    { Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #21
 ];
 # show Netscreen specific info
 if ($ghOptions{'nodetype'} eq "netscreen") {
-    $grefAoHInterfaceTableHeader->[10]->{Enabled} = 1;
     $grefAoHInterfaceTableHeader->[11]->{Enabled} = 1;
     $grefAoHInterfaceTableHeader->[12]->{Enabled} = 1;
+    $grefAoHInterfaceTableHeader->[13]->{Enabled} = 1;
 }
 # show BigIP specific info
 if ($ghOptions{'nodetype'} eq "bigip") {
     $grefAoHInterfaceTableHeader->[3]->{Enabled} = 1;
-    $grefAoHInterfaceTableHeader->[4]->{Enabled} = 0;
+    $grefAoHInterfaceTableHeader->[4]->{Enabled} = 1;
     $grefAoHInterfaceTableHeader->[5]->{Enabled} = 0;
+    $grefAoHInterfaceTableHeader->[6]->{Enabled} = 0;
 }
 # show duplex mode
-if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[7]->{Enabled} = 1;}
+if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
 # show Spanning Tree port state
-if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
+if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;}
 # show VLANs per port
-if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;}
+if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[10]->{Enabled} = 1;}
 
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -469,7 +489,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.    
-    Get_OperStatus_Bigip (); # Gather BigIp specific info
+    Get_InterfaceEnabled_Bigip (); # Gather interface administration status   
+    Get_InterfaceStatus_Bigip (); # Gather interface operational status   
+#    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)   
 
 } else {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -534,7 +556,8 @@ $grefhCurrent = EvaluateInterfaces (
 # ------------------------------------------------------------------------------
 
 # sort ifIndex by number
-@$grefaAllIndizes = sort { $a <=> $b }
+#@$grefaAllIndizes = sort { $a <=> $b }
+@$grefaAllIndizes = sort { lc($a) cmp lc($b) }
     keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
 logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
@@ -2740,6 +2763,175 @@ sub Get_OperStatus {
 }
 
 # ------------------------------------------------------------------------
+# BIGIP : get ifEnabled
+# ------------------------------------------------------------------------
+sub Get_InterfaceEnabled_Bigip {
+
+    my $refaInterfaceEnabledLines;       # Lines returned from snmpwalk storing sysInterfaceEnabled
+
+    # get all interface enabled info - no caching !
+    $refaInterfaceEnabledLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceEnabled,$ghOptions{'cachedir'},0,1);
+    my $rehaInterfaceEnabled = ();
+    foreach (@$refaInterfaceEnabledLines) {
+        $rehaInterfaceEnabled->{"$1"}=$2 if /$oid_bigip_sysInterfaceEnabled{'oid'}\.([0-9.]*) (.*)$/;
+    }
+
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        logger(2, "Index=$Index ($ifName)");
+
+        # Store ifEnabled converted from a digit to "enabled" or "disabled"
+        $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} = (defined $oid_bigip_sysInterfaceEnabled{'convertToReadable'}{"$rehaInterfaceEnabled->{$Index}"})
+            ? $oid_bigip_sysInterfaceEnabled{'convertToReadable'}{"$rehaInterfaceEnabled->{$Index}"} : $rehaInterfaceEnabled->{$Index};
+        logger(2, "  Enabled=".$grefhCurrent->{If}->{"$ifName"}->{ifEnabled});
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# BIGIP : get ifStatus
+# ------------------------------------------------------------------------
+sub Get_InterfaceStatus_Bigip {
+
+    my $refaInterfaceStatusLines;       # Lines returned from snmpwalk storing Interface Status
+
+    # get all interface status - no caching !
+    $refaInterfaceStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceStatus,$ghOptions{'cachedir'},0,1);
+
+    # Example of $refaInterfaceStatusLines
+    #    .1.3.6.1.2.1.2.2.1.8.1 up
+    #    .1.3.6.1.2.1.2.2.1.8.2 down
+    for (@$refaInterfaceStatusLines) {
+        my ($Index,$ifStatusNow) = split / /,$_,2;
+        $Index =~ s/$oid_bigip_sysInterfaceStatus{'oid'}\.//g;           # remove all but the index
+        $ifStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
+        defined $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"} and $ifStatusNow = $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"};       
+        
+        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
+        logger(2, "Index=$Index ($ifName)");
+
+        # Store the oper status as property of the current interface
+        $grefhCurrent->{If}->{"$ifName"}->{ifStatus} = "$ifStatusNow";
+
+        # Retrieve interface enabled state for special rules
+        my $ifEnabledNow = $grefhCurrent->{If}->{"$ifName"}->{ifEnabled};
+
+        #
+        # Store a CacheTimer (seconds) where we cache the next
+        # reads from the net - we have the following possibilities
+        #
+        # InterfaceStatus:
+        #
+        # Current state | first state  |  CacheTimer
+        # -----------------------------------------
+        # up              up              $gShortCacheTimer
+        # up              down            0
+        # down            down            $gLongCacheTimer
+        # down            up              0
+        # other           *               0
+        # *               other           0
+        #
+        # One exception to that logic is the "Changed" flag. If this
+        # is set we detected a change on an interface property and do not
+        # cache !
+        #
+        my $ifStatusFile = $grefhFile->{If}->{"$ifName"}->{ifStatus};
+        unless ($ifStatusFile) {$ifStatusFile = "";}
+        logger(2, "  Now=\"$ifStatusNow\" File=\"$ifStatusFile\"");
+        # set cache timer for further reads
+        if ("$ifStatusNow" eq "up" and "$ifStatusFile" eq "up") {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gShortCacheTimer;
+        } elsif ("$ifStatusNow" eq "down" and "$ifStatusFile" eq "down") {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gLongCacheTimer;
+        } else {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = 0;
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText} =
+                "Old = \"$ifStatusFile\", Current = \"$ifStatusNow\" ";
+        }
+        logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
+
+        # remember change time of the interface property
+        if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime}) {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} =
+                $grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime}
+        } else {
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+        }
+
+        #
+        # Some rules with ifStatus
+        #
+        # Between initial ifStatus and current ifStatus
+        # current ifStatus | initial ifStatus | action
+        # ---------------------------------------------------------------------
+        # up                   | *                    | no alarm and update ifStatus initial state
+        # *                    | empty                | no alarm and update ifStatus initial state
+        #
+        # Between current ifOperStatus and current ifAdminStatus
+        # current ifOperStatus | current ifAdminStatus | action
+        # ---------------------------------------------------------------------
+        # down,disabled        | false                 | no alarm and update ifOperStatus initial state
+        #
+
+        # track changes of the interface status
+        if ("$ifStatusNow" eq "$ifStatusFile") {   # no changes to its first state
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+            }
+        }
+        # ifStatus has changed to up, no alert
+        elsif ("$ifStatusNow" eq "up") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifStatus} = "$ifStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+            }
+        }
+        # ifStatus has changed from 'empty'
+        elsif ("$ifStatusFile" eq "") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifStatus} = "$ifStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+            }
+        }
+        # ifStatus has changed to 'down' or 'disabled' and ifEnabled is 'false'
+        elsif (("$ifStatusNow" eq "down" or "$ifStatusNow" eq "disabled") and "$ifEnabledNow" eq "false") {
+            # update the state in the status file
+            $grefhFile->{If}->{"$ifName"}->{ifStatus} = "$ifStatusNow";
+            # delete the changed flag and reset the time when it was changed
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeText}) {
+                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText};
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+            }
+        }
+        # ifStatus has changed, alerting
+        else {
+            # flag if changes already tracked
+            if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifStatusChangeText}) {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeTime} = time;
+            }
+
+            # remember the change every run of this program, this is useful if the
+            # ifStatus changes from "up" to "testing" to "down"
+            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifStatusChangeText} =
+                "Old = \"$ifStatusFile\", Current = \"$ifStatusNow\" ";
+        }
+
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
 # get trafic in octets (ifInOctets / ifOutOctets)
 # ------------------------------------------------------------------------
 sub Get_TrafficInOut {
@@ -3670,146 +3862,6 @@ sub Get_Netscreen {
 
     return 0;
 
-}
-
-# ------------------------------------------------------------------------
-# 
-# ------------------------------------------------------------------------
-sub Get_BigIp {
-
-    my $refaOperStatusLines;       # Lines returned from snmpwalk storing ifOperStatus
-
-    # get all interface operstatus - no caching !
-    $refaOperStatusLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOperStatus,$ghOptions{'cachedir'},0,1);
-
-    # Example of $refaOperStatusLines
-    #    .1.3.6.1.2.1.2.2.1.8.1 up
-    #    .1.3.6.1.2.1.2.2.1.8.2 down
-    for (@$refaOperStatusLines) {
-        my ($Index,$OperStatusNow) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
-        $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow");
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
-
-        logger(2, "Index=$Index ($ifName)");
-
-        # Store the oper status as property of the current interface
-        $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-
-        # Retrieve adminstatus for special rules
-        my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
-
-        #
-        # Store a CacheTimer (seconds) where we cache the next
-        # reads from the net - we have the following possibilities
-        #
-        # ifOperStatus:
-        #
-        # Current state | first state  |  CacheTimer
-        # -----------------------------------------
-        # up              up              $gShortCacheTimer
-        # up              down            0
-        # down            down            $gLongCacheTimer
-        # down            up              0
-        # other           *               0
-        # *               other           0
-        #
-        # One exception to that logic is the "Changed" flag. If this
-        # is set we detected a change on an interface property and do not
-        # cache !
-        #
-        my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
-        unless ($OperStatusFile) {$OperStatusFile = "";}
-        logger(2, "  Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
-        # set cache timer for further reads
-        if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gShortCacheTimer;
-        } elsif ("$OperStatusNow" eq "down" and "$OperStatusFile" eq "down") {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gLongCacheTimer;
-        } else {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = 0;
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
-                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
-        }
-        logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
-
-        # remember change time of the interface property
-        if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
-                $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
-        } else {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-        }
-
-        #
-        # Some rules with ifOperStatus
-        #
-        # Between initial ifOperStatus and current ifOperStatus
-        # current ifOperStatus | initial ifOperStatus | action
-        # ---------------------------------------------------------------------
-        # up                   | *                    | no alarm and update ifOperStatus initial state
-        # *                    | empty,down           | no alarm and update ifOperStatus initial state
-        #
-        # Between current ifOperStatus and current ifAdminStatus
-        # current ifOperStatus | current ifAdminStatus | action
-        # ---------------------------------------------------------------------
-        # down                 | *                     | no alarm and update ifOperStatus initial state
-        #
-
-        # track changes of the oper status
-        if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed to up, no alert
-        elsif ("$OperStatusNow" eq "up") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed from 'empty' or 'down'
-        elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed to 'down' and ifAdminstatus is 'down'
-        elsif ("$OperStatusNow" eq "down" and "$AdminStatusNow" eq "down") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed, alerting
-        else {
-            # flag if changes already tracked
-            if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-
-            # remember the change every run of this program, this is useful if the
-            # ifOperStatus changes from "up" to "testing" to "down"
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
-                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
-        }
-
-    }
-    return 0;
 }
 
 # ------------------------------------------------------------------------
