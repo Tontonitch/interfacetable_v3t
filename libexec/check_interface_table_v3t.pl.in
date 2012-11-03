@@ -362,12 +362,31 @@ my $grefAoHInterfaceTableData;                           # Contents of the inter
 # ------------------------------------------------------------------------
 # Configuration table initializations
 # ------------------------------------------------------------------------
-my $gConfigTableHTML;                                      # Generated HTML code of the Config table
-my $grefAoHConfigTableHeader = [                           # Header for the colomns of the Config table
+my $gConfigTableHTML;                   # Generated HTML code of the Config table
+my $grefAoHConfigTableHeader = [        # Header for the colomns of the Config table
     { Title => 'Title', Enabled => 1 },
     { Title => 'Value', Enabled => 1 },
 ];
-my $grefAoHConfigTableData;                                # Contents of the Config table
+my $grefAoHConfigTableData;             # Contents of the Config table
+$grefAoHConfigTableData->[0]->[0]->{Value} = "Globally excluded interfaces";
+$grefAoHConfigTableData->[1]->[0]->{Value} = "Excluded interfaces from traffic tracking";
+$grefAoHConfigTableData->[2]->[0]->{Value} = "Excluded interfaces from property tracking";
+$grefAoHConfigTableData->[3]->[0]->{Value} = "Interface traffic load thresholds";
+$grefAoHConfigTableData->[4]->[0]->{Value} = "Interface packet error/discard thresholds";
+$grefAoHConfigTableData->[5]->[0]->{Value} = "Interface property tracked";
+$grefAoHConfigTableData->[6]->[0]->{Value} = "Interface property change thresholds";
+$grefAoHConfigTableData->[7]->[0]->{Value} = "Bandwidth monitoring capacity";
+$grefAoHConfigTableData->[8]->[0]->{Value} = "Other";
+#init
+$grefAoHConfigTableData->[0]->[1]->{Value} = "";
+$grefAoHConfigTableData->[1]->[1]->{Value} = "";
+$grefAoHConfigTableData->[2]->[1]->{Value} = "";
+$grefAoHConfigTableData->[3]->[1]->{Value} = "";
+$grefAoHConfigTableData->[4]->[1]->{Value} = "";
+$grefAoHConfigTableData->[5]->[1]->{Value} = "";
+$grefAoHConfigTableData->[6]->[1]->{Value} = "";
+$grefAoHConfigTableData->[7]->[1]->{Value} = "";
+$grefAoHConfigTableData->[8]->[1]->{Value} = "";
 
 # ------------------------------------------------------------------------------
 # Check host and snmp service reachability
@@ -425,8 +444,8 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
-    ($ghOptions{'vlan'}) ? Get_Vlan_Cisco (); # Gather interface vlans
-    ($ghOptions{'stp'}) ? Get_Stp (); # Gather Spanning Tree specific info
+    ($ghOptions{'vlan'}) && Get_Vlan_Cisco (); # Gather interface vlans
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
 
 } elsif ($ghOptions{'nodetype'} eq "hp") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -435,8 +454,8 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
-    ($ghOptions{'vlan'}) ? Get_Vlan_Hp (); # Gather interface vlans
-    ($ghOptions{'stp'}) ? Get_Stp (); # Gather Spanning Tree specific info
+    ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
 } elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.    
@@ -445,7 +464,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)   
     Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) ? Get_Stp (); # Gather Spanning Tree specific info
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     Get_Netscreen (); # Gather Juniper Netscreen specific info
 
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
@@ -460,7 +479,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) ? Get_Stp (); # Gather Spanning Tree specific info
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
 }
 
@@ -612,30 +631,26 @@ if ($gUsedDelta) {
 }
 
 # ------------------------------------------------------------------------------
-# Create config information table data
+# Update config information table data
 # ------------------------------------------------------------------------------
 
-$grefAoHConfigTableData->[0] = [ {Value => "Globally excluded interfaces"}, {Value => ""} ];
-$grefAoHConfigTableData->[1] = [ {Value => "Excluded interfaces from traffic tracking"}, {Value => ""} ];
-$grefAoHConfigTableData->[2] = [ {Value => "Excluded interfaces from property tracking"}, {Value => ""} ];
-$grefAoHConfigTableData->[3] = [ {Value => "Interface traffic load thresholds"},
-    {Value => "warning at $ghOptions{'warning-load'}%, critical at $ghOptions{'critical-load'}%"} ];
-$grefAoHConfigTableData->[4] = [ {Value => "Interface packet error/discard thresholds"},
-    {Value => "errors: warning at $ghOptions{'warning-pkterr'} pkts/s, critical at $ghOptions{'critical-pkterr'} pkts/s; discards: warning at $ghOptions{'warning-pktdiscard'} pkts/s, critical at $ghOptions{'critical-pktdiscard'} pkts/s"} ];
-$grefAoHConfigTableData->[5] = [ {Value => "Interface property tracked"}, {Value => join(", ",@{$ghOptions{'track-property'}})} ];
-$grefAoHConfigTableData->[6] = [ {Value => "Interface property change thresholds"}, {Value => ""} ];
-if ( $ghOptions{'warning-property'} > 0 ) {
-    $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), ";
-} else {
-    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
-}
-if ( $ghOptions{'critical-property'} > 0 ) {
-    $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)";
-} else {
-    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
-}
-$grefAoHConfigTableData->[7] = [ {Value => "Bandwidth monitoring capacity"}, {Value => ""} ];
-$grefAoHConfigTableData->[8] = [ {Value => "Other"}, {Value => ""} ];
+$grefAoHConfigTableData->[3]->[1]->{Value} = "warning at $ghOptions{'warning-load'}%, critical at $ghOptions{'critical-load'}%";
+$grefAoHConfigTableData->[4]->[1]->{Value} = "errors: warning at $ghOptions{'warning-pkterr'} pkts/s, critical at $ghOptions{'critical-pkterr'} pkts/s; discards: warning at $ghOptions{'warning-pktdiscard'} pkts/s, critical at $ghOptions{'critical-pktdiscard'} pkts/s";
+$grefAoHConfigTableData->[5]->[1]->{Value} = join(", ",@{$ghOptions{'track-property'}});
+$grefAoHConfigTableData->[6]->[1]->{Value} = ( $ghOptions{'warning-property'} > 0 )
+ ? "warning for $ghOptions{'warning-property'} change(s), " : "no warning threshold, ";
+$grefAoHConfigTableData->[6]->[1]->{Value} .= ( $ghOptions{'critical-property'} > 0 )
+ ? "critical for $ghOptions{'critical-property'} change(s)" : "no critical threshold";
+#if ( $ghOptions{'warning-property'} > 0 ) {
+#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), ";
+#} else {
+#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
+#}
+#if ( $ghOptions{'critical-property'} > 0 ) {
+#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)";
+#} else {
+#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
+#}
 
 # Loop through all interfaces
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -708,6 +723,7 @@ $gInfoTableHTML = Convert2HtmlTable (1,$grefAoHInfoTableHeader,$grefAoHInfoTable
 $gInterfaceTableHTML   = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
 
 # Create configuration table
+logger(5, "Config table:".Dumper($grefAoHConfigTableData));
 $gConfigTableHTML = Convert2HtmlTable (2,$grefAoHConfigTableHeader,$grefAoHConfigTableData,"configtable","");
 
 # ------------------------------------------------------------------------------
@@ -909,8 +925,8 @@ sub ReadInterfaceInformationFile {
         # detect if the user has just changed the node type.
         # In case of change, purge the history datasets as they can be not correct anymore
         $grefhCurrent->{MD}->{CachedInfo}->{'nodetype'} = $ghOptions{'nodetype'};
-        if (defined $grefhFile->{MD}->{CachedInfo}->{'nodetype'} and $ghOptions{'nodetype'} != $grefhFile->{MD}->{CachedInfo}->{'nodetype'}) {
-            logger(1, "Detected a change in the use of the --nodetype option. Purging the counters from history as can be not usable anymore");
+        if (defined $grefhFile->{MD}->{CachedInfo}->{'nodetype'} and $ghOptions{'nodetype'} ne $grefhFile->{MD}->{CachedInfo}->{'nodetype'}) {
+            logger(1, "Detected a change in the use of the --nodetype option (".$grefhFile->{MD}->{CachedInfo}->{'nodetype'}." to ".$ghOptions{'nodetype'}."). Purging the counters from history as can be not usable anymore");
             delete $grefhFile->{History};  # purge the History part in $grefhFile hash
         }
         
@@ -1488,14 +1504,14 @@ sub Get_Traffic {
         $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInOctets,$ghOptions{'cachedir'},0,1);
         $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutOctets,$ghOptions{'cachedir'},0,1);
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Standard MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta";
     } else {
         # get all interface in/out traffic octet counters - no caching !
         $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInOctets,$ghOptions{'cachedir'},0,1);
         $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutOctets,$ghOptions{'cachedir'},0,1);
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using standard MIB 32-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+            "Can monitor a bandwidth of ".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
     }
 
@@ -1533,7 +1549,7 @@ sub Get_Traffic_Netapp {
         $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64InOctets,$ghOptions{'cachedir'},0,1);
         $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64OutOctets,$ghOptions{'cachedir'},0,1);
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta";
     } else {
         # Netapp provide a 64 bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
@@ -1577,7 +1593,7 @@ sub Get_Traffic_Netapp {
             push(@$refaOctetOutLines,"$index $res");
         }
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of".format_volume((2**(32+32)-1 )/($ghOptions{'delta'}*4/3))."maximum." .
+            "Can monitor a bandwidth of ".format_volume((2**(32+32)-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta";
     }
 
