@@ -40,6 +40,8 @@ use GeneralUtils;
 use Settings;
 use SnmpUtils;
 
+
+
 # ========================================================================
 # VARIABLES
 # ========================================================================
@@ -81,7 +83,7 @@ my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => ".1
 my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.8", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
 #my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
 
-my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => ".1.3.6.1.2.1.10.7.2.1.19" );  # + ".<index>"
+my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => ".1.3.6.1.2.1.10.7.2.1.19", convertToReadable => {1=>'unknown', 2=>'half', 3=>'full'});  # + ".<index>"
 
 my %oid_ipAdEntIfIndex  = ( name => "ipAdEntIfIndex",  mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.2" );     # + ".<IP address>"
 my %oid_ipAdEntNetMask  = ( name => "ipAdEntNetMask",  mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.3" );     # + ".<index>"
@@ -216,6 +218,11 @@ my %oid_bigip_sysInterfaceStatCollisions = ( name => "sysInterfaceStatCollisions
 my %oid_bigip_sysInterfaceStatPktsIn  = ( name => "sysInterfaceStatPktsIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.2" ); # + ".<index>"
 my %oid_bigip_sysInterfaceStatPktsOut = ( name => "sysInterfaceStatPktsOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.4" ); # + ".<index>"
 
+#my %oid_bigip_sysInterfaceMediaActiveSpeed  = ( name => "sysInterfaceMediaActiveSpeed",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.4" ); # + ".<index>"
+my %oid_bigip_sysInterfaceMediaActiveDuplex = ( name => "sysInterfaceMediaActiveDuplex", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.5", convertToReadable => {0=>'none',1=>'half',2=>'full'}); # + ".<index>"
+
+#IP?
+
 # ------------------------------------------------------------------------
 # Other global variables
 # ------------------------------------------------------------------------
@@ -273,9 +280,14 @@ my $grefhListOfChanges               = undef;        # List all the changes for 
 # ========================================================================
 sub check_options();
 
-# ========================================================================
-# MAIN
-# ========================================================================
+
+
+
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO    MAIN    OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
 # Get command line options and adapt default values in %ghOptions
 check_options();
@@ -303,30 +315,17 @@ $ghOptions{'snapshot'} and $gInitialRun = 1;
 # ------------------------------------------------------------------------
 my $gInfoTableHTML;                                      # Generated HTML code of the Info table
 my $grefAoHInfoTableHeader = [                           # Header for the colomns of the Info table
-    { Title => 'Name',                Enabled => 1 },
-    { Title => 'Uptime',              Enabled => 1 },
-    { Title => 'System Information',  Enabled => 1 },
-    { Title => 'Type',                Enabled => 0 },
-    { Title => 'Serial',              Enabled => 0 },
-    { Title => 'Model',               Enabled => 0 },
-    { Title => 'Location',            Enabled => 1 },
-    { Title => 'Contact',             Enabled => 1 },
-    { Title => 'Ports',               Enabled => 1 },
-    { Title => 'Delta (bandwidth calculations)', Enabled => 1 },
+    { Title => 'Name',                           Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Uptime',                         Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'System Information',             Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Type',                           Nodetype => 'cisco',        Enabled => 1 },
+    { Title => 'Serial',                         Nodetype => 'cisco',        Enabled => 1 },
+    { Title => 'Model',                          Nodetype => 'netapp,bigip', Enabled => 1 },
+    { Title => 'Location',                       Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Contact',                        Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Ports',                          Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Delta (bandwidth calculations)', Nodetype => 'ALL',          Enabled => 1 },
 ];
-if ($ghOptions{'nodetype'} eq "cisco") {
-    # show some specific cisco info in the info table: type and serial
-    $grefAoHInfoTableHeader->[3]{Enabled} = 1;
-    $grefAoHInfoTableHeader->[4]{Enabled} = 1;
-}
-if ($ghOptions{'nodetype'} eq "netapp") {
-    # show some specific netapp info in the info table: type
-    $grefAoHInfoTableHeader->[5]{Enabled} = 1;
-}
-if ($ghOptions{'nodetype'} eq "bigip") {
-    # show some specific netapp info in the info table: type
-    $grefAoHInfoTableHeader->[5]{Enabled} = 1;
-}
 my $grefAoHInfoTableData;                                # Contents of the Info table (Uptime, SysDescr, ...)
 
 # ------------------------------------------------------------------------
@@ -334,49 +333,29 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',        Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Enabled => 1 }, #0
-    { Title => 'Name',         Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Enabled => 1 }, #1
-    { Title => 'Alias',        Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #2
-    { Title => 'Enabled',      Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #3
-    { Title => 'Status',       Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #4
-    { Title => 'Admin status', Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #5
-    { Title => 'Oper status',  Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 1 }, #6
-    { Title => 'Speed',        Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Enabled => 1 }, #7
-    { Title => 'Duplex',       Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #8
-    { Title => 'Stp',          Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #9
-    { Title => 'Vlan',         Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Enabled => 0 }, #10
-    { Title => 'Zone',         Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #11
-    { Title => 'Vsys',         Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #12
-    { Title => 'Permitted management', Dataname => 'nsIfMng', Datatype => 'property', Tablesort => 'sortable-text',               Enabled => 0 }, #13
-    { Title => 'Load In',      Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #14
-    { Title => 'Load Out',     Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Enabled => 1 }, #15
-    { Title => 'IP',           Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Enabled => 1 }, #16
-    { Title => 'bpsIn',        Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #17
-    { Title => 'bpsOut',       Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Enabled => 1 }, #18
-    { Title => 'Pkt errors',   Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Enabled => 1 }, #19
-    { Title => 'Last traffic', Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Enabled => 1 }, #20
-    { Title => 'Actions',      Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Enabled => 1 }, #21
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #0
+    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => 1 }, #1
+    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => 1 }, #2
+    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #3
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #4
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #5
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #6
+    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                Enabled => 1 }, #7
+    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'duplex'} }, #8
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'stp'} }, #9
+    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => $ghOptions{'vlan'} }, #10
+    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #11
+    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #12
+    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #13
+    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => 1 }, #14
+    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => 1 }, #15
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #16
+    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #17
+    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #18
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'ALL',                                Enabled => 1 }, #19
+    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                Enabled => 1 }, #20
+    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                Enabled => 1 }, #21
 ];
-# show Netscreen specific info
-if ($ghOptions{'nodetype'} eq "netscreen") {
-    $grefAoHInterfaceTableHeader->[11]->{Enabled} = 1;
-    $grefAoHInterfaceTableHeader->[12]->{Enabled} = 1;
-    $grefAoHInterfaceTableHeader->[13]->{Enabled} = 1;
-}
-# show BigIP specific info
-if ($ghOptions{'nodetype'} eq "bigip") {
-    $grefAoHInterfaceTableHeader->[3]->{Enabled} = 1;
-    $grefAoHInterfaceTableHeader->[4]->{Enabled} = 1;
-    $grefAoHInterfaceTableHeader->[5]->{Enabled} = 0;
-    $grefAoHInterfaceTableHeader->[6]->{Enabled} = 0;
-}
-# show duplex mode
-if ($ghOptions{'duplex'}) {$grefAoHInterfaceTableHeader->[8]->{Enabled} = 1;}
-# show Spanning Tree port state
-if ($ghOptions{'stp'}) {$grefAoHInterfaceTableHeader->[9]->{Enabled} = 1;}
-# show VLANs per port
-if ($ghOptions{'vlan'}) {$grefAoHInterfaceTableHeader->[10]->{Enabled} = 1;}
-
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
 # ------------------------------------------------------------------------
@@ -384,8 +363,8 @@ my $grefAoHInterfaceTableData;                           # Contents of the inter
 # ------------------------------------------------------------------------
 my $gConfigTableHTML;                   # Generated HTML code of the Config table
 my $grefAoHConfigTableHeader = [        # Header for the colomns of the Config table
-    { Title => 'Title', Enabled => 1 },
-    { Title => 'Value', Enabled => 1 },
+    { Title => 'Title', Nodetype => 'ALL', Enabled => 1 },
+    { Title => 'Value', Nodetype => 'ALL', Enabled => 1 },
 ];
 my $grefAoHConfigTableData;             # Contents of the Config table
 $grefAoHConfigTableData->[0]->[0]->{Value} = "Globally excluded interfaces";
@@ -461,9 +440,12 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
+    Get_Speed (); # Gather interface speed
+    Get_Alias (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
-    Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
+    Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Cisco (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
 
@@ -471,35 +453,47 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
+    Get_Speed (); # Gather interface speed
+    Get_Alias (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
-    Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
+    Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
 } elsif ($ghOptions{'nodetype'} eq "netscreen") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.    
+    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status   
     Get_OperStatus (); # Gather interface operational status   
+    Get_Speed (); # Gather interface speed
+    Get_Alias (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)   
-    Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
+    Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     Get_Netscreen (); # Gather Juniper Netscreen specific info
 
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
-    Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.    
-    Get_InterfaceEnabled_Bigip (); # Gather interface administration status   
-    Get_InterfaceStatus_Bigip (); # Gather interface operational status   
-#    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)   
+    Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceEnabled_Bigip (); # Gather interface administration status
+    Get_InterfaceStatus_Bigip (); # Gather interface operational status
+#    Get_Speed_Bigip (); # Gather interface speed
+#    Get_Alias_Bigip (); # Gather interface alias
+#    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
+#    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
 
 } else {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
+    Get_Speed (); # Gather interface speed
+    Get_Alias (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
-    Get_Speed_Duplex_Alias (); # Gather interface admin status, speed, alias
+    Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
@@ -664,16 +658,7 @@ $grefAoHConfigTableData->[6]->[1]->{Value} = ( $ghOptions{'warning-property'} > 
  ? "warning for $ghOptions{'warning-property'} change(s), " : "no warning threshold, ";
 $grefAoHConfigTableData->[6]->[1]->{Value} .= ( $ghOptions{'critical-property'} > 0 )
  ? "critical for $ghOptions{'critical-property'} change(s)" : "no critical threshold";
-#if ( $ghOptions{'warning-property'} > 0 ) {
-#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "warning for $ghOptions{'warning-property'} change(s), ";
-#} else {
-#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no warning threshold, ";
-#}
-#if ( $ghOptions{'critical-property'} > 0 ) {
-#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "critical for $ghOptions{'critical-property'} change(s)";
-#} else {
-#    $grefAoHConfigTableData->[6]->[1]->{Value} .= "no critical threshold";
-#}
+
 
 # Loop through all interfaces
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
@@ -852,45 +837,62 @@ ExitPlugin ({
 # This code should never be reached
 exit $ERRORS{"UNKNOWN"};
 
-# ------------------------------------------------------------------------
-#      MAIN ENDS HERE
-# ------------------------------------------------------------------------
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOO                OOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOO    END MAIN    OOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOO                OOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 
-# ------------------------------------------------------------------------------
+
+
+
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 #      FUNCTIONS
-# ------------------------------------------------------------------------------
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 # List:
+# --- Standard node functions ---
+# * Get_InterfaceNames
+# * Get_AdminStatus
+# * Get_OperStatus
+# * Get_Speed
+# * Get_Alias
+# * Get_Duplex
+# * Get_IpAddress_SubnetMask
+# * Get_Traffic
+# * Get_TrafficInOut
+# * Get_Error_Discard
+# * Get_IfErrInOut
+# * Get_IfDiscardInOut
+# * Get_Stp
+# --- Netapp specific functions ---
+# * Get_Traffic_Netapp
+# --- Cisco specific functions ---
+# * Get_Vlan_Cisco
+# --- Hp specific functions ---
+# * Get_Vlan_Hp
+# --- Bigip specific functions ---
+# * Get_InterfaceNames_Bigip
+# * Get_InterfaceEnabled_Bigip
+# * Get_InterfaceStatus_Bigip
+# * Get_Traffic_Bigip
+# --- Netscreen specific functions ---
+# * Get_Netscreen
+# --- General functions ---
 # * ReadInterfaceInformationFile
 # * ReadConfigFileNew
 # * WriteConfigFileNew
-# * Get_InterfaceNames
-# * Get_InterfaceNames_Bigip
-# * Get_IpAddress_SubnetMask
-# * Get_Traffic
-# * Get_Traffic_Netapp
-# * Get_Error_Discard
 # * perfdataout
+# * perfdataout_spool
 # * WriteHtmlFile
 # * mcompare
 # * GenerateInterfaceTableData
 # * EvaluateInterfaces
-# * Get_AdminStatus
-# * Get_OperStatus
-# * Get_TrafficInOut
-# * Get_IfErrInOut
-# * Get_IfDiscardInOut
 # * CleanAndSelectHistoricalDataset
 # * CalculateBps
 # * EvaluatePackets
-# * Get_Speed_Duplex_Alias
-# * Get_Vlan_Cisco
-# * Get_Vlan_Hp
-# * Get_Stp
-# * Get_Netscreen
 # * ConvertSpeedToReadable
 # * ConvertIfStatusToReadable
 # * ConvertIfStatusToNumber
-# * ConvertIfDuplexStatusToReadable
 # * TimeDiff
 # * colorcode
 # * check_for_unused_interfaces
@@ -905,154 +907,9 @@ exit $ERRORS{"UNKNOWN"};
 # ------------------------------------------------------------------------------
 
 
-# ------------------------------------------------------------------------------
-# ReadInterfaceInformationFile
-# ------------------------------------------------------------------------------
-# Description:
-# Read all interfaces and its properties into the hash $grefhFile
-# ------------------------------------------------------------------------------
-sub ReadInterfaceInformationFile {
-
-    my $InterfaceInformationFile = shift;
-    my $grefhFile;
-
-    # read all properties from the state file - store into $grefhFile
-    if (-r "$InterfaceInformationFile") {
-        logger(1, "Found a readable state file \"$InterfaceInformationFile\"");
-        $grefhFile = ReadConfigFileNew ("$InterfaceInformationFile");
-
-        # check that the state file is not an old formated file, generated by a previous version
-        # of the plugin
-        if (not $grefhFile->{Version} or $grefhFile->{Version} ne "$REVISION" ) {
-            unlink ("$InterfaceInformationFile");   # delete the old file
-            for (keys %$grefhFile) { delete $grefhFile->{$_}; }  # purge the $grefhFile hash
-            logger(1, "Found a state file generated by another version of the plugin. Reinitialize the state file and the interface table now");
-            WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
-            $gInitialRun = 1;
-        } elsif ($grefhCurrent->{MD}->{Node}->{sysUpTime} < $grefhFile->{MD}->{Node}->{sysUpTime}) {
-            # check if the node has just rebooted
-            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Any cache timers are disactivated for that run");
-            $gShortCacheTimer = 0;
-            $gLongCacheTimer  = 0;
-            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Purging the counters from history as not usable anymore");
-            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
-        }
-
-        # detect if the user has just changed between using the 64bits option or not.
-        # In case of change, purge the history datasets as they are not correct anymore
-        $grefhCurrent->{MD}->{CachedInfo}->{'64bits'} = $ghSNMPOptions{'64bits'};
-        if (defined $grefhFile->{MD}->{CachedInfo}->{'64bits'} and $ghSNMPOptions{'64bits'} != $grefhFile->{MD}->{CachedInfo}->{'64bits'}) {
-            logger(1, "Detected a change in the use of the --64bits option. Purging the counters from history as not usable anymore");
-            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
-        }
-        # detect if the user has just changed the node type.
-        # In case of change, purge the history datasets as they can be not correct anymore
-        $grefhCurrent->{MD}->{CachedInfo}->{'nodetype'} = $ghOptions{'nodetype'};
-        if (defined $grefhFile->{MD}->{CachedInfo}->{'nodetype'} and $ghOptions{'nodetype'} ne $grefhFile->{MD}->{CachedInfo}->{'nodetype'}) {
-            logger(1, "Detected a change in the use of the --nodetype option (".$grefhFile->{MD}->{CachedInfo}->{'nodetype'}." to ".$ghOptions{'nodetype'}."). Purging the counters from history as can be not usable anymore");
-            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
-        }
-        
-    } else {
-        # the file with interface information was not found - this is the first
-        # run of the program or it was deleted before.
-        # Create a new one and store the sysUptime immediately
-        logger(1, "No readable state file \"$InterfaceInformationFile\" found, creating a new one");
-        WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
-        $gInitialRun = 1;
-    }
-    return $grefhFile;
-}
-
-# ------------------------------------------------------------------------------
-# ReadConfigFileNew
-# ------------------------------------------------------------------------------
-# Description:
-# Read config file with the perl Config::General Module
-#
-#   http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all
-#
-# ------------------------------------------------------------------------------
-sub ReadConfigFileNew {
-
-    my $ConfigFile = shift;
-    logger(2, "Reading config file: $ConfigFile");
-
-    my $refoConfig; # object definition for the config
-    my $refhConfig; # hash reference returned
-
-    # return undef if file is not readable
-    unless (-r "$ConfigFile") {
-        logger(2, "Config file \"$ConfigFile\" not readable");
-        return $refhConfig;
-    }
-
-    # Initialize ConfigFile Read Process (create object)
-    eval {
-        $refoConfig = new Config::General (
-            -ConfigFile             => "$ConfigFile",
-            -UseApacheInclude       => "false",
-            -MergeDuplicateBlocks   => "false",
-            -InterPolateVars        => "false",
-            -SplitPolicy            => 'equalsign'
-        );
-    };
-    if($@) {
-        # it's not successfull so remove the bad config file and try again.
-        logger(1, "CONFIG READ FAIL: create new one ($ConfigFile).");
-        unlink "$ConfigFile";
-        return $refhConfig;
-    }
-
-    # Read Config File
-    %$refhConfig = $refoConfig->getall;
-
-    # return reference
-    return $refhConfig;
-}
-
-# ------------------------------------------------------------------------------
-# WriteConfigFileNew
-# ------------------------------------------------------------------------------
-# Description:
-# --- write a hash reference to a file
-# --- see ReadConfigFileNew ---------
-#
-# $gFile = full qulified filename with path
-# $refhStruct = hash reference
-# ------------------------------------------------------------------------------
-sub WriteConfigFileNew {
-    my $ConfigFile   =   shift;
-    my $refhStruct   =   shift;
-    logger(3, "File to write: $ConfigFile");
-
-    use File::Basename;
-
-    my $refoConfig; # object definition for the config
-    my $Directory = dirname ($ConfigFile);
-
-    # Initialize ConfigFile Read Process (create object)
-    $refoConfig = new Config::General (
-        -ConfigPath             => "$Directory",
-        -UseApacheInclude       => "false",
-        -MergeDuplicateBlocks   => "false",
-        -InterPolateVars        => "false",
-        -SplitPolicy            => 'equalsign'
-    );
-
-    # Write Config File
-    if (-f "$ConfigFile" and not -w "$ConfigFile") {
-        logger(0, "Unable to write to file $ConfigFile $!\n");
-        exit $ERRORS{"UNKNOWN"};
-    }
-
-    umask "$UMASK";
-    $refhStruct->{Version} = $REVISION;
-    $refoConfig->save_file("$ConfigFile", $refhStruct);
-    logger(1, "Wrote interface data to file: $ConfigFile");
-
-    return 0;
-}
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+# GENERAL FUNCTIONS
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
 # ------------------------------------------------------------------------------
 # Get_InterfaceNames
@@ -1668,6 +1525,160 @@ sub Get_Error_Discard {
     return 0;
 }
 
+
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+# GENERAL FUNCTIONS
+# oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+
+# ------------------------------------------------------------------------------
+# ReadInterfaceInformationFile
+# ------------------------------------------------------------------------------
+# Description:
+# Read all interfaces and its properties into the hash $grefhFile
+# ------------------------------------------------------------------------------
+sub ReadInterfaceInformationFile {
+
+    my $InterfaceInformationFile = shift;
+    my $grefhFile;
+
+    # read all properties from the state file - store into $grefhFile
+    if (-r "$InterfaceInformationFile") {
+        logger(1, "Found a readable state file \"$InterfaceInformationFile\"");
+        $grefhFile = ReadConfigFileNew ("$InterfaceInformationFile");
+
+        # check that the state file is not an old formated file, generated by a previous version
+        # of the plugin
+        if (not $grefhFile->{Version} or $grefhFile->{Version} ne "$REVISION" ) {
+            unlink ("$InterfaceInformationFile");   # delete the old file
+            for (keys %$grefhFile) { delete $grefhFile->{$_}; }  # purge the $grefhFile hash
+            logger(1, "Found a state file generated by another version of the plugin. Reinitialize the state file and the interface table now");
+            WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
+            $gInitialRun = 1;
+        } elsif ($grefhCurrent->{MD}->{Node}->{sysUpTime} < $grefhFile->{MD}->{Node}->{sysUpTime}) {
+            # check if the node has just rebooted
+            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Any cache timers are disactivated for that run");
+            $gShortCacheTimer = 0;
+            $gLongCacheTimer  = 0;
+            logger(1, "The node has been restarted (sysUpTime retrieved is smaller than the one in the state file). Purging the counters from history as not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
+        }
+
+        # detect if the user has just changed between using the 64bits option or not.
+        # In case of change, purge the history datasets as they are not correct anymore
+        $grefhCurrent->{MD}->{CachedInfo}->{'64bits'} = $ghSNMPOptions{'64bits'};
+        if (defined $grefhFile->{MD}->{CachedInfo}->{'64bits'} and $ghSNMPOptions{'64bits'} != $grefhFile->{MD}->{CachedInfo}->{'64bits'}) {
+            logger(1, "Detected a change in the use of the --64bits option. Purging the counters from history as not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
+        }
+        # detect if the user has just changed the node type.
+        # In case of change, purge the history datasets as they can be not correct anymore
+        $grefhCurrent->{MD}->{CachedInfo}->{'nodetype'} = $ghOptions{'nodetype'};
+        if (defined $grefhFile->{MD}->{CachedInfo}->{'nodetype'} and $ghOptions{'nodetype'} ne $grefhFile->{MD}->{CachedInfo}->{'nodetype'}) {
+            logger(1, "Detected a change in the use of the --nodetype option (".$grefhFile->{MD}->{CachedInfo}->{'nodetype'}." to ".$ghOptions{'nodetype'}."). Purging the counters from history as can be not usable anymore");
+            delete $grefhFile->{History};  # purge the History part in $grefhFile hash
+        }
+        
+    } else {
+        # the file with interface information was not found - this is the first
+        # run of the program or it was deleted before.
+        # Create a new one and store the sysUptime immediately
+        logger(1, "No readable state file \"$InterfaceInformationFile\" found, creating a new one");
+        WriteConfigFileNew ("$InterfaceInformationFile",$grefhCurrent);
+        $gInitialRun = 1;
+    }
+    return $grefhFile;
+}
+
+# ------------------------------------------------------------------------------
+# ReadConfigFileNew
+# ------------------------------------------------------------------------------
+# Description:
+# Read config file with the perl Config::General Module
+#
+#   http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all
+#
+# ------------------------------------------------------------------------------
+sub ReadConfigFileNew {
+
+    my $ConfigFile = shift;
+    logger(2, "Reading config file: $ConfigFile");
+
+    my $refoConfig; # object definition for the config
+    my $refhConfig; # hash reference returned
+
+    # return undef if file is not readable
+    unless (-r "$ConfigFile") {
+        logger(2, "Config file \"$ConfigFile\" not readable");
+        return $refhConfig;
+    }
+
+    # Initialize ConfigFile Read Process (create object)
+    eval {
+        $refoConfig = new Config::General (
+            -ConfigFile             => "$ConfigFile",
+            -UseApacheInclude       => "false",
+            -MergeDuplicateBlocks   => "false",
+            -InterPolateVars        => "false",
+            -SplitPolicy            => 'equalsign'
+        );
+    };
+    if($@) {
+        # it's not successfull so remove the bad config file and try again.
+        logger(1, "CONFIG READ FAIL: create new one ($ConfigFile).");
+        unlink "$ConfigFile";
+        return $refhConfig;
+    }
+
+    # Read Config File
+    %$refhConfig = $refoConfig->getall;
+
+    # return reference
+    return $refhConfig;
+}
+
+# ------------------------------------------------------------------------------
+# WriteConfigFileNew
+# ------------------------------------------------------------------------------
+# Description:
+# --- write a hash reference to a file
+# --- see ReadConfigFileNew ---------
+#
+# $gFile = full qulified filename with path
+# $refhStruct = hash reference
+# ------------------------------------------------------------------------------
+sub WriteConfigFileNew {
+    my $ConfigFile   =   shift;
+    my $refhStruct   =   shift;
+    logger(3, "File to write: $ConfigFile");
+
+    use File::Basename;
+
+    my $refoConfig; # object definition for the config
+    my $Directory = dirname ($ConfigFile);
+
+    # Initialize ConfigFile Read Process (create object)
+    $refoConfig = new Config::General (
+        -ConfigPath             => "$Directory",
+        -UseApacheInclude       => "false",
+        -MergeDuplicateBlocks   => "false",
+        -InterPolateVars        => "false",
+        -SplitPolicy            => 'equalsign'
+    );
+
+    # Write Config File
+    if (-f "$ConfigFile" and not -w "$ConfigFile") {
+        logger(0, "Unable to write to file $ConfigFile $!\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+
+    umask "$UMASK";
+    $refhStruct->{Version} = $REVISION;
+    $refoConfig->save_file("$ConfigFile", $refhStruct);
+    logger(1, "Wrote interface data to file: $ConfigFile");
+
+    return 0;
+}
+
 # ------------------------------------------------------------------------
 # write performance data
 # perfdataout ();
@@ -1916,7 +1927,7 @@ sub perfdataout {
 # ------------------------------------------------------------------------
 # write performance data to a spool file
 # perfdataout_spool ();
-# --------------------------------------------------------------------
+# ------------------------------------------------------------------------
 # Grapher: pnp4nagios or format compatible
 # ------------------------------------------------------------------------
 
@@ -2103,11 +2114,9 @@ sub GenerateInterfaceTableData {
 
     my $grefaInterfaceTableFields;
     foreach my $Cell ( @$grefAoHInterfaceTableHeader ) {
-    #    foreach my $Cell ( @$Line ) {
-            if ($Cell->{'Enabled'}) {
-                push(@$grefaInterfaceTableFields,$Cell->{'Dataname'});
-            }
-    #    }
+        if (($Cell->{'Nodetype'} eq 'ALL' or $Cell->{'Nodetype'} =~ m/$ghOptions{nodetype}/) and $Cell->{'Enabled'}) {
+            push(@$grefaInterfaceTableFields,$Cell->{'Dataname'});
+        }
     }
 
     # Print a header for debug information
@@ -2141,7 +2150,7 @@ sub GenerateInterfaceTableData {
         $gNumberOfInterfaces++;
 
         foreach my $Header ( @$refAoHInterfaceTableHeader ) {
-            next if (not $Header->{'Enabled'});
+            next if (($Header->{'Nodetype'} ne 'ALL' and not $Header->{'Nodetype'} =~ m/$ghOptions{nodetype}/) or not $Header->{'Enabled'});
 
             my $ChangeTime;
             my $LastChangeInfo          = "";
@@ -3387,27 +3396,9 @@ sub EvaluatePackets {
 
 
 # ------------------------------------------------------------------------
-# walk through each interface and read ifAdminStatus, ifSpeed, ifAlias,
-# ifDuplexStatus
+# walk through each interface and read ifSpeed
 # ------------------------------------------------------------------------
-sub Get_Speed_Duplex_Alias {
-
-    # get ifDuplexStatus table
-    my $refhIfDuplexStatus = ();
-    if ($ghOptions{'duplex'}) {
-        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifDuplexStatus,$ghOptions{'cachedir'},0,1);
-        foreach (@$refaIfDuplexStatus) {
-            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus{'oid'}\.([0-9]*) (.*)$/;
-        }
-    }
-
-    # get ifAlias table - returned result can be empty
-    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
-    my $refhIfAlias = ();
-    foreach (@$refaIfAlias) {
-        $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias{'oid'}\.([0-9]*) (.*)$/;
-    }
+sub Get_Speed {
 
     # get ifSpeed table
     my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifSpeed,$ghOptions{'cachedir'},0,1);
@@ -3415,24 +3406,20 @@ sub Get_Speed_Duplex_Alias {
     foreach (@$refaIfSpeed) {
         $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
     }
-
+    # get ifSpeed64 table
     my $refhIfHighSpeed = ();
     if ($ghSNMPOptions{'64bits'}) {
-        # get ifSpeed64 table
         my $refaIfSpeed64 = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHighSpeed,$ghOptions{'cachedir'},0,0);
         $refhIfHighSpeed = ();
         foreach (@$refaIfSpeed64) {
             $refhIfHighSpeed->{"$1"}=$2 if /$oid_ifHighSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
         }
     }
-
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
-
         # Extract the index out of the MetaData
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         logger(2, "Index=$Index ($ifName)");
-
         # Get the speed in normal or highperf speed counters
         if (not defined $refhIfSpeed->{"$Index"} or $refhIfSpeed->{"$Index"} eq ""){
             $refhIfSpeed->{"$Index"} = -1;
@@ -3447,32 +3434,61 @@ sub Get_Speed_Duplex_Alias {
                 $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface speed exceeding standard counters for interface $ifName($Index). If possible, consider the use of highperf mib (--64bits).<br>";
             }
         }
-
         # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} =
             ($refhIfSpeed->{"$Index"});
         $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} =
             ConvertSpeedToReadable ($refhIfSpeed->{"$Index"});
+        logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
+    }
+    return 0;
+}
 
+# ------------------------------------------------------------------------
+# walk through each interface and read ifAlias
+# ------------------------------------------------------------------------
+sub Get_Alias {
+
+    # get ifAlias table - returned result can be empty
+    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},0,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
+    my $refhIfAlias = ();
+    foreach (@$refaIfAlias) {
+        $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias{'oid'}\.([0-9]*) (.*)$/;
+    }
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         # Store ifAlias normalized to not get into trouble with special chars
-        if (defined $refhIfAlias->{"$Index"}) {
-            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = normalize ($refhIfAlias->{"$Index"});
-        } else {
-            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
-        }
+        $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = (defined $refhIfAlias->{"$Index"}) ? normalize ($refhIfAlias->{"$Index"}) : '';
+        logger(2, "Index=$Index ($ifName): Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
+    }
+    return 0;
+}
 
-        logger(2, "  Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable}."\t".
-            "Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
+# ------------------------------------------------------------------------
+# walk through each interface and read ifDuplexStatus
+# ------------------------------------------------------------------------
+sub Get_Duplex {
 
-        # Store ifDuplexStatus converted from a digit to string
-        if ($ghOptions{'duplex'}) {
-            # Store ifDuplexStatus converted from a digit to string
-            $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} =
-                ConvertIfDuplexStatusToReadable ($refhIfDuplexStatus->{"$Index"});
-            logger(2, "  ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+    # get ifDuplexStatus table
+    my $refhIfDuplexStatus = ();
+    if ($ghOptions{'duplex'}) {
+        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifDuplexStatus,$ghOptions{'cachedir'},0,1);
+        foreach (@$refaIfDuplexStatus) {
+            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus{'oid'}\.([0-9]*) (.*)$/;
         }
     }
-
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        # Store ifDuplexStatus converted from a digit to string
+        $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
+            ? $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
+        logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+    }
     return 0;
 }
 
@@ -3933,34 +3949,6 @@ sub ConvertIfStatusToNumber {
 }
 
 # ------------------------------------------------------------------------
-# get the interface duplex status as integer or string and convert
-# it to a readable format - return a string
-#
-# http://www.faqs.org/rfcs/rfc3635.html (EtherLike MIB)
-#
-#    dot3StatsDuplexStatus OBJECT-TYPE
-#        SYNTAX  INTEGER {
-#                    unknown(1),
-#                    halfDuplex(2),
-#                    fullDuplex(3)
-#        }
-# ------------------------------------------------------------------------
-sub ConvertIfDuplexStatusToReadable {
-    my $status = shift;
-    my %status_conversion = ( 1=>'unknown', 2=>'half', 3=>'full');
-    if (defined $status) {
-        if ($status =~ /^(1|2|3)$/) {
-            $status = $status_conversion{$status};
-        } else {
-            # we do nothing and leave the original status
-        }
-    } else {
-        $status = '';
-    }
-    return $status;
-}
-
-# ------------------------------------------------------------------------
 # calculate time diff of unix epoch seconds and return it in
 # a readable format
 #
@@ -4319,7 +4307,7 @@ sub Convert2HtmlTable {
             $HTMLTable .= "<tr";
             my $trTagclose = '>';
             foreach my $Cell ( @$refAoHHeader ) {
-                if ($Cell->{'Enabled'}) {
+                if (($Cell->{'Nodetype'} eq 'ALL' or $Cell->{'Nodetype'} =~ m/$ghOptions{nodetype}/) and $Cell->{'Enabled'}) {
                     my $Title;
                     my $SpecialCellFormat = "";
 
@@ -4925,7 +4913,7 @@ sub check_options () {
         'warning-traffic'           => "101,1000,1000",
         'critical-traffic'          => "101,5000,5000",
         #------ property tracking -------#
-        'track-property'            => ['ifOperStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifDuplexStatus, ifVlanNames, ifIpInfo
+        'track-property'            => ['ifOperStatus','ifStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifDuplexStatus, ifVlanNames, ifIpInfo
         'exclude-property'          => undef,
         'include-property'          => undef,
         'warning-property'          => 0,
@@ -5352,529 +5340,5 @@ sub check_options () {
 }
 
 __END__
-
-=head1 NAME
-
-  check_interface_table_v3t.pl - nagios plugin for monitoring network devices
-
-=head1 SYNOPSIS
-
-=head2 Basic usage
-
-  check_interface_table_v3t.pl [-vvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>]
-    [--exclude <globally excluded interface list>] [--include <globally included interface list>]
-    [--warning <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
-    [--critical <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
-    [--track-property <tracked property list>] [--include-property <property tracking interface inclusion list>]
-    [--exclude-property <property tracking interface exclusion list>] [--warning-property <warning property change counter>]
-    [--critical-property <critical property change counter>] [-r] [-f]
-
-=head2 Advanced usage
-
-  check_interface_table_v3t.pl [-vvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>]
-    [--domain <transport domain>] [--P <port>]
-    [-e <globally excluded interface list>] [-i <globally included interface list>]
-    [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>]
-    [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
-    [--ct <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
-    [--tp <property list>] [--ip <property tracking interface inclusion list>] [--ep <property tracking interface exclusion list>]
-    [--wp <warning property change counter>] [--cp <critical property change counter>] [-r] [-f]
-    [--cachedir <caching directory>] [--statedir <state files directory>] [--(no)duplex] [--(no)stp]
-    [--(no)vlan] [--nodetype] [--accessmethod <method>] [--htmltabledir <system path to html interface tables>]
-    [--htmltableurl <url to html interface tables>] [-d <delta>] [--ifs <separator>]
-    [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient]
-    [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
-    [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort]
-
-=head1 DESCRIPTION
-
-=head2 Introduction
-
-B<check_interface_table_v3t.pl> is a Nagios(R) plugin that allows you to monitor
-the network devices of various nodes (e.g. router, switch, server) without knowing
-each interface in detail. Only the hostname (or ip address) and the snmp community
-string are required.
-
-  Simple Example:
-  C<# check_interface_table_v3t.pl -H server1 -C public>
-
-  Output:
-  C<<a href="/nagios/interfacetable/server1-Interfacetable.html">total 3 interface(s)</a>>
-
-The output is a HTML link to a web page which shows all interfaces in a table.
-
-=head2 Theory of operation
-
-The perl program polls the remote machine in a highly efficient manner.
-It collects all data from all interfaces and stores these data into "state" files in a
-specific directory (ex: /tmp/.ifState).
-
-Each host (option -H) holds one text file:
-  # ls /tmp/.ifState/*.txt
-  /tmp/.ifState/server1-Interfacetable.txt
-
-When the program is called twice, three times, etc. it retrieves new
-information from the network and compares it against this state file.
-
-
-B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
-B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
-B<!!!!! ALL FOLLOWING DOCUMENTATION ARE OBSOLETE AND NEED TO BE UPDATED !!!!!>
-
-
-=head1 PREREQUISITS
-
-This chapter describes the operating system prerequisits to get this program
-running:
-
-=head2 net-snmp software
-
-The B<snmpwalk> command must be available on your operating system.
-
-Test your snmpwalk output with a command like:
-
-  # snmpwalk -Oqn -v 1 -c public router.itdesign.at | head -3
-    .1.3.6.1.2.1.1.1.0 Cisco IOS Software, 2174 Software Version 11.7(3c), REL.
-    SOFTWARE (fc2)Technical Support: http://www.cisco.com/techsupport
-    Copyright (c) 1986-2005 by Cisco Systems, Inc.
-    Compiled Mon 22-Oct-03 9:46 by antonio
-    .1.3.6.1.2.1.1.2.0 .1.3.6.1.4.1.9.1.620
-    .1.3.6.1.2.1.1.3.0 9:11:09:19.48
-
-  snmpwalk parameters:
-    -Oqn -v 1 ............ some noise (please read "man snmpwalk")
-    -c public  ........... snmp community string
-    router.itdesign.at ... host where you do the snmp queries
-
-B<snmpwalk> is part of the net-snmp suit (http://net-snmp.sourceforge.net/).
-Some more unix commands to find it:
-
-  # whereis snmpwalk
-  snmpwalk: /usr/bin/snmpwalk /usr/share/man/man1/snmpwalk.1.gz
-
-  # which snmpwalk
-  /usr/bin/snmpwalk
-
-  # rpm -qa | grep snmp
-  net-snmp-5.3.0.1-25.15
-
-  # rpm -ql net-snmp-5.3.0.1-25.15 | grep snmpwalk
-  /usr/bin/snmpwalk
-  /usr/share/man/man1/snmpwalk.1.gz
-
-=head2 PERL v5 installed
-
-You need a working perl 5.x installation. Currently we use V5.8.8 under
-SUSE Linux Enterprise Server 10 SP1 for development. We know that it works
-with other versions, too.
-
-Get your perl version with:
-  # perl -V
-
-=head2 PERL modules
-
-=head3 PERL Net::SNMP library
-
-B<Net::SNMP> is the perl's snmp library. Some ideas to see if it is installed:
-
-  For RedHat, Fedora, SuSe:
-  # rpm -qa|grep -i perl|grep -i snmp
-  perl-Net-SNMP-5.2.0-12.2
-
-  # find /usr -name SNMP.pm
-  /usr/lib/perl5/vendor_perl/5.8.8/Net/SNMP.pm
-
-  if it is not installed please check your operating systems packages or install it
-  from CPAN: http://search.cpan.org/search?query=Net%3A%3ASNMP&mode=all
-
-=head3 PERL Config::General library
-
-B<Config::General> is used to write all interface information data back to the
-file system.
-
-This perl library should be available via the package management tool of your
-system distribution.
-
-  For Debian distribution:
-  # apt-get install libconfig-general-perl
-
-  CPAN page: http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all
-
-=head3 PERL Data::Dumper library
-
-B<Data::Dumper> is used to easily dump hashes and arrays in some parts of the debug.
-
-This perl library should be available via the package management tool of your
-system distribution.
-
-  For Debian distribution:
-  # apt-get install libdata-dump-perl
-
-  CPAN page: http://search.cpan.org/search?query=Data%3A%3ADumper&mode=all
-
-=head3 PERL Getopt::Long library
-
-B<Getopt::Long> is used to handle the commandline options of the plugin.
-
-This perl library should already be available on your system.
-
-  For Debian distribution:
-  # apt-get install libdata-dump-perl
-
-  CPAN page: http://search.cpan.org/search?query=Getopt%3A%3ALong&mode=all
-
-=head2 CGI script to reset the interface table
-
-If everything is working fine you need the possibility to reset the interface table.
-Often it is necessary that someone changes ip addresses or other properties. These
-changes are necessary and you want to update (=reset) the table.
-
-Resetting the table means to delete the state file (ex: in /tmp/.ifState).
-
-Withing this kit you find an example shell script which does this job for you.
-To install this cgi script do the following:
-
-  1) Copy the cgi script to the correct location on your WEB server
-  # cp -i InterfaceTableReset_v3t.cgi /usr/local/nagios/sbin
-
-  2) Check permissions
-  # ls -l /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
-  -rwxr-xr-x 1 nagios nagios 2522 Nov 16 13:14 /usr/local/nagios/sbin/Inte...
-
-  3) Prepare the /etc/sudoers file so that the web server's account can call
-  the cgi script (as shell script)
-    Suse linux based distrib:
-        # visudo
-        wwwrun ALL=(ALL) NOPASSWD: /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
-    Debian based distrib:
-        # visudo
-        www-data ALL=(ALL) NOPASSWD: /usr/local/nagios/sbin/InterfaceTableReset_v3t.cgi
-
-The above unix commands are tested with apache2 installed and nagios v3 compiled
-into /usr/local/nagios.
-
-Note: please send me an email if you have information from other operating systems
-on these details. I will update the documentation.
-
-=head2 Configure Nagios 3.x to display HTML links in Plugin Output
-
-In Nagios version 3.x there is html output per default disabled.
-
-  1) Edit cgi.cfg and set this option to zero
-      escape_html_tags=0
-
-cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
-
-=head1 OPTIONS
-
-=head2 Basic options
-
-=head3 --help | -?
-
- Show this help page
-
-=head3 --man | --manual
-
- Print the manual
-
-=head3 --version | -V
-
- Plugin version
-
-=head3 --verbose | -v
-
- Verbose mode. Can be specified multiple times to increase the verbosity (max 3 times).
-
-=head3 --showdefaults | -D
-
- Print the option default values
-
-=head3 --hostquery | -H (required)
-
- No default
- Specifies the remote host to poll.
-
-=head3 --hostdisplay | -h (optional)
-
- Default = <hostquery>
- Specifies the remote host to display in the HTML link.
- If omitted, it defaults to the host with -H
-
- Example:
-    check_interface_table_v3t.pl -h firewall -H srv-itd-99.itdesign.at -C mkjz65a
-
- This option is maybe useful when you want to poll a host with -H and display
- another link for it.
-
-=head3 --community (required)
-
- Default = public
- Specifies the snmp v1 community string. Other snmp versions are not
- implemented yet.
-
-=head3 --exclude | -e (optional)
-
- Comma separated list of interfaces excluded from load tracking (main check). Can
- be used to exclude:
-  * virtual or loopback interfaces
-  * flapping interfaces
-
- Example:
-    ... -H router -C public -e Dialer0,BVI20,FastEthernet0
-
- Note: if --regexp is not used, the interface descriptions must match exactly!
-
-=head3 --include | -i (optional)
-
- Comma separated list of interfaces included in load tracking (main check). By
- default, all the interfaces are included. But there are some case where you
- need to include an interface which is part of a group of previously excluded
- interfaces.
-
- Example:
-    ... -H router -C public -i FastEthernet0,FastEthernet1
-
- Note: if --regexp is not used, the interface descriptions must match exactly!
-
-=head3 --track | -t (optional)
-
- List of tracked properties. Values can be:
-  * 'ifAdminStatus'      : the administrative status of the interface
-  * 'ifOperStatus'       : the operational status of the interface
-  * 'ifSpeedReadable'    : the speed of the interface
-  * 'ifDuplexStatus'     : the operation mode of the interface (duplex mode)
-  * 'ifVlanNames'        : the vlan on which the interface was associated
-  * 'ifIpInfo'           : the ip configuration for the interface
- Default is 'ifOperStatus'
- Note: interface traffic load(s) is not considered as a property, and is always
-       monitored following defined thresholds.
-
-=head3 --regexp | -r (optional)
-
- Interface names and property names for some other options will be interpreted as
- regular expressions.
-
-=head3 --warning | -w (optional)
-
- Must be a positive integer number. Changes in the interface table are compared
- against this threshold.
- Example:
-    ... -H server1 -C public -w 1
- Leads to WARNING (exit code 1) when one or more interface properties were
- changed.
-
-=head3 --critical | -c (optional)
-
- Must be a positive integer number. Changes in the interface table are compared
- against this threshold.
- Example:
-    ... -H server1 -C public -c 1
- Leads to CRITICAL (exit code 2) when one or more interface properties were
- changed.
-
-=head3 --warning-load | -W (optional)
-
- Interface traffic load percentage leading to a warning alert
-
-=head3 --critical-load | -C (optional)
-
- Interface traffic load percentage leading to a critical alert
-
-=head3 --enableperfdata | -f (optional)
-
- Enable performance data, default is port perfdata disabled
-
-=head3 --grapher (optional)
-
- Specify the used graphing solution.
- Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
-
-=head3 --outputshort (optional)
-
- Reduce the verbosity of the plugin output. If used, the plugin only returns
- general counts (nb ports, nb changes,...). This is close to the way the
- previous versions of the plugin was working.
-
- In this version of the plugin, by default the plugin returns
-   + general counts (nb ports, nb changes,...)
-   + what changes has been detected
-   + what interface(s) suffer(s) from high load.
-
-=head2 Advanced options
-
-=head3 --cachedir (optional)
-
- Sets the directory where snmp responses are cached.
-
-=head3 --statedir (optional)
-
- Sets the directory where the interface states are stored.
-
-=head3 --vlan (optional)
-
- Add the vlan attribution property for each interface in the interface table.
-
-=head3 --nodetype (optional)
-
- Add cisco specific info in the information table.
-
-=head3 --accessmethod (optional)
-
- Access method for the link to the host in the HTML page.
- Can be ssh or telnet.
-
-=head3 --htmltabledir (optional)
-
- Specifies the directory in the file system where HTML interface table are stored.
-=head3 --htmltableurl (optional)
-
- Specifies the URL by which the interface table are accessible.
-=head3 --delta | -d (optional)
-
- Set the delta used for interface throuput calculation. In seconds.
-=head3 --ifs (optional)
-
- Input field separator. The specified separator is used for all options allowing
- a list to be specified.
-
-=head3 --cache (optional)
-
- Define the retention time of the cached data. In seconds.
-
-=head3 --reseturl (optional)
-
- Specifies the URL to the tablereset program.
-
-=head3 --(no)ifloadgradient (optional)
-
- Enable color gradient from green over yellow to red for the load percentage
- representation.
-
-=head3 --(no)human (optional)
-
- Translate bandwidth usage in human readable format (G/M/K bps).
-
-=head3 --(no)snapshot (optional)
-
- Force the plugin to run like if it was the first launch. Cached data will be
- ignored.
-
-=head3 --timeout (optional)
-
- Define the timeout limit of the plugin.
-
-=head3 --exclude-property | -E (optional)
-
- Comma separated list of interfaces excluded from the property tracking.
-
-=head3 --include-property | -I (optional)
-
- Comma separated list of interfaces included in the property tracking.
- By default, all the interfaces that are included in the load tracking (-i option) are
- also included in the property tracking.
- Also, there are some case where you need to include an interface which is part of a
- group of previously excluded interfaces. In this case, you need to proviously exclude
- all/part the interfaces using -E, then includes some of them back using -I.
-
-=head3 --portperfunit (optional)
-
- In/out traffic in perfdata could be reported in octets or in bits.
- Possible values: bit or octet
-
-=head3 --grapherurl (optional)
-
- Graphing system url. Default values are:
-  * pnp4nagios       : /pnp4nagios
-  * nagiosgrapher    : /nagios/cgi-bin (?)
-  * netwaysgrapherv2 : /nagios/cgi-bin (?)
-
-=head1 ATTENTION - KNOWN ISSUES
-
-=head2 Interaction with Nagios
-
-If you use this program with Nagios then it is typically called in the "nagios"
-users context. This means that the user "nagios" must have the correct permissions
-to write all required files into the filesystem (see chapter "Theory of operation").
-
-=head2 Reset table
-
-The "reset table button" is the next challenge. Clicking in the web browser means to
-trigger the "InterfaceTableReset_v3t.cgi" script which then tries to remove the state
-file.
-
- If this does not work please check the following:
-
- * correct directory and permissions of InterfaceTableReset_v3t.cgi
- * correct entry in the /etc/sudoers file
- * look at /var/log/messages or /var/log/secure to see what "sudo" calls
- * look at the web servers access and error log files
-
-=head2 /tmp cleanup
-
-Some operating systems clean up the /tmp directory during reboot (I know that
-OpenBSD does this). This leads to the problem that the /tmp/.ifState directory
-is deleted and you loose your interface information states. The solution for
-this is to set the -StateDir <directory> switch from command line.
-
-=head2 umask on file and directory creation
-
-This program generats some files and directories on demand:
-
-  /tmp/.ifState ... directory with table states
-  /tmp/.ifCache ... directory with caching data
-  /usr/local/nagios/share/interfacetable ... directory with html tables
-
-To avoid file system conflicts we simply set the umask to 0000 so that all
-files and directories are created with everyone read/write permissions.
-
-If you don't want this - change the $UMASK variable in this program and
-test it very carefully - especially under the account where the program is
-executed.
-
-  Example:
-
-  # su - nagios
-  nagios> check_interface_table_v3t.pl -H <host> -C <community string> -Debug 1
-
-=head1 LICENSE
-
-This program was demonstrated by ITdesign during the Nagios conference in
-Nuernberg (Germany) on the 12th of october 2007. Normally it is part of the
-commercial suite of monitoring add ons around Nagios from ITdesign.
-This version is free software under the terms and conditions of GPLV3.
-
-Netways had adapted it to include performance data and calculate bandwidth
-usage, making some features mentioned in the COMMERCIAL version available in
-the GPL version (version 2 of the plugin)
-available in this GPL version.
-
-The 3rd version (by Yannnick Charton) (version v3t, to make the distinction w
-ith other possible v3 versions) brings lots of enhancements and new features
-to the v2 version. See the README and CHANGELOG files for more information.
-
-Copyright (C) [2007]  [ITdesign Software Projects & Consulting GmbH]
-Copyright (C) [2009]  [Netways GmbH]
-Copyright (C) [2009-2012]  [Yannick Charton]
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 3 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, see <http://www.gnu.org/licenses/>.
-
-=head1 CONTACT INFORMATION
-
- Yannick Charton
- Email: tontonitch-pro@yahoo.fr
- Website: www.tontonitch.com
-
-=cut
 
 # vi: set ts=4 sw=4 expandtab :
