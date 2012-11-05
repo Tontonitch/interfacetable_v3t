@@ -36,6 +36,7 @@ use Config::General;
 use Data::Dumper;
   $Data::Dumper::Sortkeys = 1;
 use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
+use Sort::Naturally;
 use GeneralUtils;
 use Settings;
 use SnmpUtils;
@@ -335,7 +336,7 @@ my $gInterfaceTableHTML;                                 # Html code of the inte
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
     { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #0
     { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => 1 }, #1
-    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => 1 }, #2
+    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'alias'} }, #2
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #3
     { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #4
     { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #5
@@ -441,7 +442,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
     Get_Speed (); # Gather interface speed
-    Get_Alias (); # Gather interface alias
+    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
@@ -454,7 +455,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
     Get_Speed (); # Gather interface speed
-    Get_Alias (); # Gather interface alias
+    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
@@ -462,12 +463,24 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
+} elsif ($ghOptions{'nodetype'} eq "netapp") {
+    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_AdminStatus (); # Gather interface administration status
+    Get_OperStatus (); # Gather interface operational status
+    Get_Speed (); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
+    Get_Traffic_Netapp (); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Error_Discard();
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+
 } elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status   
     Get_OperStatus (); # Gather interface operational status   
     Get_Speed (); # Gather interface speed
-    Get_Alias (); # Gather interface alias
+    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)   
     Get_Error_Discard();
@@ -480,16 +493,16 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceEnabled_Bigip (); # Gather interface administration status
     Get_InterfaceStatus_Bigip (); # Gather interface operational status
 #    Get_Speed_Bigip (); # Gather interface speed
-#    Get_Alias_Bigip (); # Gather interface alias
+#    ($ghOptions{'alias'}) && Get_Alias_Bigip (); # Gather interface alias
 #    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
 #    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
 
-} else {
+} else {    # nodetype standard
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
     Get_Speed (); # Gather interface speed
-    Get_Alias (); # Gather interface alias
+    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
     Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
@@ -551,8 +564,8 @@ $grefhCurrent = EvaluateInterfaces (
 
 # sort ifIndex by number
 #@$grefaAllIndizes = sort { $a <=> $b }
-@$grefaAllIndizes = sort { lc($a) cmp lc($b) }
-    keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
+#@$grefaAllIndizes = sort { lc($a) cmp lc($b) } keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
+@$grefaAllIndizes = nsort keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
 logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
 my $basetime = CleanAndSelectHistoricalDataset();
@@ -1909,7 +1922,7 @@ sub perfdataout {
                     print OUT "$grefhCurrent->{MD}->{Node}->{sysName}\t";  # hostname
                     print OUT "$servicename";                      # servicename
                     print OUT "\t\t";                              # pluginoutput
-                    if ($grefhFile->{If}->{$Name}->{ifAlias} ne '') {
+                    if ($ghOptions{'alias'} and $grefhFile->{If}->{$Name}->{ifAlias} ne '') {
                         print OUT ' ' . trim(denormalize($grefhFile->{If}->{$Name}->{ifAlias}));
                     }
                     print OUT "$perfdata";                         # performancedata
@@ -2373,7 +2386,7 @@ sub EvaluateInterfaces {
 
         # Denormalize interface name
         my $ifNameReadable = denormalize ($ifName);
-        my $ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$ifName"}->{ifAlias});
+        ($ghOptions{'alias'}) and my $ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$ifName"}->{ifAlias});
 
         #----- Includes or excludes interfaces from all tracking -----#
 
@@ -2397,7 +2410,7 @@ sub EvaluateInterfaces {
         # Process the interface exclusion list
         for my $ExcludeString (@$ExcludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ($ghOptions{'alias-matching'}) {
+                if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                     if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                         logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
@@ -2409,7 +2422,7 @@ sub EvaluateInterfaces {
                     }
                 }
             } else {
-                if ($ghOptions{'alias-matching'}) {
+                if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                     if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                         logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "true";
@@ -2428,7 +2441,7 @@ sub EvaluateInterfaces {
         # subset of a group of interfaces which were excluded previously
         for my $IncludeString (@$IncludeTrackList) {
             if ($ghOptions{regexp}) {
-                if ($ghOptions{'alias-matching'}) {
+                if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                     if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                         logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
@@ -2440,7 +2453,7 @@ sub EvaluateInterfaces {
                     }
                 }
             } else {
-                if ($ghOptions{'alias-matching'}) {
+                if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                     if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                         logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") globally");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} = "false";
@@ -2468,7 +2481,7 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                             logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
@@ -2480,7 +2493,7 @@ sub EvaluateInterfaces {
                         }
                     }
                 } else {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                             logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "true";
@@ -2499,7 +2512,7 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludeLoadTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                             logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
@@ -2511,7 +2524,7 @@ sub EvaluateInterfaces {
                         }
                     }
                 } else {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                             logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from traffic load tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} = "false";
@@ -2537,7 +2550,7 @@ sub EvaluateInterfaces {
             # Process the interface exclusion list
             for my $ExcludeString (@$ExcludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" =~ /$ExcludeString/i or "${ifAliasReadable}" =~ /$ExcludeString/i or "$ExcludeString" eq "ALL") {
                             logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
@@ -2549,7 +2562,7 @@ sub EvaluateInterfaces {
                         }
                     }
                 } else {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" eq "$ExcludeString" or "${ifAliasReadable}" eq "$ExcludeString" or "$ExcludeString" eq "ALL") {
                             logger(1, "-- exclude ($ExcludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "true";
@@ -2568,7 +2581,7 @@ sub EvaluateInterfaces {
             # subset of a group of interfaces which were excluded previously
             for my $IncludeString (@$IncludePropertyTrackList) {
                 if ($ghOptions{regexp}) {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" =~ /$IncludeString/i or "${ifAliasReadable}" =~ /$IncludeString/i or "$IncludeString" eq "ALL") {
                             logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
@@ -2580,7 +2593,7 @@ sub EvaluateInterfaces {
                         }
                     }
                 } else {
-                    if ($ghOptions{'alias-matching'}) {
+                    if ($ghOptions{'alias'} and $ghOptions{'alias-matching'}) {
                         if ("${ifNameReadable}" eq "$IncludeString" or "${ifAliasReadable}" eq "$IncludeString" or "$IncludeString" eq "ALL") {
                             logger(1, "++ include ($IncludeString) interface \"$ifNameReadable\" (Alias: \"$ifAliasReadable\") from property change tracking");
                             $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} = "false";
@@ -4797,6 +4810,7 @@ sub check_options () {
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
         'htmltablelinktarget=s',                # interface table link target attribute for the plugin output
+        'alias!',                               # add alias info for each interface
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
@@ -4889,6 +4903,7 @@ sub check_options () {
         'htmltabledir'              => "@sharedir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
         'htmltablelinktarget'       => "_self",
+        'alias'                     => 0,
         'alias-matching'            => 0,
         'exclude'                   => undef,
         'include'                   => undef,
@@ -5040,8 +5055,12 @@ sub check_options () {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include'}}));
         $ghOptions{'include'} = \@tmparray;
     }
+    if (exists $commandline{'alias'}) {
+        $ghOptions{'alias'} = $commandline{'alias'};
+    }
     if (exists $commandline{'alias-matching'}) {
         $ghOptions{'alias-matching'} = $commandline{'alias-matching'};
+        $ghOptions{'alias'} = $commandline{'alias-matching'};
     }
     if (exists $commandline{regexp}) {
         $ghOptions{'regexp'} = $commandline{regexp};
@@ -5097,7 +5116,7 @@ sub check_options () {
         $ghOptions{'stp'} = $commandline{stp};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^cisco$|^hp$|^netscreen$|^netapp$|^bigip$/i) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
             logger(0, "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: cisco, hp, netscreen, netapp, bigip.");
