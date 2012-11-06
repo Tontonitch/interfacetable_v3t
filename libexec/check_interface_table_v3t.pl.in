@@ -898,7 +898,6 @@ exit $ERRORS{"UNKNOWN"};
 # * ReadConfigFileNew
 # * WriteConfigFileNew
 # * perfdataout
-# * perfdataout_spool
 # * WriteHtmlFile
 # * mcompare
 # * GenerateInterfaceTableData
@@ -1942,57 +1941,6 @@ sub perfdataout {
         close (OUT);
     }
     return 0;
-}
-
-# ------------------------------------------------------------------------
-# write performance data to a spool file
-# perfdataout_spool ();
-# ------------------------------------------------------------------------
-# Grapher: pnp4nagios or format compatible
-# ------------------------------------------------------------------------
-
-sub perfdataout_spool {
-    if($ghOptions{'grapher'} eq  "pnp4nagios") {
-        if(!defined($ghOptions{perfdataservicedesc})) {
-            print STDERR "please specify --perfdataservicedesc when you want to use --perfdatadir to output perfdata\n";
-            exit 3;
-        }
-        # PNP Data example: (without the linebreaks)
-        # DATATYPE::SERVICEPERFDATA\t
-        # TIMET::$TIMET$\t
-        # HOSTNAME::$HOSTNAME$\t                       -| this relies on getting the same hostname as in Icinga from -H or -h
-        # SERVICEDESC::$SERVICEDESC$\t
-        # SERVICEPERFDATA::$SERVICEPERFDATA$\t
-        # SERVICECHECKCOMMAND::$SERVICECHECKCOMMAND$\t -| not needed (interfacetables uses own templates)
-        # HOSTSTATE::$HOSTSTATE$\t                     -|
-        # HOSTSTATETYPE::$HOSTSTATETYPE$\t              | not available here
-        # SERVICESTATE::$SERVICESTATE$\t                | so its skipped
-        # SERVICESTATETYPE::$SERVICESTATETYPE$         -|
-
-        # build the output
-        my $lPerfoutput;
-        $lPerfoutput .= "DATATYPE::SERVICEPERFDATA\tTIMET::$STARTTIME";
-        $lPerfoutput .= "\tHOSTNAME::".$ghOptions{'hostdisplay'};
-        $lPerfoutput .= "\tSERVICEDESC::".$ghOptions{perfdataservicedesc};
-        $lPerfoutput .= "\tSERVICEPERFDATA::".$gPerfdata;
-        $lPerfoutput .= "\n";
-
-        # delete the perfdata so it is not printed to Nagios/Icinga
-        $gPerfdata = "";
-
-        # flush to spoolfile
-        my $filename = $ghOptions{perfdatadir} . "/interfacetables_v3t.$STARTTIME";
-        umask "$UMASK";
-        open (OUT,">>$filename") or die "cannot open $filename $!";
-        flock (OUT, 2) or die "cannot flock $filename ($!)"; # get exclusive lock;
-
-        print OUT $lPerfoutput;
-
-        close(OUT);
-    }
-    else {
-        die "Perfdata Spool Output not available for grapher ".$ghOptions{'grapher'};
-    }
 }
 
 # ------------------------------------------------------------------------
