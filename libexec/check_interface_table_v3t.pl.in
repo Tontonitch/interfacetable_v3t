@@ -350,7 +350,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #13
     { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => 1 }, #14
     { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => 1 }, #15
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #16
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => $ghOptions{'ipinfo'} }, #16
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #17
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #18
     { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'ALL',                                Enabled => 1 }, #19
@@ -444,7 +444,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
-    Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Cisco (); # Gather interface vlans
@@ -457,7 +457,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
-    Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
@@ -470,7 +470,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
-    Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic_Netapp (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
@@ -482,11 +482,12 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    ($ghOptions{'ipinfo'}) && Get_IpInfo_Netscreen (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)   
     Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-    Get_Netscreen (); # Gather Juniper Netscreen specific info
+    Get_Specific_Netscreen (); # Gather Juniper Netscreen specific info
 
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -496,6 +497,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 #    ($ghOptions{'alias'}) && Get_Alias_Bigip (); # Gather interface alias
 #    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
 #    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
+#    Get_Error_Drop_Collision_Bigip ();
 
 } else {    # nodetype standard
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -504,7 +506,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
-    Get_IpAddress_SubnetMask (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
@@ -870,7 +872,7 @@ exit $ERRORS{"UNKNOWN"};
 # * Get_Speed
 # * Get_Alias
 # * Get_Duplex
-# * Get_IpAddress_SubnetMask
+# * Get_IpInfo
 # * Get_Traffic
 # * Get_TrafficInOut
 # * Get_Error_Discard
@@ -889,7 +891,8 @@ exit $ERRORS{"UNKNOWN"};
 # * Get_InterfaceStatus_Bigip
 # * Get_Traffic_Bigip
 # --- Netscreen specific functions ---
-# * Get_Netscreen
+# * Get_IpInfo_Netscreen
+# * Get_Specific_Netscreen
 # --- General functions ---
 # * ReadInterfaceInformationFile
 # * ReadConfigFileNew
@@ -1253,7 +1256,7 @@ sub Get_InterfaceNames_Bigip {
 }
 
 # ------------------------------------------------------------------------------
-# Get_IpAddress_SubnetMask
+# Get_IpInfo
 # ------------------------------------------------------------------------------
 # Description:
 # This function extract ip addresses out of snmpwalk lines
@@ -1264,7 +1267,7 @@ sub Get_InterfaceNames_Bigip {
 #  * mac address
 # ------------------------------------------------------------------------------
 # Function call:
-#  Get_IpAddress_SubnetMask();
+#  Get_IpInfo();
 # Arguments:
 #  None
 # Output:
@@ -1285,7 +1288,7 @@ sub Get_InterfaceNames_Bigip {
 # .1.3.6.1.2.1.4.20.1.3.172.31.92.97 255.255.255.255
 #
 # ------------------------------------------------------------------------
-sub Get_IpAddress_SubnetMask {
+sub Get_IpInfo {
     my $refaIPLines;        # Lines returned from snmpwalk storing ip addresses
     my $refaNetMaskLines;   # Lines returned from snmpwalk storing physical addresses
 
@@ -3613,48 +3616,34 @@ sub Get_Stp {
 
 }
 
+
 # ------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------
-sub Get_Netscreen {
+sub Get_IpInfo_Netscreen {
     my $refhNsIfNetmask = ();
-    my $refhNsZone = ();
-    my $refhNsVsys = ();
-    my $refhNsIfMng = ();
 
     my $refaNsIfNameLines;
     my $refaNsIfIpLines;                # Lines returned from snmpwalk storing ip addresses
     my $refaNsIfNetmaskLines;           # Lines returned from snmpwalk storing physical addresses
-    my $refaNsZoneCfgNameLines;
-    my $refaNsIfZoneLines;
-    my $refaNsVsysCfgNameLines;
-    my $refaNsIfVsysLines;
-    my $refaNsIfMngTelnetLines;         # Permitted management: Telnet
-    my $refaNsIfMngSCSLines;            # Permitted management: SCS
-    my $refaNsIfMngWEBLines;            # Permitted management: WEB
-    my $refaNsIfMngSSLLines;            # Permitted management: SSL
-    my $refaNsIfMngSNMPLines;           # Permitted management: SNMP
-    my $refaNsIfMngGlobalLines;         # Permitted management: Global
-    my $refaNsIfMngGlobalProLines;      # Permitted management: GlobalPro
-    my $refaNsIfMngPingLines;           # Permitted management: Ping
-    my $refaNsIfMngIdentResetLines;     # Permitted management: IdentReset
 
-    # get netscreen interface name and build a map table with the standard interface description
-    $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfName,$ghOptions{'cachedir'},0,1);
-    for (@$refaNsIfNameLines) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
-        $Value = normalize ($Value);
-        if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"}) {
-            my $ifName = $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"};
-            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"} = $Index;
-            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} = "$ifName";
+    # if not already done, get netscreen interface name and build a map table with the standard interface description
+    if (not defined $grefhCurrent->{MD}->{Map}->{Netscreen}) {
+        $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfName,$ghOptions{'cachedir'},0,1);
+        for (@$refaNsIfNameLines) {
+            my ($Index,$Value) = split / /,$_,2;
+            $Index =~ s/^.*\.//g;           # remove all but the index
+            $Value =~ s/\s+$//g;            # remove invisible chars from the end
+            $Value = normalize ($Value);
+            if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"}) {
+                my $ifName = $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"};
+                $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"} = $Index;
+                $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} = "$ifName";
+            }
         }
     }
-
-    # IP/Netmask
-    ## get info from snmp/cache
+    
+    # get info from snmp/cache
     $refaNsIfIpLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfIp,$ghOptions{'cachedir'},0,1);
 
     # store all ip information in the hash to avoid reading the netmask
@@ -3718,6 +3707,45 @@ sub Get_Netscreen {
             }
         } else {
             logger(3, "Cannot map the IP info to any existing interface: no corresponding interface index. Skipping IP info.");
+        }
+    }
+    return 0;
+}    
+
+# ------------------------------------------------------------------------
+#
+# ------------------------------------------------------------------------
+sub Get_Specific_Netscreen {
+    my $refhNsZone = ();
+    my $refhNsVsys = ();
+    my $refhNsIfMng = ();
+
+    my $refaNsIfNameLines;
+    my $refaNsZoneCfgNameLines;
+    my $refaNsIfZoneLines;
+    my $refaNsVsysCfgNameLines;
+    my $refaNsIfVsysLines;
+    my $refaNsIfMngTelnetLines;         # Permitted management: Telnet
+    my $refaNsIfMngSCSLines;            # Permitted management: SCS
+    my $refaNsIfMngWEBLines;            # Permitted management: WEB
+    my $refaNsIfMngSSLLines;            # Permitted management: SSL
+    my $refaNsIfMngSNMPLines;           # Permitted management: SNMP
+    my $refaNsIfMngGlobalLines;         # Permitted management: Global
+    my $refaNsIfMngGlobalProLines;      # Permitted management: GlobalPro
+    my $refaNsIfMngPingLines;           # Permitted management: Ping
+    my $refaNsIfMngIdentResetLines;     # Permitted management: IdentReset
+
+    # get netscreen interface name and build a map table with the standard interface description
+    $refaNsIfNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfName,$ghOptions{'cachedir'},0,1);
+    for (@$refaNsIfNameLines) {
+        my ($Index,$Value) = split / /,$_,2;
+        $Index =~ s/^.*\.//g;           # remove all but the index
+        $Value =~ s/\s+$//g;            # remove invisible chars from the end
+        $Value = normalize ($Value);
+        if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"}) {
+            my $ifName = $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"};
+            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"} = $Index;
+            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} = "$ifName";
         }
     }
 
@@ -3888,9 +3916,7 @@ sub Get_Netscreen {
             logger(2, "Index: $Index (" . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . "),\tnsIfMng: " . $refhNsIfMng->{$Index});
         }
     }
-
     return 0;
-
 }
 
 # ------------------------------------------------------------------------
@@ -4820,6 +4846,7 @@ sub check_options () {
         'usemacaddr',                           # use mac address (if unique) instead of index when reformatting duplicate interface description
         'cache=s',                              # cache timer
         'reseturl=s',                           # URL to tablereset program
+        'ipinfo!',                              # Add ip/netmask info for each interface
         'duplex!',                              # Add Duplex mode info for each interface
         'stp!',                                 # Add Spanning Tree Protocol info for each interface
         'vlan!',                                # Add vlan attribution info for each interface
@@ -4912,6 +4939,7 @@ sub check_options () {
         'usemacaddr'                => 0,
         'cache'                     => 3600,
         'reseturl'                  => "@cgiurl@",
+        'ipinfo'                    => 0,
         'duplex'                    => 0,
         'stp'                       => 0,
         'vlan'                      => 0,
@@ -5108,6 +5136,9 @@ sub check_options () {
     }
     if (exists $commandline{human}) {
         $ghOptions{'human'} = $commandline{human};
+    }
+    if (exists $commandline{ipinfo}) {
+        $ghOptions{'ipinfo'} = $commandline{ipinfo};
     }
     if (exists $commandline{duplex}) {
         $ghOptions{'duplex'} = $commandline{duplex};
