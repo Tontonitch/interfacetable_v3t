@@ -85,7 +85,7 @@ if($display_traffic == 1){
 # Error/discard packets graph
 ###############################
 
-if(($display_errors == 1) && (isset($RRDFILE[4]))){
+if(($display_errors == 1) && (isset($RRDFILE[7]))){
     $num_graph++;
     $ds_name[$num_graph] = 'Error/discard packets';
     $opt[$num_graph] = " --vertical-label \"pkts/s\" -b 1000 --title \"Error/discard packets for $hostname / $servicedesc\" ";

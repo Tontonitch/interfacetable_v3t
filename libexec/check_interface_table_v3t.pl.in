@@ -1801,12 +1801,14 @@ sub perfdataout {
                             } 
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
-                                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
-                                        "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
-                                        "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
-                                        "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
-                                }
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
+                                    and $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr})
+                                    and $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard})
+                                    and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
+                                    and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
                             }
                         }
     
@@ -1911,12 +1913,14 @@ sub perfdataout {
                         }
                         #Add pkt errors/discards if available and wanted
                         unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                            if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
-                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
-                                    "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
-                                    "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
-                                    "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
-                            }
+                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
+                                and $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; ";
+                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr})
+                                and $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; ";
+                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard})
+                                and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
+                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
+                                and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
                         }
                     }
 
