@@ -205,8 +205,8 @@ my %oid_bigip_sysInterfaceEnabled = ( name => "sysInterfaceEnabled", mib => "F5-
 my %oid_bigip_sysInterfaceStatus  = ( name => "sysInterfaceStatus",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.17", convertToReadable => {0=>'up',1=>'down',2=>'disabled',3=>'uninitialized',4=>'loopback',5=>'unpopulated'}); # + ".<index>"
 my %oid_bigip_sysIfxStatHighSpeed = ( name => "sysIfxStatHighSpeed", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.14" ); # + ".<index>"
 
-my %oid_bigip_sysInterfaceStatBytesIn  = ( name => "sysInterfaceStatBytesIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.3" ); # + ".<index>"
-my %oid_bigip_sysInterfaceStatBytesOut = ( name => "sysInterfaceStatBytesOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.5" ); # + ".<index>"
+#my %oid_bigip_sysInterfaceStatBytesIn  = ( name => "sysInterfaceStatBytesIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.3" ); # + ".<index>"
+#my %oid_bigip_sysInterfaceStatBytesOut = ( name => "sysInterfaceStatBytesOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.5" ); # + ".<index>"
 my %oid_bigip_sysIfxStatHcInOctets     = ( name => "sysIfxStatHcInOctets",     mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.6" ); # + ".<index>"
 my %oid_bigip_sysIfxStatHcOutOctets    = ( name => "sysIfxStatHcOutOctets",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.10" ); # + ".<index>"
 
@@ -343,7 +343,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #6
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                Enabled => 1 }, #7
     { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'duplex'} }, #8
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'stp'} }, #9
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => $ghOptions{'stp'} }, #9
     { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                Enabled => $ghOptions{'vlan'} }, #10
     { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #11
     { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                          Enabled => 1 }, #12
@@ -353,7 +353,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => $ghOptions{'ipinfo'} }, #16
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #17
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #18
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'ALL',                                Enabled => 1 }, #19
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #19
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                Enabled => 1 }, #20
     { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                Enabled => 1 }, #21
 ];
@@ -493,10 +493,10 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceEnabled_Bigip (); # Gather interface administration status
     Get_InterfaceStatus_Bigip (); # Gather interface operational status
-#    Get_Speed_Bigip (); # Gather interface speed
-#    ($ghOptions{'alias'}) && Get_Alias_Bigip (); # Gather interface alias
-#    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
-#    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Speed_Bigip (); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias_Bigip (); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
+    Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
 #    Get_Error_Drop_Collision_Bigip ();
 
 } else {    # nodetype standard
@@ -1503,6 +1503,47 @@ sub Get_Traffic_Netapp {
 
 
 # ------------------------------------------------------------------------------
+# Get_Traffic_Bigip
+# ------------------------------------------------------------------------------
+# Description: gather interface traffic in/out
+# ------------------------------------------------------------------------------
+# Function call:
+#  Get_Traffic_Bigip();
+# Arguments:
+#  None
+# Output:
+#  None
+# ------------------------------------------------------------------------------
+sub Get_Traffic_Bigip {
+    my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
+    my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+    
+    # Get info from snmp/cache
+    #------------------------------------------
+    
+    if ($ghSNMPOptions{'64bits'}) {
+        # get all interface in/out traffic octet counters - no caching !
+        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcInOctets,$ghOptions{'cachedir'},0,1);
+        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcOutOctets,$ghOptions{'cachedir'},0,1);
+        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Bigip MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+            "If not enough, consider decreasing delta";
+    } else {
+        # NO 32 bit counters
+    }
+
+    # post-processing interface octet counters
+    #------------------------------------------
+
+
+    Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $oid_bigip_sysIfxStatHcInOctets{oid});
+    Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $oid_bigip_sysIfxStatHcOutOctets{oid});
+
+    return 0;
+}
+
+
+# ------------------------------------------------------------------------------
 # Get_Error_Discard
 # ------------------------------------------------------------------------------
 # Description: gather interface packet errors/discards
@@ -1733,7 +1774,7 @@ sub perfdataout {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
                         and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
                         and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
-                        my $port = sprintf("%03d", $InterfaceIndex);
+                        my $port = sprintf("%s", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#/%23/g;
@@ -1742,7 +1783,19 @@ sub perfdataout {
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
-                        if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            if ($ghOptions{'portperfunit'} eq "octet") {
+                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
+                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
+                            } else {
+                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
+                                    "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
+                            } 
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             if ($ghOptions{'portperfunit'} eq "octet") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
                                     "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
@@ -1756,12 +1809,14 @@ sub perfdataout {
                             } 
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}) {
-                                    $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; " .
-                                        "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; " .
-                                        "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; " .
-                                        "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
-                                }
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
+                                    and $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr})
+                                    and $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard})
+                                    and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
+                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
+                                    and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
                             }
                         }
     
@@ -1772,7 +1827,7 @@ sub perfdataout {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
                         and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn}
                         and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
-                        my $port = sprintf("%03d", $InterfaceIndex);
+                        my $port = sprintf("%s", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#/%23/g;
@@ -1781,7 +1836,19 @@ sub perfdataout {
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
-                        if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            if ($ghOptions{'portperfunit'} eq "octet") {
+                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
+                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
+                            } else {
+                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
+                                    "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
+                            } 
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             if ($ghOptions{'portperfunit'} eq "bps") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
                                     "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
@@ -1898,7 +1965,19 @@ sub perfdataout {
                     $servicename =~ s/,/./g;
                     my $perfdata = "";
                     #Add interface status if available
-                    if (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                    if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                        if ($ghOptions{'portperfunit'} eq "octet") {
+                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
+                                "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
+                                "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
+                        } else {
+                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                                "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
+                                "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
+                        } 
+                    } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                         if ($ghOptions{'portperfunit'} eq "octet") {
                             $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
                                 "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
@@ -2916,13 +2995,18 @@ sub Get_TrafficInOut {
     my $refaOctetLines = shift;
     my $WhatOctet = shift;
     my $WhatBit = shift;
-
+    my $lOid = shift;
+    
     # Example of $refaOctetLines
     #    .1.3.6.1.2.1.2.2.1.10.2 2510821601
     #    .1.3.6.1.2.1.2.2.1.10.3 0
     for (@$refaOctetLines) {
         my ($Index,$Octets) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
+        if (defined $lOid) {
+            $Index = "$1" if /$lOid\.([0-9.]*)/;
+        } else {
+            $Index =~ s/^.*\.//g;    # remove all but the index
+        }
         $Octets =~ s/\s+$//g;    # remove invisible chars from the end
         my $Bits = $Octets * 8;  # convert in bits
         logger(2, "Index=$Index\tOctets=$Octets");
@@ -3374,12 +3458,12 @@ sub Get_Speed {
     foreach (@$refaIfSpeed) {
         $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
     }
-    # get ifSpeed64 table
+    # get ifHighSpeed table
     my $refhIfHighSpeed = ();
     if ($ghSNMPOptions{'64bits'}) {
-        my $refaIfSpeed64 = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHighSpeed,$ghOptions{'cachedir'},0,0);
+        my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHighSpeed,$ghOptions{'cachedir'},0,0);
         $refhIfHighSpeed = ();
-        foreach (@$refaIfSpeed64) {
+        foreach (@$refaIfHighSpeed) {
             $refhIfHighSpeed->{"$1"}=$2 if /$oid_ifHighSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
         }
     }
@@ -3412,6 +3496,75 @@ sub Get_Speed {
     return 0;
 }
 
+
+# ------------------------------------------------------------------------
+# walk through each interface and read ifSpeed
+# ------------------------------------------------------------------------
+sub Get_Speed_Bigip {
+
+    my $refhIfSpeed = ();
+    my $refhIfHighSpeed = ();
+    
+    # get ifSpeed table (units of bits per second)
+    if (0) {
+        my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifSpeed,$ghOptions{'cachedir'},0,0);
+        my $refhIfSpeed = ();
+        foreach (@$refaIfSpeed) {
+            $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
+        }
+    }
+    
+    # get ifHighSpeed table (units of 1,000,000 bits per second)
+    if (1) {
+        my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHighSpeed,$ghOptions{'cachedir'},0,0);
+        $refhIfHighSpeed = ();
+        foreach (@$refaIfHighSpeed) {
+            $refhIfHighSpeed->{"$1"}=$2 if /$oid_bigip_sysIfxStatHighSpeed{'oid'}\.([0-9.]*) ([0-9]*)/;
+        }
+    }
+    
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        logger(2, "Index=$Index ($ifName)");
+        # Get the speed in normal or highperf speed counters
+        if (defined $refhIfSpeed->{"$Index"} and $refhIfSpeed->{"$Index"} ne ""){
+            if ($refhIfSpeed->{"$Index"} >= 4294967294) { 
+                # Too high for this counter (cf IF-MIB)
+                # get ifHighSpeed table (units of 1,000,000 bits per second)
+                if (defined $refhIfHighSpeed->{"$Index"} and $refhIfHighSpeed->{"$Index"} ne "" and $refhIfHighSpeed->{"$Index"} != 0) {
+                    $refhIfSpeed->{"$Index"} = $refhIfHighSpeed->{"$Index"} * 1000000;
+                } else {
+                    logger(1, " $ifName($Index) -> interface speed exceeding standard counter (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.
+                        "). No high speed counter available, so the speed should be incorrect.");
+                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface speed exceeding standard counter for interface $ifName($Index). ".
+                        "No high speed counter available, so the speed should be incorrect.<br>";
+                }
+            }
+        } else {
+            if (defined $refhIfHighSpeed->{"$Index"} and $refhIfHighSpeed->{"$Index"} ne "" and $refhIfHighSpeed->{"$Index"} != 0) {
+                $refhIfSpeed->{"$Index"} = $refhIfHighSpeed->{"$Index"} * 1000000;
+                logger(2, " $ifName($Index) -> no standard speed counter but high speed counter available");
+            } else {
+                $refhIfSpeed->{"$Index"} = -1;
+            }
+        }
+        # Recommendation in case Gigabit detected
+        if ($refhIfSpeed->{"$Index"} >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
+            logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
+            $grefAoHConfigTableData->[8]->[1]->{Value} .= "Use of 32 bit counters not recommended with high speed interfaces like $ifName($Index). ".
+                "If possible, consider the use of highperf mib (--64bits).<br>";
+        }
+        # Store ifSpeed in a machine and human readable format
+        $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $refhIfSpeed->{"$Index"};
+        $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = ConvertSpeedToReadable ($refhIfSpeed->{"$Index"});
+        logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
+    }
+    return 0;
+}
+
+
 # ------------------------------------------------------------------------
 # walk through each interface and read ifAlias
 # ------------------------------------------------------------------------
@@ -3423,6 +3576,29 @@ sub Get_Alias {
     my $refhIfAlias = ();
     foreach (@$refaIfAlias) {
         $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias{'oid'}\.([0-9]*) (.*)$/;
+    }
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        # Store ifAlias normalized to not get into trouble with special chars
+        $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = (defined $refhIfAlias->{"$Index"}) ? normalize ($refhIfAlias->{"$Index"}) : '';
+        logger(2, "Index=$Index ($ifName): Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# walk through each interface and read ifAlias
+# ------------------------------------------------------------------------
+sub Get_Alias_Bigip {
+
+    # get ifAlias table - returned result can be empty
+    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatAlias,$ghOptions{'cachedir'},0,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
+    my $refhIfAlias = ();
+    foreach (@$refaIfAlias) {
+        $refhIfAlias->{"$1"}=$2 if /$oid_bigip_sysIfxStatAlias{'oid'}\.([0-9.]*) (.*)$/;
     }
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
@@ -3455,6 +3631,31 @@ sub Get_Duplex {
         # Store ifDuplexStatus converted from a digit to string
         $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
             ? $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
+        logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# walk through each interface and read ifDuplexStatus
+# ------------------------------------------------------------------------
+sub Get_Duplex_Bigip {
+
+    # get ifDuplexStatus table
+    my $refhIfDuplexStatus = ();
+    if ($ghOptions{'duplex'}) {
+        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMediaActiveDuplex,$ghOptions{'cachedir'},0,1);
+        foreach (@$refaIfDuplexStatus) {
+            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_bigip_sysInterfaceMediaActiveDuplex{'oid'}\.([0-9.]*) (.*)$/;
+        }
+    }
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        # Store ifDuplexStatus converted from a digit to string
+        $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $oid_bigip_sysInterfaceMediaActiveDuplex{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
+            ? $oid_bigip_sysInterfaceMediaActiveDuplex{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
         logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
     }
     return 0;
@@ -4072,7 +4273,11 @@ sub check_for_unused_interfaces {
                 $gInterfacesWithoutTrunk->{"$1/$2/$3"} = $free;
                 $gNumberOfInterfacesWithoutTrunk++;
                 # look for free ports with admin status up
-                if ($free and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} and $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} eq 'true') {
                     $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
                     $gNumberOfFreeUpInterfaces++;
                 }
@@ -4083,7 +4288,11 @@ sub check_for_unused_interfaces {
                 $gInterfacesWithoutTrunk->{"$1/$2"} = $free;
                 $gNumberOfInterfacesWithoutTrunk++;
                 # look for free ports with admin status up
-                if ($free and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} and $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} eq 'true') {
                     $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
                     $gNumberOfFreeUpInterfaces++;
                 }
@@ -4094,7 +4303,11 @@ sub check_for_unused_interfaces {
                 $gInterfacesWithoutTrunk->{"$ifName"} = $free;
                 $gNumberOfInterfacesWithoutTrunk++;
                 # look for free ports with admin status up
-                if ($free and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} and $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} eq 'up') {
+                    $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
+                    $gNumberOfFreeUpInterfaces++;
+                }
+                if ($free and defined $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} and $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} eq 'true') {
                     $grefhCurrent->{If}->{$ifName}->{ifLastTrafficOutOfRange} = "yellow";
                     $gNumberOfFreeUpInterfaces++;
                 }
@@ -5320,7 +5533,7 @@ sub check_options () {
     if ( $ghSNMPOptions{'64bits'} && $ghSNMPOptions{'version'} == 1) {
         logger(0, "Can't get 64 bit counters with snmp version 1\n");
         print_usage();
-        exit $ERRORS{"UNKNOWN"}
+        exit $ERRORS{"UNKNOWN"};
     }
     if ($ghSNMPOptions{'64bits'}) {
         if (eval "require bigint") {
@@ -5328,7 +5541,12 @@ sub check_options () {
         } else {
             logger(0, "Need bigint module for 64 bit counters\n");
             print_usage();
-            exit $ERRORS{"UNKNOWN"}
+            exit $ERRORS{"UNKNOWN"};
+        }
+    } else {
+        if ($ghOptions{'nodetype'} eq 'bigip') {
+            logger(0, "No 32 bit counters for this nodetype. Please use the --64bits option\n");
+            exit $ERRORS{"UNKNOWN"};
         }
     }
     if (exists $commandline{'unixsnmp'}) {
