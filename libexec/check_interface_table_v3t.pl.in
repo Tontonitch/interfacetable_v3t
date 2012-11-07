@@ -5528,7 +5528,7 @@ sub check_options () {
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
-        $ghSNMPOptions{'contextname'} = $commandline{'contextname'});
+        $ghSNMPOptions{'contextname'} = "$commandline{'contextname'}";
     }
     if (exists $commandline{'snmp-timeout'}) {
         $ghSNMPOptions{'timeout'} = "$commandline{'snmp-timeout'}";

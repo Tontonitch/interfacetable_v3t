@@ -255,7 +255,6 @@ sub GetDataWithSnmp {
     my $CacheDir    = shift;
     my $CacheTimer  = shift;
     unless ($CacheTimer) {$CacheTimer = 0;}
-    my $refhSNMPOptions = "";
     my $Value = "";
 
     my %refhSnmpQueryOptions = (
@@ -573,7 +572,7 @@ sub GetTableDataWithSnmp {
                 $refhSnmpQueryOptions{'-privprotocol'} = "$refhSNMPOptions->{'privproto'}";
             }
             defined $refhSNMPOptions->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhSNMPOptions->{'max-repetitions'}";
-            defined $refhSNMPOptions->{'contextname'} and $refhSnmpQueryOptions .= "-n$refhSNMPOptions->{'contextname'} ";
+            defined $refhSNMPOptions->{'contextname'} and $refhSnmpQueryOptions{'-contextname'} = "$refhSNMPOptions->{'contextname'}";
         } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
             $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
             defined $refhSNMPOptions->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhSNMPOptions->{'max-repetitions'}";
