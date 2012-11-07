@@ -5054,6 +5054,7 @@ sub check_options () {
         'passwd|x=s',                           # Password for snmpv3 authentication
         'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
         'protocols|L=s',                        # Format: <authproto>,<privproto>;
+        'contextname=s',                        # context name for snmp requests
         'snmp-timeout=i',                       # timeout for snmp requests
         'snmp-retries=i',                       # retries for snmp requests
         '64bits',                               # Use 64 bits counters
@@ -5151,6 +5152,7 @@ sub check_options () {
         'privpass'                  => "",
         'authproto'                 => "md5",       # md5, sha
         'privproto'                 => "des",       # des, aes
+        'contextname'               => "",
         'timeout'                   => 2,
         'retries'                   => 2,
         '64bits'                    => 0,
@@ -5519,6 +5521,14 @@ sub check_options () {
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
+    }
+    if (exists $commandline{'contextname'}) {
+        if (!exists $commandline{'login'}) {
+            logger(0, "Put snmp V3 login info with context name!\n");
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+        $ghSNMPOptions{'contextname'} = $commandline{'contextname'});
     }
     if (exists $commandline{'snmp-timeout'}) {
         $ghSNMPOptions{'timeout'} = "$commandline{'snmp-timeout'}";
