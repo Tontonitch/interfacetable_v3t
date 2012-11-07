@@ -906,8 +906,6 @@ exit $ERRORS{"UNKNOWN"};
 # * CalculateBps
 # * EvaluatePackets
 # * ConvertSpeedToReadable
-# * ConvertIfStatusToReadable
-# * ConvertIfStatusToNumber
 # * TimeDiff
 # * colorcode
 # * check_for_unused_interfaces
@@ -1786,24 +1784,24 @@ sub perfdataout {
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             if ($ghOptions{'portperfunit'} eq "octet") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                     "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                     "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                             } else {
                                 $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                     "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                     "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                             } 
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             if ($ghOptions{'portperfunit'} eq "octet") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                     "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                     "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                             } else {
                                 $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                     "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                     "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                             } 
@@ -1839,29 +1837,29 @@ sub perfdataout {
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             if ($ghOptions{'portperfunit'} eq "octet") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                     "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                     "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                             } else {
                                 $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                     "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                     "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                             } 
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             if ($ghOptions{'portperfunit'} eq "bps") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                     "in=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} " .
                                     "out=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsOut};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} ";
                             } elsif ($ghOptions{'portperfunit'} eq "octet") {
                                 $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                     "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                     "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                             } else {
                                 $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                     "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                     "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                             } 
@@ -1968,24 +1966,24 @@ sub perfdataout {
                     if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                         if ($ghOptions{'portperfunit'} eq "octet") {
                             $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                 "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                 "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                         } else {
                             $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                "Status=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifStatus}").";;;0; " .
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                 "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                 "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                         } 
                     } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                         if ($ghOptions{'portperfunit'} eq "octet") {
                             $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                 "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
                                 "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
                         } else {
                             $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                "OperStatus=".ConvertIfStatusToNumber("$grefhCurrent->{If}->{$Name}->{ifOperStatus}").";;;0; " .
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                 "BitsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsIn}c;;;0; " .
                                 "BitsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{BitsOut}c;;;0; ";
                         }
@@ -2671,8 +2669,9 @@ sub Get_AdminStatus {
         logger(2, "Index=$Index ($ifName)");
 
         # Store ifAdminStatus converted from a digit to "up" or "down"
-        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} =
-            ConvertIfStatusToReadable ($refhIfAdminStatus->{"$Index"});
+        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatusNumber} = $refhIfAdminStatus->{$Index};
+        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} = (defined $oid_ifAdminStatus{'convertToReadable'}{"$refhIfAdminStatus->{$Index}"})
+            ? $oid_ifAdminStatus{'convertToReadable'}{"$refhIfAdminStatus->{$Index}"} : $refhIfAdminStatus->{$Index};
         logger(2, "  AdminStatus=".$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus});
     }
     return 0;
@@ -2695,12 +2694,13 @@ sub Get_OperStatus {
         my ($Index,$OperStatusNow) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $OperStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
-        $OperStatusNow = ConvertIfStatusToReadable("$OperStatusNow");
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
 
+        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
         logger(2, "Index=$Index ($ifName)");
 
         # Store the oper status as property of the current interface
+        $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = "$OperStatusNow";
+        defined $oid_ifOperStatus{'convertToReadable'}{"$OperStatusNow"} and $OperStatusNow = $oid_ifOperStatus{'convertToReadable'}{"$OperStatusNow"};       
         $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
 
         # Retrieve adminstatus for special rules
@@ -2839,7 +2839,8 @@ sub Get_InterfaceEnabled_Bigip {
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         logger(2, "Index=$Index ($ifName)");
 
-        # Store ifEnabled converted from a digit to "enabled" or "disabled"
+        # Store ifEnabled converted from a digit to "true" or "false"
+        $grefhCurrent->{If}->{"$ifName"}->{ifEnabledNumber} = $rehaInterfaceEnabled->{$Index};
         $grefhCurrent->{If}->{"$ifName"}->{ifEnabled} = (defined $oid_bigip_sysInterfaceEnabled{'convertToReadable'}{"$rehaInterfaceEnabled->{$Index}"})
             ? $oid_bigip_sysInterfaceEnabled{'convertToReadable'}{"$rehaInterfaceEnabled->{$Index}"} : $rehaInterfaceEnabled->{$Index};
         logger(2, "  Enabled=".$grefhCurrent->{If}->{"$ifName"}->{ifEnabled});
@@ -2864,12 +2865,13 @@ sub Get_InterfaceStatus_Bigip {
         my ($Index,$ifStatusNow) = split / /,$_,2;
         $Index =~ s/$oid_bigip_sysInterfaceStatus{'oid'}\.//g;           # remove all but the index
         $ifStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
-        defined $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"} and $ifStatusNow = $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"};       
         
         my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
         logger(2, "Index=$Index ($ifName)");
 
         # Store the oper status as property of the current interface
+        $grefhCurrent->{If}->{"$ifName"}->{ifStatusNumber} = "$ifStatusNow";
+        defined $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"} and $ifStatusNow = $oid_bigip_sysInterfaceStatus{'convertToReadable'}{"$ifStatusNow"};       
         $grefhCurrent->{If}->{"$ifName"}->{ifStatus} = "$ifStatusNow";
 
         # Retrieve interface enabled state for special rules
@@ -4090,54 +4092,6 @@ sub ConvertSpeedToReadable {
         $Speed = "";
     }
     return $Speed;
-}
-# ------------------------------------------------------------------------
-# get the interface administrative/operational status as integer or string and convert
-# it to a readable format - return a string
-#
-# http://www.faqs.org/rfcs/rfc2863.html
-#
-#    ifAdminStatus OBJECT-TYPE
-#        SYNTAX  INTEGER {
-#                up(1),      -- ready to pass packets
-#                down(2),
-#                testing(3)  -- in some test mode
-#        }
-#
-#    ifOperStatus OBJECT-TYPE
-#        SYNTAX  INTEGER {
-#                up(1),        -- ready to pass packets
-#                down(2),
-#                testing(3),   -- in some test mode
-#                unknown(4),   -- status can not be determined
-#                              -- for some reason.
-#                dormant(5),
-#                notPresent(6),    -- some component is missing
-#                lowerLayerDown(7) -- down due to state of
-#                                  -- lower-layer interface(s)
-#        ]
-# ------------------------------------------------------------------------
-sub ConvertIfStatusToReadable {
-    my $status = shift;
-    my %status_conversion = ( 1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown');
-    if ($status =~ /^(1|2|3|4|5|6|7)$/) {
-        $status = $status_conversion{$status};
-    } else {
-        # we do nothing and leave the original status
-    }
-    return $status;
-}
-sub ConvertIfStatusToNumber {
-    my $status = shift;
-    my %status_conversion = ( 'up'=>1,'down'=>2,'testing'=>3,'unknown'=>4,'dormant'=>5,'notPresent'=>6,'lowerLayerDown'=>7 );
-    if ($status =~ /^(up|down|testing|unknown|dormant|notPresent|lowerLayerDown)$/) {
-        $status = $status_conversion{$status};
-    } else {
-        # we do nothing and leave the original status
-        ## we return an empty string
-        #$status = '';
-    }
-    return $status;
 }
 
 # ------------------------------------------------------------------------
