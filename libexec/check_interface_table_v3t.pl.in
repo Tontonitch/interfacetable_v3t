@@ -1073,7 +1073,7 @@ sub Get_InterfaceNames {
             my $name_warning_length = 30;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface name quite long! (> $name_warning_length). Name: \"$Name\"<br>";
+                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length). Name: \"$Name\"</div>";
             }
         }
 
@@ -1225,7 +1225,7 @@ sub Get_InterfaceNames_Bigip {
             my $name_warning_length = 30;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface name quite long! (> $name_warning_length). Name: \"$Name\"<br>";
+                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Interface name quite long! (\> $name_warning_length). Name: \"$Name\"<br>";
             }
         }
 
@@ -3485,7 +3485,8 @@ sub Get_Speed {
                 logger(1, " --->>> WARNING");
                 logger(1, " $ifName($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.")");
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface speed exceeding standard counters for interface $ifName($Index). If possible, consider the use of highperf mib (--64bits).<br>";
+                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counters for interface $ifName($Index). " .
+                    "Interface load calculation could be wrong, so if possible consider the use of highperf mib (--64bits).</div>";
             }
         }
         # Store ifSpeed in a machine and human readable format
@@ -3540,8 +3541,8 @@ sub Get_Speed_Bigip {
                 } else {
                     logger(1, " $ifName($Index) -> interface speed exceeding standard counter (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.
                         "). No high speed counter available, so the speed should be incorrect.");
-                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "Interface speed exceeding standard counter for interface $ifName($Index). ".
-                        "No high speed counter available, so the speed should be incorrect.<br>";
+                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface $ifName($Index). ".
+                        "No high speed counter available, so the speed should be incorrect.</div>";
                 }
             }
         } else {
@@ -3555,8 +3556,8 @@ sub Get_Speed_Bigip {
         # Recommendation in case Gigabit detected
         if ($refhIfSpeed->{"$Index"} >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
             logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-            $grefAoHConfigTableData->[8]->[1]->{Value} .= "Use of 32 bit counters not recommended with high speed interfaces like $ifName($Index). ".
-                "If possible, consider the use of highperf mib (--64bits).<br>";
+            $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like $ifName($Index). ".
+                "If possible, consider the use of highperf mib (--64bits).</div>";
         }
         # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $refhIfSpeed->{"$Index"};

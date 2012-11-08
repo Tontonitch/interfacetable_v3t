@@ -15,6 +15,29 @@ body {
     font-style: italic;
 }
 
+/* Styles prefixed by icon */
+.information {
+    background-image: url('../img/information.png');
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    padding-left: 16px;
+    display: block;
+}
+.warning {
+    background-image: url('../img/warning.png');
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    padding-left: 16px;
+    display: block;
+}
+.critical {
+    background-image: url('../img/critical.png');
+    background-size: 14px 14px;
+    background-repeat: no-repeat;
+    padding-left: 16px;
+    display: block;
+}
+
 /***** TABLES *****/
 table {
     background-color: #FFFFFF;
