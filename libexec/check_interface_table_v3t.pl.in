@@ -441,9 +441,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
-    Get_Speed (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
@@ -454,9 +454,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
-    Get_Speed (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
@@ -467,9 +467,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
-    Get_Speed (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic_Netapp (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
@@ -479,9 +479,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status   
     Get_OperStatus (); # Gather interface operational status   
-    Get_Speed (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo_Netscreen (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)   
     Get_Error_Discard();
@@ -493,9 +493,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceEnabled_Bigip (); # Gather interface administration status
     Get_InterfaceStatus_Bigip (); # Gather interface operational status
-    Get_Speed_Bigip (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias_Bigip (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex_Bigip (); # Gather interface duplex state
+    Get_Speed (undef, \%oid_bigip_sysIfxStatHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_bigip_sysIfxStatAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_bigip_sysInterfaceMediaActiveDuplex); # Gather interface duplex state
     Get_Traffic_Bigip (); # Gather interface traffics (in/out and packet errors/discards)
 #    Get_Error_Drop_Collision_Bigip ();
 
@@ -503,9 +503,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
-    Get_Speed (); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (); # Gather interface duplex state
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
@@ -3455,75 +3455,26 @@ sub EvaluatePackets {
 # ------------------------------------------------------------------------
 sub Get_Speed {
 
-    # get ifSpeed table
-    my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifSpeed,$ghOptions{'cachedir'},0,1);
-    my $refhIfSpeed = ();
-    foreach (@$refaIfSpeed) {
-        $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
-    }
-    # get ifHighSpeed table
-    my $refhIfHighSpeed = ();
-    if ($ghSNMPOptions{'64bits'}) {
-        my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHighSpeed,$ghOptions{'cachedir'},0,0);
-        $refhIfHighSpeed = ();
-        foreach (@$refaIfHighSpeed) {
-            $refhIfHighSpeed->{"$1"}=$2 if /$oid_ifHighSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
-        }
-    }
-    # loop through all found interfaces
-    for my $ifName (keys %{$grefhCurrent->{If}}) {
-        # Extract the index out of the MetaData
-        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        logger(2, "Index=$Index ($ifName)");
-        # Get the speed in normal or highperf speed counters
-        if (not defined $refhIfSpeed->{"$Index"} or $refhIfSpeed->{"$Index"} eq ""){
-            $refhIfSpeed->{"$Index"} = -1;
-        }
-        if ($refhIfSpeed->{"$Index"} >= 4294967294) { # Too high for this counter (cf IF-MIB)
-            if ($ghSNMPOptions{'64bits'} && $refhIfHighSpeed->{"$Index"} != 0) {
-                $refhIfSpeed->{"$Index"} = $refhIfHighSpeed->{"$Index"} * 1000000;
-            } elsif (! $ghSNMPOptions{'64bits'}) {
-                logger(1, " --->>> WARNING");
-                logger(1, " $ifName($Index) -> interface speed exceeding standard counters (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.")");
-                logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counters for interface $ifName($Index). " .
-                    "Interface load calculation could be wrong, so if possible consider the use of highperf mib (--64bits).</div>";
-            }
-        }
-        # Store ifSpeed in a machine and human readable format
-        $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} =
-            ($refhIfSpeed->{"$Index"});
-        $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} =
-            ConvertSpeedToReadable ($refhIfSpeed->{"$Index"});
-        logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
-    }
-    return 0;
-}
-
-
-# ------------------------------------------------------------------------
-# walk through each interface and read ifSpeed
-# ------------------------------------------------------------------------
-sub Get_Speed_Bigip {
-
+    my $refhOID = shift;
+    my $refhOIDHC = shift;
     my $refhIfSpeed = ();
     my $refhIfHighSpeed = ();
     
     # get ifSpeed table (units of bits per second)
-    if (0) {
-        my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifSpeed,$ghOptions{'cachedir'},0,0);
+    if (defined $refhOID) {
+        my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,0);
         my $refhIfSpeed = ();
         foreach (@$refaIfSpeed) {
-            $refhIfSpeed->{"$1"}=$2 if /$oid_ifSpeed{'oid'}\.([0-9]*) ([0-9]*)/;
+            $refhIfSpeed->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) ([0-9]*)/;
         }
     }
     
     # get ifHighSpeed table (units of 1,000,000 bits per second)
-    if (1) {
-        my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHighSpeed,$ghOptions{'cachedir'},0,0);
+    if (defined $refhOIDHC) {
+        my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDHC,$ghOptions{'cachedir'},0,0);
         $refhIfHighSpeed = ();
         foreach (@$refaIfHighSpeed) {
-            $refhIfHighSpeed->{"$1"}=$2 if /$oid_bigip_sysIfxStatHighSpeed{'oid'}\.([0-9.]*) ([0-9]*)/;
+            $refhIfHighSpeed->{"$1"}=$2 if /$refhOIDHC->{'oid'}\.([0-9.]*) ([0-9]*)/;
         }
     }
     
@@ -3573,36 +3524,15 @@ sub Get_Speed_Bigip {
 # walk through each interface and read ifAlias
 # ------------------------------------------------------------------------
 sub Get_Alias {
-
+    
+    my $refhOID = shift;
+    
     # get ifAlias table - returned result can be empty
-    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
+    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},$gLongCacheTimer);
     my $refhIfAlias = ();
     foreach (@$refaIfAlias) {
-        $refhIfAlias->{"$1"}=$2 if /$oid_ifAlias{'oid'}\.([0-9]*) (.*)$/;
-    }
-    # loop through all found interfaces
-    for my $ifName (keys %{$grefhCurrent->{If}}) {
-        # Extract the index out of the MetaData
-        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        # Store ifAlias normalized to not get into trouble with special chars
-        $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = (defined $refhIfAlias->{"$Index"}) ? normalize ($refhIfAlias->{"$Index"}) : '';
-        logger(2, "Index=$Index ($ifName): Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
-    }
-    return 0;
-}
-
-# ------------------------------------------------------------------------
-# walk through each interface and read ifAlias
-# ------------------------------------------------------------------------
-sub Get_Alias_Bigip {
-
-    # get ifAlias table - returned result can be empty
-    my $refaIfAlias = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatAlias,$ghOptions{'cachedir'},0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatAlias,$ghOptions{'cachedir'},$gLongCacheTimer);
-    my $refhIfAlias = ();
-    foreach (@$refaIfAlias) {
-        $refhIfAlias->{"$1"}=$2 if /$oid_bigip_sysIfxStatAlias{'oid'}\.([0-9.]*) (.*)$/;
+        $refhIfAlias->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) (.*)$/;
     }
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
@@ -3620,50 +3550,30 @@ sub Get_Alias_Bigip {
 # ------------------------------------------------------------------------
 sub Get_Duplex {
 
-    # get ifDuplexStatus table
+    my $refhOID = shift;
     my $refhIfDuplexStatus = ();
+    
+    # get ifDuplexStatus table
     if ($ghOptions{'duplex'}) {
-        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifDuplexStatus,$ghOptions{'cachedir'},0,1);
+        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,1);
         foreach (@$refaIfDuplexStatus) {
-            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_ifDuplexStatus{'oid'}\.([0-9]*) (.*)$/;
+            $refhIfDuplexStatus->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) (.*)$/;
         }
     }
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        # Store ifDuplexStatus converted from a digit to string
-        $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
-            ? $oid_ifDuplexStatus{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
-        logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
-    }
-    return 0;
-}
-
-# ------------------------------------------------------------------------
-# walk through each interface and read ifDuplexStatus
-# ------------------------------------------------------------------------
-sub Get_Duplex_Bigip {
-
-    # get ifDuplexStatus table
-    my $refhIfDuplexStatus = ();
-    if ($ghOptions{'duplex'}) {
-        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMediaActiveDuplex,$ghOptions{'cachedir'},0,1);
-        foreach (@$refaIfDuplexStatus) {
-            $refhIfDuplexStatus->{"$1"}=$2 if /$oid_bigip_sysInterfaceMediaActiveDuplex{'oid'}\.([0-9.]*) (.*)$/;
+        if (defined $refhIfDuplexStatus->{$Index}) {
+            # Store ifDuplexStatus converted from a digit to string
+            $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
+                ? $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
+            logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
         }
     }
-    # loop through all found interfaces
-    for my $ifName (keys %{$grefhCurrent->{If}}) {
-        # Extract the index out of the MetaData
-        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        # Store ifDuplexStatus converted from a digit to string
-        $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $oid_bigip_sysInterfaceMediaActiveDuplex{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
-            ? $oid_bigip_sysInterfaceMediaActiveDuplex{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
-        logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
-    }
     return 0;
 }
+
 
 # ------------------------------------------------------------------------
 # walk through each interface and read vlan info
