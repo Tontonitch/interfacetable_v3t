@@ -3,16 +3,6 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.04-2
-#  => (cancelled as no major bugs and no time to release. everything will be available in 0.05)
-# ----------------------------------------------------------------------
-# DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
-# DONE    - convert sysLocation from hex to string when needed
-# DONE    - fix wrong old variable in settings.cfg
-# DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
-# DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
-#
-# ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing
@@ -27,9 +17,8 @@
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 #         - better support of IP info for HP Procurve switches
-#         - support for Brocade with FabricOS < v5.3.0
-#         - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
-# IN PROG - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
+# IN PROG - support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor)
+# DONE    - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
 #           + extended 32-bit counters (low/high)
 #         - epn support back
 #         - add an option for debug output in a file
@@ -40,11 +29,28 @@
 #         - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 # IN PROG - enhance code flexibility for easier device support extension
 #         - infobulle pkt err/discard
-#         - notes and recommendations in the config table
-# IN PROG - perfdata in bps instead of counters. experimental phase
-# IN PROG - contribution integrations
-#           (DONE) http://exchange.nagios.org/directory/Reviews/idroj/1
-#           http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187
+# DONE    - notes and recommendations in the config table (bandwidth monitoring capacity calculation,...)
+# IN PROG - perfdata in bps instead of counters. experimental phase      
+# DONE    - new workflow for device support extension
+# DONE    - nodetype change protection
+# DONE    - fix nodenames with " " (idroj)
+# DONE    - fix servicename with "." (idroj)
+# DONE    - don't use utils.pm anymore (deprecated soon)
+# DONE    - oids in a hash format with related info (mib, conversion, ...) + renamed lots of oids for quick understanding
+# DONE    - most of the properties are now optional (to select only the wanted columns, and reduce snmp queries): alias, ipinfo, stp, duplex
+# DONE    - some function splits + dedicated functions for more flexibility
+# DONE    - checks of returned snmp arrays now in SnmpUtils
+# DONE    - some code optimisation
+# DONE    - fix for unixsnmp when object not available
+# DONE    - tables generation review, new field selection system
+# DONE    - fix when pkt errors/discards not all available (reported by Bjorn)
+# DONE    - new option snmp v3 contextname
+# DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
+# DONE    - convert sysLocation from hex to string when needed
+# DONE    - fix wrong old variable in settings.cfg
+# DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
+# DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
+#         - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
