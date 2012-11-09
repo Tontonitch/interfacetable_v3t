@@ -54,7 +54,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.04-2';
+$REVISION       = '0.05-alpha1';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -444,7 +444,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Cisco (); # Gather interface vlans
@@ -457,7 +457,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
@@ -470,7 +470,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
     Get_Traffic_Netapp (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
@@ -506,7 +506,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (); # Gather interface ip addresses and masks
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
     Get_Traffic (); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
@@ -1286,6 +1286,9 @@ sub Get_InterfaceNames_Bigip {
 #
 # ------------------------------------------------------------------------
 sub Get_IpInfo {
+    
+    my $refhOIDip = shift;
+    my $refhOIDnetmask = shift;
     my $refaIPLines;        # Lines returned from snmpwalk storing ip addresses
     my $refaNetMaskLines;   # Lines returned from snmpwalk storing physical addresses
 
@@ -1293,7 +1296,7 @@ sub Get_IpInfo {
     #------------------------------------------
 
     # get all interface ip info - resulting table can be empty
-    $refaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ipAdEntIfIndex,$ghOptions{'cachedir'},0,0);
+    $refaIPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDip,$ghOptions{'cachedir'},0,0);
 
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
@@ -1305,9 +1308,9 @@ sub Get_IpInfo {
     # get the subnet masks with caching 0 only if the ip addresses
     # have changed - resulting table can be empty
     if (defined $grefhFile->{MD}->{CachedInfo}->{IpInfo} and $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} eq $grefhFile->{MD}->{CachedInfo}->{IpInfo}) {
-        $refaNetMaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ipAdEntNetMask,$ghOptions{'cachedir'},$gLongCacheTimer,0);
+        $refaNetMaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},$gLongCacheTimer,0);
     } else {
-        $refaNetMaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ipAdEntNetMask,$ghOptions{'cachedir'},0,0);
+        $refaNetMaskLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},0,0);
     }
 
     # Get info from snmp/cache
@@ -1318,9 +1321,8 @@ sub Get_IpInfo {
     # .1.3.6.1.2.1.4.20.1.2.193.83.153.254 29
     for (@$refaIPLines) {
         my ($IpAddress,$Index) = split / /,$_,2;        # blank splits OID & ifIndex
-        $IpAddress  =~  s/^.*1\.4\.20\.1\.2\.//;        # remove up to the ip address
-        $Index          =~  s/\D//g;                    # remove all but numbers
-
+        $IpAddress  =~  s/^\.*$refhOIDip->{'oid'}\.//g; # remove up to the ip address
+        $Index      =~  s/\s+$//g;                      # remove invisible chars from the end
         # extract the netmask
         # $refaNetMaks looks like this:
         # $VAR1 = [
