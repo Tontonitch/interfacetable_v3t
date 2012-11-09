@@ -338,7 +338,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => 1 }, #1
     { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                Enabled => $ghOptions{'alias'} }, #2
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #3
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1 }, #4
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                              Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated." }, #4
     { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #5
     { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #6
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                Enabled => 1 }, #7
@@ -353,7 +353,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => $ghOptions{'ipinfo'} }, #16
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #17
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                Enabled => 1 }, #18
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1 }, #19
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp', Enabled => 1,   Tooltip => 'Format:<br>error in / error out / discard in / discard out' }, #19
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                Enabled => 1 }, #20
     { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                Enabled => 1 }, #21
 ];
@@ -2052,6 +2052,7 @@ sub WriteHtmlFile {
     <script type="text/javascript" src="../js/functions.js"></script>
     <script type="text/javascript" src="../js/tablesort.js"></script>
     <script type="text/javascript" src="../js/customsort.js"></script>
+    <script type="text/javascript" src="../js/wz_tooltip.js"></script>
   </head>
 <body>';
         # -- Body header --
@@ -4478,12 +4479,6 @@ sub Convert2HtmlTable {
                         $SpecialCellFormat .= " class=\"$Cell->{'Tablesort'}\"";
                     }
 
-                    # Tips
-                    if ( defined $Cell->{Tip} and $ghOptions{'enabletips'}) {
-                        #TODO
-                        #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
-                    }
-
                     # if we got a title write into cell
                     if ( defined $Cell->{Title} and  $Cell->{Title} ne " ") {
                         $Title = $Cell->{Title};
@@ -4497,6 +4492,13 @@ sub Convert2HtmlTable {
                         $Title = '<a href="' . $Cell->{Link} . '">' . $Title . '</a>';
                     }
 
+                    # Tooltip
+                    if ( defined $Cell->{Tooltip} and $ghOptions{'tips'}) {
+                        #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
+                        $Title .= "<img height=14 width=14 style=\"float: right;\" src=\"../img/information-button.png\" " .
+                            "onmouseout=\"UnTip()\" onmouseover=\"Tip('<i>$Cell->{Tooltip}</i>')\">"
+                    }
+                    
                     # finally build the table line;
                     $HTMLTable .= "\n" . '<th' . $SpecialCellFormat . '>' . $Title . '</th>';
                 }
@@ -5020,6 +5022,7 @@ sub check_options () {
         'css=s',                                # Used css stylesheet
         'ifdetails',                            # Link to query interface info - not yet functional
         'configtable!',                         # Enable or not the configuration table
+        'tips!',                                # Enable or not the tips
         #------- deprecated options ---------#
         'cisco',                                # replaced by --nodetype=cisco
         );
@@ -5094,7 +5097,8 @@ sub check_options () {
         'config'                    => '',
         'css'                       => "icinga",             # Used css stylesheet. Can be classical, icinga or nagiosxi.
         'ifdetails'                 => 0,
-        'configtable'               => 1
+        'configtable'               => 1,
+        'tips'                      => 1,
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -5409,7 +5413,10 @@ sub check_options () {
     if (exists $commandline{configtable}) {
         $ghOptions{'configtable'} = $commandline{configtable};
     }
-
+    if (exists $commandline{tips}) {
+        $ghOptions{'tips'} = $commandline{tips};
+    }
+    
     #-------- SNMP related ----------#
     if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
         logger(0, "Can't mix snmp v1,2c,3 protocols!\n");
