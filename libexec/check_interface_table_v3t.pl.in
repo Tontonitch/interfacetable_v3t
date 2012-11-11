@@ -54,7 +54,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.05-alpha1';
+$REVISION       = '0.05-alpha2';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -69,31 +69,31 @@ my $STARTTIME   = time ();                      # time of program start
 
 # Standard OIDs
 # ------------------------------------------------------------------------
-my %oid_sysDescr        = ( name => "sysDescr",     mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.1.0" );
-my %oid_sysUpTime       = ( name => "sysUpTime",    mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.3.0" );
-my %oid_sysContact      = ( name => "sysContact",   mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.4.0" );
-my %oid_sysName         = ( name => "sysName",      mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.5.0" );
-my %oid_sysLocation     = ( name => "sysLocation",  mib => "RFC1213-MIB", oid => ".1.3.6.1.2.1.1.6.0" );
+my %oid_sysDescr        = ( name => "sysDescr",     mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.1.0" );
+my %oid_sysUpTime       = ( name => "sysUpTime",    mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.3.0" );
+my %oid_sysContact      = ( name => "sysContact",   mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.4.0" );
+my %oid_sysName         = ( name => "sysName",      mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.5.0" );
+my %oid_sysLocation     = ( name => "sysLocation",  mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.6.0" );
 
-my %oid_ifDescr         = ( name => "ifDescr",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
-my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
-my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
-my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => ".1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
-my %oid_ifPhysAddress   = ( name => "ifPhysAddress", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.6" );     # + ".<index>"
-my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.7", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
-my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.8", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
-#my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => ".1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
+my %oid_ifDescr         = ( name => "ifDescr",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
+my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
+my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
+my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
+my %oid_ifPhysAddress   = ( name => "ifPhysAddress", mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.6" );     # + ".<index>"
+my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.7", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
+my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.8", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
+#my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
 
-my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => ".1.3.6.1.2.1.10.7.2.1.19", convertToReadable => {1=>'unknown', 2=>'half', 3=>'full'});  # + ".<index>"
+my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => "1.3.6.1.2.1.10.7.2.1.19", convertToReadable => {1=>'unknown', 2=>'half', 3=>'full'});  # + ".<index>"
 
-my %oid_ipAdEntIfIndex   = ( name => "ipAdEntIfIndex",   mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.2" ); # + ".<IP address>"
-my %oid_ipAdEntNetMask   = ( name => "ipAdEntNetMask",   mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.20.1.3" ); # + ".<index>"
-my %oid_ipAddressIfIndex = ( name => "ipAddressIfIndex", mib => "IP-MIB", oid => ".1.3.6.1.2.1.4.34.1.3" ); # + ".<IP address>"
+my %oid_ipAdEntIfIndex   = ( name => "ipAdEntIfIndex",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.2" ); # + ".<IP address>"
+my %oid_ipAdEntNetMask   = ( name => "ipAdEntNetMask",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.3" ); # + ".<index>"
+my %oid_ipAddressIfIndex = ( name => "ipAddressIfIndex", mib => "IP-MIB", oid => "1.3.6.1.2.1.4.34.1.3" ); # + ".<IP address>"
 
-my %oid_ifVlanName      = ( name => "entLogicalDescr", mib => "ENTITY-MIB", oid => ".1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
+my %oid_ifVlanName      = ( name => "entLogicalDescr", mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
 
-my %oid_dot1dBasePortIfIndex = ( name => "dot1dBasePortIfIndex", mib => 'BRIDGE-MIB', oid => '.1.3.6.1.2.1.17.1.4.1.2' ); # map from dot1base port table to ifindex table
-my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-MIB', oid => '.1.3.6.1.2.1.17.2.15.1.3', 
+my %oid_dot1dBasePortIfIndex = ( name => "dot1dBasePortIfIndex", mib => 'BRIDGE-MIB', oid => '1.3.6.1.2.1.17.1.4.1.2' ); # map from dot1base port table to ifindex table
+my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-MIB', oid => '1.3.6.1.2.1.17.2.15.1.3', 
     convertToReadable => {0=>'unknown',1=>'disabled',2=>'blocking',3=>'listening',4=>'learning',5=>'forwarding',6=>'broken'} ); # stp port states
 
 # RFC1213 - Extracts about in/out stats
@@ -119,71 +119,71 @@ my %oid_ifHCOutOctets   = ( name => "ifHCOutOctets",  mib => "IF-MIB", oid => '1
 
 # Cisco specific OIDs
 # ------------------------------------------------------------------------
-my %oid_cisco_ChassisModel     = ( name => "ChassisModel",     mib => "CISCO-STACK-MIB",           oid => '.1.3.6.1.4.1.9.5.1.2.16.0' ); # ex: WS-C3550-48-SMI
-my %oid_cisco_ChassisSrNumStr  = ( name => "ChassisSrNumStr",  mib => "CISCO-STACK-MIB",           oid => '.1.3.6.1.4.1.9.5.1.2.19.0' ); # ex: CAT0645Z0HB
-my %oid_cisco_vmVlan           = ( name => "vmVlan",           mib => "CISCO-VLAN-MEMBERSHIP-MIB", oid => '.1.3.6.1.4.1.9.9.68.1.2.2.1.2' ); # + ".?.<index>"
+my %oid_cisco_ChassisModel     = ( name => "ChassisModel",     mib => "CISCO-STACK-MIB",           oid => '1.3.6.1.4.1.9.5.1.2.16.0' ); # ex: WS-C3550-48-SMI
+my %oid_cisco_ChassisSrNumStr  = ( name => "ChassisSrNumStr",  mib => "CISCO-STACK-MIB",           oid => '1.3.6.1.4.1.9.5.1.2.19.0' ); # ex: CAT0645Z0HB
+my %oid_cisco_vmVlan           = ( name => "vmVlan",           mib => "CISCO-VLAN-MEMBERSHIP-MIB", oid => '1.3.6.1.4.1.9.9.68.1.2.2.1.2' ); # + ".?.<index>"
 # NOT USED - my $oid_locIfIntBitsSec = '1.3.6.1.4.1.9.2.2.1.1.6';   # need to append integer for specific interface
 # NOT USED - my $oid_locIfOutBitsSec = '1.3.6.1.4.1.9.2.2.1.1.8';   # need to append integer for specific interface
-# NOT USED - my $cisco_ports         = '.1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
+# NOT USED - my $cisco_ports         = '1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
 
 # For use in Cisco CATOS special hacks - NOT USED YET
-# my $oid_cisco_port_name_table               = '.1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
-# my $oid_cisco_port_ifindex_map              = '.1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
-# my $oid_cisco_port_linkfaultstatus_table    = '.1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
-# my $oid_cisco_port_operstatus_table         = '.1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
-# my $oid_cisco_port_addoperstatus_table      = '.1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
+# my $oid_cisco_port_name_table               = '1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
+# my $oid_cisco_port_ifindex_map              = '1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
+# my $oid_cisco_port_linkfaultstatus_table    = '1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
+# my $oid_cisco_port_operstatus_table         = '1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
+# my $oid_cisco_port_addoperstatus_table      = '1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
 # my %cisco_port_linkfaultstatus = (1=>'up',2=>'nearEndFault',3=>'nearEndConfigFail',4=>'farEndDisable',5=>'farEndFault',6=>'farEndConfigFail',7=>'otherFailure');
 # my %cisco_port_operstatus      = (0=>'operstatus:unknown',1=>'operstatus:other',2=>'operstatus:ok',3=>'operstatus:minorFault',4=>'operstatus:majorFault');
 # my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'faulty',4=>'notConnected',5=>'inactive',6=>'shutdown',7=>'dripDis',8=>'disable',9=>'monitor',10=>'errdisable',11=>'linkFaulty',12=>'onHook',13=>'offHook',14=>'reflector');
 
 # HP specific OIDs
 # ------------------------------------------------------------------------
-my %oid_hp_ifVlanPort = ( name => "hpSwitchIgmpPortIndex2", mib => "CONFIG-MIB (HP)", oid => '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2' );   # + ".<index>"
+my %oid_hp_ifVlanPort = ( name => "hpSwitchIgmpPortIndex2", mib => "CONFIG-MIB (HP)", oid => '1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2' );   # + ".<index>"
 # Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1 (hpSwitchIgmpVlanIndex)";
 #TODO my $oid_hp_ifDuplexStatus      = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.10';   # + ".<index>"
 #TODO my %hp_ifDuplexStatus          = (1=>'HD10',2=>'HD10',3=>'FD10',4=>'FD100',5=>'auto neg');
 
 # Juniper Netscreen specific OIDs (from NETSCREEN-INTERFACE/ZONE/VSYS-MIB)
 # ------------------------------------------------------------------------
-my %oid_juniper_nsIfIndex   = ( name => "nsIfIndex",    mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.1' );  # + ".<index>"
-my %oid_juniper_nsIfName    = ( name => "nsIfName",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.2' );  # + ".<index>"
-my %oid_juniper_nsIfDescr   = ( name => "nsIfDescr",    mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.22' ); # + ".<index>"
-my %oid_juniper_nsIfZone    = ( name => "nsIfZone",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.4' );  # + ".<index>"
-my %oid_juniper_nsIfVsys    = ( name => "nsIfVsys",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.3' );  # + ".<index>"
-my %oid_juniper_nsIfStatus  = ( name => "nsIfStatus",   mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.5' );  # + ".<index>"
-my %oid_juniper_nsIfIp      = ( name => "nsIfIp",       mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.6' );  # + ".<index>"
-my %oid_juniper_nsIfNetmask = ( name => "nsIfNetmask",  mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.7' );  # + ".<index>"
-my %oid_juniper_nsIfMode    = ( name => "nsIfMode",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.10' ); # + ".<index>"
-my %oid_juniper_nsIfMAC     = ( name => "nsIfMAC",      mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.11' ); # + ".<index>"
+my %oid_juniper_nsIfIndex   = ( name => "nsIfIndex",    mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.1' );  # + ".<index>"
+my %oid_juniper_nsIfName    = ( name => "nsIfName",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.2' );  # + ".<index>"
+my %oid_juniper_nsIfDescr   = ( name => "nsIfDescr",    mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.22' ); # + ".<index>"
+my %oid_juniper_nsIfZone    = ( name => "nsIfZone",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.4' );  # + ".<index>"
+my %oid_juniper_nsIfVsys    = ( name => "nsIfVsys",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.3' );  # + ".<index>"
+my %oid_juniper_nsIfStatus  = ( name => "nsIfStatus",   mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.5' );  # + ".<index>"
+my %oid_juniper_nsIfIp      = ( name => "nsIfIp",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.6' );  # + ".<index>"
+my %oid_juniper_nsIfNetmask = ( name => "nsIfNetmask",  mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.7' );  # + ".<index>"
+my %oid_juniper_nsIfMode    = ( name => "nsIfMode",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.10' ); # + ".<index>"
+my %oid_juniper_nsIfMAC     = ( name => "nsIfMAC",      mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.11' ); # + ".<index>"
 
-my %oid_juniper_nsIfMngTelnet     = ( name => "nsIfMngTelnet",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.12' ); # + ".<index>"
-my %oid_juniper_nsIfMngSCS        = ( name => "nsIfMngSCS",        mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.13' ); # + ".<index>"
-my %oid_juniper_nsIfMngWEB        = ( name => "nsIfMngWEB",        mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.14' ); # + ".<index>"
-my %oid_juniper_nsIfMngSSL        = ( name => "nsIfMngSSL",        mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.15' ); # + ".<index>"
-my %oid_juniper_nsIfMngSNMP       = ( name => "nsIfMngSNMP",       mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.16' ); # + ".<index>"
-my %oid_juniper_nsIfMngGlobal     = ( name => "nsIfMngGlobal",     mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.17' ); # + ".<index>"
-my %oid_juniper_nsIfMngGlobalPro  = ( name => "nsIfMngGlobalPro",  mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.18' ); # + ".<index>"
-my %oid_juniper_nsIfMngPing       = ( name => "nsIfMngPing",       mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.19' ); # + ".<index>"
-my %oid_juniper_nsIfMngIdentReset = ( name => "nsIfMngIdentReset", mib => "NETSCREEN-INTERFACE-MIB", oid => '.1.3.6.1.4.1.3224.9.1.1.20' ); # + ".<index>"
+my %oid_juniper_nsIfMngTelnet     = ( name => "nsIfMngTelnet",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.12' ); # + ".<index>"
+my %oid_juniper_nsIfMngSCS        = ( name => "nsIfMngSCS",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.13' ); # + ".<index>"
+my %oid_juniper_nsIfMngWEB        = ( name => "nsIfMngWEB",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.14' ); # + ".<index>"
+my %oid_juniper_nsIfMngSSL        = ( name => "nsIfMngSSL",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.15' ); # + ".<index>"
+my %oid_juniper_nsIfMngSNMP       = ( name => "nsIfMngSNMP",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.16' ); # + ".<index>"
+my %oid_juniper_nsIfMngGlobal     = ( name => "nsIfMngGlobal",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.17' ); # + ".<index>"
+my %oid_juniper_nsIfMngGlobalPro  = ( name => "nsIfMngGlobalPro",  mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.18' ); # + ".<index>"
+my %oid_juniper_nsIfMngPing       = ( name => "nsIfMngPing",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.19' ); # + ".<index>"
+my %oid_juniper_nsIfMngIdentReset = ( name => "nsIfMngIdentReset", mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.20' ); # + ".<index>"
 
 #NOT USED YET
-#my $oid_juniper_nsIfMonPlyDeny      = '.1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
-#my $oid_juniper_nsIfMonAuthFail     = '.1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
-#my $oid_juniper_nsIfMonUrlBlock     = '.1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
-#my $oid_juniper_nsIfMonTrMngQueue   = '.1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
-#my $oid_juniper_nsIfMonTrMngDrop    = '.1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
-#my $oid_juniper_nsIfMonEncFail      = '.1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
-#my $oid_juniper_nsIfMonNoSa         = '.1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
-#my $oid_juniper_nsIfMonNoSaPly      = '.1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
-#my $oid_juniper_nsIfMonSaInactive   = '.1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
-#my $oid_juniper_nsIfMonSaPolicyDeny = '.1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
+#my $oid_juniper_nsIfMonPlyDeny      = '1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
+#my $oid_juniper_nsIfMonAuthFail     = '1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
+#my $oid_juniper_nsIfMonUrlBlock     = '1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngQueue   = '1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngDrop    = '1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
+#my $oid_juniper_nsIfMonEncFail      = '1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSa         = '1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSaPly      = '1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaInactive   = '1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaPolicyDeny = '1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
 
-my %oid_juniper_nsZoneCfgId   = ( name => "nsZoneCfgId",   mib => "NETSCREEN-ZONE-MIB", oid => '.1.3.6.1.4.1.3224.8.1.1.1.1' ); # + ".<index>"
-my %oid_juniper_nsZoneCfgName = ( name => "nsZoneCfgName", mib => "NETSCREEN-ZONE-MIB", oid => '.1.3.6.1.4.1.3224.8.1.1.1.2' ); # + ".<index>"
-my %oid_juniper_nsZoneCfgType = ( name => "nsZoneCfgType", mib => "NETSCREEN-ZONE-MIB", oid => '.1.3.6.1.4.1.3224.8.1.1.1.3' ); # + ".<index>"
+my %oid_juniper_nsZoneCfgId   = ( name => "nsZoneCfgId",   mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.1' ); # + ".<index>"
+my %oid_juniper_nsZoneCfgName = ( name => "nsZoneCfgName", mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.2' ); # + ".<index>"
+my %oid_juniper_nsZoneCfgType = ( name => "nsZoneCfgType", mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.3' ); # + ".<index>"
 
-my %oid_juniper_nsVsysCfgId   = ( name => "nsVsysCfgId",   mib => "NETSCREEN-VSYS-MIB", oid => '.1.3.6.1.4.1.3224.15.1.1.1.1' ); # + ".<index>"
-my %oid_juniper_nsVsysCfgName = ( name => "nsVsysCfgName", mib => "NETSCREEN-VSYS-MIB", oid => '.1.3.6.1.4.1.3224.15.1.1.1.2' ); # + ".<index>"
+my %oid_juniper_nsVsysCfgId   = ( name => "nsVsysCfgId",   mib => "NETSCREEN-VSYS-MIB", oid => '1.3.6.1.4.1.3224.15.1.1.1.1' ); # + ".<index>"
+my %oid_juniper_nsVsysCfgName = ( name => "nsVsysCfgName", mib => "NETSCREEN-VSYS-MIB", oid => '1.3.6.1.4.1.3224.15.1.1.1.2' ); # + ".<index>"
 
 # Netapp specific OIDs (from NETWORK-APPLIANCE-MIB)
 # ------------------------------------------------------------------------
@@ -1793,7 +1793,7 @@ sub perfdataout {
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()']//g;
+                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
@@ -1846,7 +1846,7 @@ sub perfdataout {
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()']//g;
+                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
@@ -1975,7 +1975,7 @@ sub perfdataout {
                     my $servicename = "If_" . trim(denormalize($Name));
                     $servicename =~ s/#/%23/g;
                     $servicename =~ s/[: ]/_/g;
-                    $servicename =~ s/[()']//g;
+                    $servicename =~ s/[()'"]//g;
                     $servicename =~ s/,/./g;
                     my $perfdata = "";
                     #Add interface status if available
@@ -2068,9 +2068,9 @@ sub WriteHtmlFile {
     <script type="text/javascript" src="../js/functions.js"></script>
     <script type="text/javascript" src="../js/tablesort.js"></script>
     <script type="text/javascript" src="../js/customsort.js"></script>
-    <script type="text/javascript" src="../js/wz_tooltip.js"></script>
   </head>
-<body>';
+<body>
+  <script type="text/javascript" src="../js/wz_tooltip.js"></script>';
         # -- Body header --
         print OUT '<div width=98% align=center>';
         print OUT '    <div id="header">
@@ -2309,7 +2309,7 @@ sub GenerateInterfaceTableData {
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#/%23/g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()']//g;
+                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
                             $CellContent .= '<a href="' .
@@ -2880,7 +2880,7 @@ sub Get_InterfaceStatus_Bigip {
     #    .1.3.6.1.2.1.2.2.1.8.2 down
     for (@$refaInterfaceStatusLines) {
         my ($Index,$ifStatusNow) = split / /,$_,2;
-        $Index =~ s/$oid_bigip_sysInterfaceStatus{'oid'}\.//g;           # remove all but the index
+        $Index =~ s/^\.*$oid_bigip_sysInterfaceStatus{'oid'}\.//g;           # remove all but the index
         $ifStatusNow =~ s/\s+$//g;    # remove invisible chars from the end
         
         my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
@@ -4710,6 +4710,8 @@ sub print_usage () {
         SNMP transport domain. Can be: udp (default), tcp, udp6, tcp6.
         Specifying a transport domain also change the default port according
         to that selected transport domain. Use --port to overwrite the port.
+    --contextname
+        Context name for the snmp requests (snmpv3 only)
     -P, --port=PORT
         SNMP port (Default 161)
     --64bits
@@ -4764,6 +4766,9 @@ sub print_usage () {
         Sets the directory where snmp responses are cached.
     --statedir (optional)
         Sets the directory where the interface states are stored.
+    --nodetype (optional)
+        Specify the node type, for specific information to be printed / specific oids to be used
+        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.
     --(no)duplex (optional)
         Add the duplex mode property for each interface in the interface table.
     --(no)stp (optional)
@@ -4772,9 +4777,10 @@ sub print_usage () {
          * Cisco device using pvst / multiple vlan stp
     --(no)vlan (optional)
         Add the vlan attribution property for each interface in the interface table.
-    --nodetype (optional)
-        Specify the node type, for specific information to be printed / specific oids to be used
-        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.
+    --(no)ipinfo (optional)
+        Add the ip information for each interface in the interface table.
+    --(no)alias (optional)
+        Add the alias information for each interface in the interface table.        
     --accessmethod (optional)
         Access method for a shortcut to the host in the HTML page.
         Format is : <method>[:<target>]
@@ -4819,7 +4825,9 @@ sub print_usage () {
         globally excluded interfaces are not shown in the interface table anymore (interesting in
         case of lots of excluded interfaces)
         Enabled by default.
-
+    --(no)tips
+        Enable/disable the tips in the generated html tables
+    
   Notes:
     - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property,
       --exclude-property, --include-property and --accessmethod:

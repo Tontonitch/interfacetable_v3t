@@ -2,11 +2,12 @@
 # "SnmpUtils" library
 # A collection of shared functions related to snmp.
 #
-# Version 0.04
-# Written by Y. Charton, from extracts of check_interface_table 1-3 releases
+# Version : 0.06
+# Author  : Y. Charton
 #
 # Revision history:
-# 2011-06-08 v0.01   Y. Charton    First release
+# 2011-06-08 v0.01   Y. Charton    First release, based from extracts of 
+#                                  check_interface_table 1-3 releases
 # 2011-12-30 v0.02   Y. Charton    Fusion of the get table functions
 # 2012-05-02 v0.03   Y. Charton    Added transport domain selection and max-repetitions
 #                                  (idea by Bjorn Frostberg), fix problem where
@@ -16,6 +17,8 @@
 #                                  OID passed to snmp functions with related info (via a hash)
 # 2012-11-07 v0.05   Y. Charton    Revamped some snmp query arguments method
 #                                  Added contextname (snmp v3)
+# 2012-11-10 v0.06   Y. Charton    Prevent double-quoted values in unixsnmp
+#                                  Force non-translated values in unixsnmp
 #
 ##############################################################################
 
@@ -583,7 +586,7 @@ sub GetTableDataWithSnmp {
     } else {
         # gather data via unix snmpwalk/snmpbulkwalk
         my $refhSnmpQueryCommand = "snmpbulkwalk";
-        my $refhSnmpQueryOptions = "-Oqn -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
+        my $refhSnmpQueryOptions = "-Oqne -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
         $refhSnmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
@@ -704,6 +707,8 @@ sub ExecuteCommand {
     # execute the unix command
     open(UNIX,"$Command |") or die "[ERROR] Failed to execute \"$Command\", $!";
         while (<UNIX>) {
+            $_ =~ s/^\.*([0-9.]*) "?(.*)/\1 \2/g;
+            $_ =~ s/"$//g;
             push @$refaLines,$_;
         }
     close(UNIX);

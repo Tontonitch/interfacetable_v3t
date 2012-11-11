@@ -24,7 +24,6 @@
 #         - add an option for debug output in a file
 #         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
 #           modem) where the download and upload speeds are different 
-# CANCEL  - css theme switching feature (mostly for validity checks)
 #         - option for (re-)adding/remove some bw stats
 #         - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 # IN PROG - enhance code flexibility for easier device support extension
@@ -52,6 +51,9 @@
 # DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
 #         - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
 # DONE    - nodetype bluecoat
+#         - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
+# DONE    - fix for double-quoted string from unixsnmp method
+# DONE    - fix for double-quotes in servicenames (perfdata)
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
@@ -74,5 +76,6 @@
 # ----------------------------------------------------------------------
 #         - review the netwaysgrapherv2 support + create templates
 #            -> the solution is not developed anymore
+#         - css theme switching feature (mostly for validity checks)
 #
 # ========================================================================
