@@ -1084,7 +1084,7 @@ sub Get_InterfaceNames {
             }
 
             # Detect long name, which may be reduced for a cleaner interface table
-            my $name_warning_length = 30;
+            my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
                 $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length). Name: \"$Name\"</div>";
@@ -3479,7 +3479,6 @@ sub Get_Speed {
     # get ifSpeed table (units of bits per second)
     if (defined $refhOID) {
         my $refaIfSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,0);
-        my $refhIfSpeed = ();
         foreach (@$refaIfSpeed) {
             $refhIfSpeed->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) ([0-9]*)/;
         }
@@ -3488,7 +3487,6 @@ sub Get_Speed {
     # get ifHighSpeed table (units of 1,000,000 bits per second)
     if (defined $refhOIDHC) {
         my $refaIfHighSpeed = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDHC,$ghOptions{'cachedir'},0,0);
-        $refhIfHighSpeed = ();
         foreach (@$refaIfHighSpeed) {
             $refhIfHighSpeed->{"$1"}=$2 if /$refhOIDHC->{'oid'}\.([0-9.]*) ([0-9]*)/;
         }
@@ -3509,7 +3507,8 @@ sub Get_Speed {
                 } else {
                     logger(1, " $ifName($Index) -> interface speed exceeding standard counter (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.
                         "). No high speed counter available, so the speed should be incorrect.");
-                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface $ifName($Index). ".
+                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
+                    denormalize($ifName)." ($Index). ".
                         "No high speed counter available, so the speed should be incorrect.</div>";
                 }
             }
@@ -3524,8 +3523,8 @@ sub Get_Speed {
         # Recommendation in case Gigabit detected
         if ($refhIfSpeed->{"$Index"} >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
             logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-            $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like $ifName($Index). ".
-                "If possible, consider the use of highperf mib (--64bits).</div>";
+            $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like" .
+            denormalize($ifName)." ($Index). If possible, consider the use of highperf mib (--64bits).</div>";
         }
         # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $refhIfSpeed->{"$Index"};
