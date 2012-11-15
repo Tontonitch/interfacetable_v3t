@@ -335,28 +335,28 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 }, #0
-    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => 1 }, #1
-    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'alias'} }, #2
-    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1 }, #3
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" }, #4
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 }, #5
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 }, #6
-    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                         Enabled => 1 }, #7
-    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'duplex'} }, #8
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'stp'} }, #9
-    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => $ghOptions{'vlan'} }, #10
-    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 }, #11
-    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 }, #12
-    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 }, #13
-    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 }, #14
-    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 }, #15
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'ipinfo'} }, #16
-    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 }, #17
-    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 }, #18
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1,   Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' }, #19
-    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                         Enabled => 1 }, #20
-    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                         Enabled => 1 }, #21
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
+    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'alias'} },
+    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                         Enabled => $ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'} },
+    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1 },
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
+    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'duplex'} },
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'stp'} },
+    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => $ghOptions{'vlan'} },
+    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
+    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
+    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
+    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'ipinfo'} },
+    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1,   Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
+    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                         Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -2067,8 +2067,18 @@ sub WriteHtmlFile {
     <link rel="stylesheet" type="text/css" href="../css/button.css">
     <script type="text/javascript" src="../js/functions.js"></script>
     <script type="text/javascript" src="../js/tablesort.js"></script>
-    <script type="text/javascript" src="../js/customsort.js"></script>
-  </head>
+    <script type="text/javascript" src="../js/customsort.js"></script>';
+        if ( $ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq  "pnp4nagios" ) {
+            print OUT '    <script src="/pnp4nagios/media/js/jquery-min.js" type="text/javascript"></script>
+    <script src="/pnp4nagios/media/js/jquery.cluetip.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    jQuery.noConflict();
+    jQuery(document).ready(function() {
+    jQuery(\'a.tips\').cluetip({ajaxCache: false, dropShadow: false,showTitle: false });
+    });
+    </script>';
+        }
+        print OUT '  </head>
 <body>
   <script type="text/javascript" src="../js/wz_tooltip.js"></script>';
         # -- Body header --
@@ -2312,24 +2322,19 @@ sub GenerateInterfaceTableData {
                         $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
-                            $CellContent .= '<a href="' .
-                                           $ghOptions{'grapherurl'} . '/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
-                                           '"><img src="' .
-                                           '../img/chart.png' .
-                                           '" alt="Trends" /></a>';
+                            $CellContent .= '<a class=\'tips\' ' .
+                                'href="' . $ghOptions{'grapherurl'} . '/index.php/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '" ' .
+                                'rel="' . $ghOptions{'grapherurl'} . '/index.php/popup?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
+                                '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
                             $CellContent .= '<a href="' .
-                                           #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '&page_act=[1]+Interface+traffic' .
-                                           $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
-                                           '"><img src="' .
-                                           '../img/chart.png' .
-                                           '" alt="Trends" /></a>';
+                                #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '&page_act=[1]+Interface+traffic' .
+                                $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
+                                '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "netwaysgrapherv2") {
                             $CellContent .= '<a href="' .
-                                           $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
-                                           '"><img src="' .
-                                           '../img/chart.png' .
-                                           '" alt="Trends" /></a>';
+                                $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
+                                '<img src="../img/chart.png" alt="Trends" /></a>';
                         }
                 }
                 # Retrieve detailed interface info via snmp link
@@ -4996,7 +5001,7 @@ sub check_options () {
         'usemacaddr'                => 0,
         'cache'                     => 3600,
         'reseturl'                  => "@cgiurl@",
-        'ipinfo'                    => 0,
+        'ipinfo'                    => 1,
         'duplex'                    => 0,
         'stp'                       => 0,
         'vlan'                      => 0,
