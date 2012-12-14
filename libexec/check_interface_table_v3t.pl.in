@@ -54,7 +54,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.05-alpha2';
+$REVISION       = '0.05-alpha3';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -338,7 +338,7 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
     { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => 1 },
     { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'alias'} },
-    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                         Enabled => $ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'} },
+    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                         Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1 },
     { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
     { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
@@ -416,7 +416,7 @@ logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 logger(1, "Retrieve target system information");
-$grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'oid'},$gLongCacheTimer);
+$grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$grefhSNMP->{$oid_sysName{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysContact} = "$grefhSNMP->{$oid_sysContact{'oid'}}";
@@ -2340,11 +2340,9 @@ sub GenerateInterfaceTableData {
                 # Retrieve detailed interface info via snmp link
                 if ($ghOptions{'ifdetails'} and $grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false") {
                     $CellContent .= '<a href="xxxxxxxxxxxx.cgi?' .
-                                   'host=' . $ghOptions{'hostquery'} .
-                                   '&ifindex=' . $InterfaceIndex .
-                                   '"><img src="' .
-                                   '../img/binocular.png' .
-                                   '" alt="Details" /></a>';
+                        'host=' . $ghOptions{'hostquery'} .
+                        '&ifindex=' . $InterfaceIndex . '">' .
+                        '<img src="../img/binocular.png" alt="Details" /></a>';
                 }
             }
 
