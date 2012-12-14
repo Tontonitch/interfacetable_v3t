@@ -51,9 +51,29 @@
 # DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
 #         - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
 # DONE    - nodetype bluecoat
-#         - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
+# DONE    - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
 # DONE    - fix for double-quoted string from unixsnmp method
 # DONE    - fix for double-quotes in servicenames (perfdata)
+#         - Spike-Remover contribution revamp (fix_rrd_peaks.sh)
+#         - more tolerancy for unaccessible oids
+#             -> for some oids (ex: dot3StatsDuplexStatus), only a warning in the "Configuration table", in the "Other" row
+#         - doc: pnp popup only for pnp 0.6.x
+#         - netscreen, nsrp_state_oid (nsrpVsdMemberStatus: 1.3.6.1.4.1.3224.6.2.2.1.3.1 in NETSCREEN-NSRP-MIB)
+#             -> Notes on nsrpVsdMemberStatus
+#                   undefined(0),
+#                   init(1),
+#                   master(2),
+#                   primary-backup(3),
+#                   backup(4),
+#                   ineligible(5),
+#                   inoperable(6)
+#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
+#         - default sorting on Name(ifdescr)
+#         - Link to table page when unreachable/down
+#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1849
+#             -> exemple: when host unreachable ([ERROR] Could not read sysUpTime information from host "x.x.x.x" with snmp)
+#         - bps perfdata: Warning, critical and max levels in graph
+#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
@@ -70,6 +90,11 @@
 #           where bulk requests are not well supported by the target device
 #         - switch to full php + jquery
 #         - store state + table info in xml
+#         - support of other graphing solutions: ingraph, nagiosgraph, graphite
+#             -> https://www.icinga.org/2012/12/07/addons-for-icinga-performance-monitoring-tools/
+#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1880&p=2281#p2281
+#         - Get values in perf data to use with Nagvis
+#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1695
 #
 # ----------------------------------------------------------------------
 # Cancelled
