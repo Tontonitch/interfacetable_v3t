@@ -581,7 +581,15 @@ $grefhCurrent = EvaluateInterfaces (
 # sort ifIndex by number
 #@$grefaAllIndizes = sort { $a <=> $b }
 #@$grefaAllIndizes = sort { lc($a) cmp lc($b) } keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
-@$grefaAllIndizes = nsort keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
+if ($ghOptions{'default-table-sorting'} eq "name") {
+    my $grefaAllIndizesTmp;
+    @$grefaAllIndizesTmp = nsort keys (%{$grefhCurrent->{MD}->{Map}->{NameToIndex}});
+    foreach (@$grefaAllIndizesTmp) {
+        push(@$grefaAllIndizes,$grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$_"});
+    }
+} else {
+    @$grefaAllIndizes = nsort keys (%{$grefhCurrent->{MD}->{Map}->{IndexToName}});
+}
 logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
 my $basetime = CleanAndSelectHistoricalDataset();
@@ -3572,22 +3580,25 @@ sub Get_Duplex {
     my $refhIfDuplexStatus = ();
     
     # get ifDuplexStatus table
-    if ($ghOptions{'duplex'}) {
-        my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,1);
-        foreach (@$refaIfDuplexStatus) {
-            $refhIfDuplexStatus->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) (.*)$/;
-        }
+    my $refaIfDuplexStatus = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOID,$ghOptions{'cachedir'},0,0);
+    foreach (@$refaIfDuplexStatus) {
+        $refhIfDuplexStatus->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) (.*)$/;
     }
-    # loop through all found interfaces
-    for my $ifName (keys %{$grefhCurrent->{If}}) {
-        # Extract the index out of the MetaData
-        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        if (defined $refhIfDuplexStatus->{$Index}) {
-            # Store ifDuplexStatus converted from a digit to string
-            $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
-                ? $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
-            logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+    if ($refhIfDuplexStatus) {
+        # loop through all found interfaces
+        for my $ifName (keys %{$grefhCurrent->{If}}) {
+            # Extract the index out of the MetaData
+            my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+            if (defined $refhIfDuplexStatus->{$Index}) {
+                # Store ifDuplexStatus converted from a digit to string
+                $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
+                    ? $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
+                logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+            }
         }
+    } else {
+        logger(2, "No entries returned from $refhOID->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $refhOID->{'oid'} ($refhOID->{'mib'})");
+        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $refhOID->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $refhOID->{'oid'} ($refhOID->{'mib'})</div>";
     }
     return 0;
 }
@@ -4959,6 +4970,7 @@ sub check_options () {
         'ifdetails',                            # Link to query interface info - not yet functional
         'configtable!',                         # Enable or not the configuration table
         'tips!',                                # Enable or not the tips
+        'default-table-sorting=s',              # Default table sorting, can be index (default) or name
         #------- deprecated options ---------#
         'cisco',                                # replaced by --nodetype=cisco
         );
@@ -5035,6 +5047,7 @@ sub check_options () {
         'ifdetails'                 => 0,
         'configtable'               => 1,
         'tips'                      => 1,
+        'default-table-sorting'     => "index",              # Default table sorting, can be index (default) or name
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -5351,6 +5364,14 @@ sub check_options () {
     }
     if (exists $commandline{tips}) {
         $ghOptions{'tips'} = $commandline{tips};
+    }
+    if (exists $commandline{'default-table-sorting'}) {
+        if ($commandline{'default-table-sorting'} =~ /^index$|^name$/i) {
+            $ghOptions{'default-table-sorting'} = "$commandline{'default-table-sorting'}";
+        } else {
+            logger(0, "Specified sorting method \"$commandline{'default-table-sorting'}\" is not valid. Valid sorting method are: index, name.");
+            exit $ERRORS{"UNKNOWN"};
+        }
     }
     
     #-------- SNMP related ----------#
