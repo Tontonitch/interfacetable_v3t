@@ -3682,32 +3682,37 @@ sub Get_Stp {
     my $refaSTPPortStateLines;                          # Lines returned from snmpwalk storing stp port states
 
     # get stp port->ifindex map table
-    $refaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dBasePortIfIndex,$ghOptions{'cachedir'},0,1);
-    for (@$refaSTPIfIndexMapLines) {
-        if (/$oid_dot1dBasePortIfIndex{'oid'}\.([0-9]*) ([0-9]*)/) {
-            $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$1"} = $2;
-            $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{IndexToStpIndex}->{"$2"} = $1;
-            $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{NameToStpIndex}->{"$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}"} = $1;
-            $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{"$1"} = "$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}";
-        }
+    $refaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dBasePortIfIndex,$ghOptions{'cachedir'},0,0);
+	if ($refaSTPIfIndexMapLines) {
+		for (@$refaSTPIfIndexMapLines) {
+			if (/$oid_dot1dBasePortIfIndex{'oid'}\.([0-9]*) ([0-9]*)/) {
+				$grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$1"} = $2;
+				$grefhCurrent->{MD}->{Map}->{dot1dBridge}->{IndexToStpIndex}->{"$2"} = $1;
+				$grefhCurrent->{MD}->{Map}->{dot1dBridge}->{NameToStpIndex}->{"$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}"} = $1;
+				$grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{"$1"} = "$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}";
+			}
+		}
+		
+		$refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dStpPortState,$ghOptions{'cachedir'},0,1);
+		for (@$refaSTPPortStateLines) {
+			my ($Index,$Portstate) = split / /,$_,2;
+			$Index =~ s/^.*\.//g;    # remove all but the index
+			$Portstate =~ s/\s+$//g;    # remove invisible chars from the end
+		
+			if (defined $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index}) {
+				my $ifName = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index};
+				defined $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"} and $Portstate = $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"};
+				logger(2, "IfName=\"$ifName\", StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
+		
+				# Store the Portstate as property of the current interface
+				$grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
+			}
+		}
+	} else {
+        logger(2, "No entries returned from $oid_dot1dBasePortIfIndex->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_dot1dBasePortIfIndex->{'oid'} ($oid_dot1dBasePortIfIndex->{'mib'})");
+        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $oid_dot1dBasePortIfIndex->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $oid_dot1dBasePortIfIndex->{'oid'} ($oid_dot1dBasePortIfIndex->{'mib'})</div>";
     }
-
-    $refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dStpPortState,$ghOptions{'cachedir'},0,1);
-
-    for (@$refaSTPPortStateLines) {
-        my ($Index,$Portstate) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Portstate =~ s/\s+$//g;    # remove invisible chars from the end
-
-        if (defined $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index}) {
-            my $ifName = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index};
-            defined $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"} and $Portstate = $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"};
-            logger(2, "IfName=\"$ifName\", StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
-
-            # Store the Portstate as property of the current interface
-            $grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
-        }
-    }
+	
     return 0;
 
 }
