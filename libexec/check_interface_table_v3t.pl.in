@@ -54,7 +54,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.05-alpha3';
+$REVISION       = '0.05-workspace';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -108,14 +108,18 @@ my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-
 # ifOutDiscards:  The number of outbound packets which were chosen to be discarded even though no errors had been
 #                 detected to prevent their being transmitted. One possible reason for discarding such a packet could
 #                 be to free up buffer space.
-my %oid_ifInOctets      = ( name => "ifInOctets",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.10' );    # + ".<index>"
-my %oid_ifInDiscards    = ( name => "ifInDiscards",   mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.13' );    # + ".<index>"
-my %oid_ifInErrors      = ( name => "ifInErrors",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.14' );    # + ".<index>"
-my %oid_ifOutOctets     = ( name => "ifOutOctets",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.16' );    # + ".<index>"
-my %oid_ifOutDiscards   = ( name => "ifOutDiscards",  mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.19' );    # + ".<index>"
-my %oid_ifOutErrors     = ( name => "ifOutErrors",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.20' );    # + ".<index>"
-my %oid_ifHCInOctets    = ( name => "ifHCInOctets",   mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.6' );  # + ".<index>"
-my %oid_ifHCOutOctets   = ( name => "ifHCOutOctets",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.10' ); # + ".<index>"
+my %oid_ifInOctets       = ( name => "ifInOctets",       mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.10' );    # + ".<index>"
+my %oid_ifInDiscards     = ( name => "ifInDiscards",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.13' );    # + ".<index>"
+my %oid_ifInErrors       = ( name => "ifInErrors",       mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.14' );    # + ".<index>"
+my %oid_ifOutOctets      = ( name => "ifOutOctets",      mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.16' );    # + ".<index>"
+my %oid_ifOutDiscards    = ( name => "ifOutDiscards",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.19' );    # + ".<index>"
+my %oid_ifOutErrors      = ( name => "ifOutErrors",      mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.20' );    # + ".<index>"
+my %oid_ifHCInOctets     = ( name => "ifHCInOctets",     mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.6' );  # + ".<index>"
+my %oid_ifHCOutOctets    = ( name => "ifHCOutOctets",    mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.10' ); # + ".<index>"
+my %oid_ifInUcastPkts	 = ( name => "ifInUcastPkts",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.11' );    # + ".<index>"
+my %oid_ifOutUcastPkts	 = ( name => "ifOutUcastPkts",   mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.17' );    # + ".<index>"
+my %oid_ifHCInUcastPkts	 = ( name => "ifHCInUcastPkts",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.7' );  # + ".<index>"
+my %oid_ifHCOutUcastPkts = ( name => "ifHCOutUcastPkts", mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.11' ); # + ".<index>"
 
 # Cisco specific OIDs
 # ------------------------------------------------------------------------
@@ -696,30 +700,35 @@ $grefAoHConfigTableData->[6]->[1]->{Value} = ( $ghOptions{'warning-property'} > 
 $grefAoHConfigTableData->[6]->[1]->{Value} .= ( $ghOptions{'critical-property'} > 0 )
  ? "critical for $ghOptions{'critical-property'} change(s)" : "no critical threshold";
 
-
 # Loop through all interfaces
+my $ConfigTableOtherMsgInfo = "";
+my $ConfigTableOtherMsgWarn = "";
+my $ConfigTableOtherMsgCrit = "";
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
     # Denormalize interface name
     my $ifNameReadable = denormalize ($ifName);
     # Update the config table
     if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
-        $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= ", ";
+        $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= "<br>";
         $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable";
-    }
-    if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
-        $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= ", ";
-        $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable";
-    }
-    if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} eq "true") {
-        $grefAoHConfigTableData->[2]->[1]->{Value} ne "" and $grefAoHConfigTableData->[2]->[1]->{Value} .= ", ";
-        $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable";
+    } else {
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo} and $ConfigTableOtherMsgInfo .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo};
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} and $ConfigTableOtherMsgWarn .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn};
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} and $ConfigTableOtherMsgCrit .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit};
+        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
+            $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= "<br>";
+            $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable";
+        }
+        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} eq "true") {
+            $grefAoHConfigTableData->[2]->[1]->{Value} ne "" and $grefAoHConfigTableData->[2]->[1]->{Value} .= "<br>";
+            $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable";
+        }
     }
 }
 $grefAoHConfigTableData->[0]->[1]->{Value} eq "" and $grefAoHConfigTableData->[0]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[1]->[1]->{Value} eq "" and $grefAoHConfigTableData->[1]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[2]->[1]->{Value} eq "" and $grefAoHConfigTableData->[2]->[1]->{Value} = "none";
-
-
+$grefAoHConfigTableData->[8]->[1]->{Value} .= $ConfigTableOtherMsgInfo . $ConfigTableOtherMsgWarn . $ConfigTableOtherMsgCrit;
 
 #
 # Generate Html Table
@@ -1094,8 +1103,9 @@ sub Get_InterfaceNames {
             # Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
-                logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length). Name: \"$Name\"</div>";
+                logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
+                $grefhCurrent->{MD}->{If}->{$Name}->{MsgInfo} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
+                #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
             }
         }
 
@@ -1246,8 +1256,9 @@ sub Get_InterfaceNames_Bigip {
             # Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 30;
             if (length($Name) > $name_warning_length) {
-                logger(2, "  Interface name quite long! (> $name_warning_length). Name: \"$Name\"");
-                $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Interface name quite long! (\> $name_warning_length). Name: \"$Name\"<br>";
+                logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
+                $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"";
+                #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"<br>";
             }
         }
 
@@ -1603,6 +1614,50 @@ sub Get_Error_Discard {
     return 0;
 }
 
+
+# ------------------------------------------------------------------------------
+# Get_Packets
+# ------------------------------------------------------------------------------
+# Description: gather interface packets in/out
+# ------------------------------------------------------------------------------
+# Function call:
+#  Get_Packets();
+# Arguments:
+#  None
+# Output:
+#  None
+# ------------------------------------------------------------------------------
+sub Get_Packets {
+    my $refaPktInLines = ();        # Lines returned from snmpwalk storing ifInUcastPkts
+    my $refaPktOutLines = ();       # Lines returned from snmpwalk storing ifOutUcastPkts
+    
+    # Get info from snmp/cache
+    #------------------------------------------
+    
+    if ($ghSNMPOptions{'64bits'}) {
+        # get all interface in/out traffic octet counters - no caching !
+        $refaPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInUcastPkts,$ghOptions{'cachedir'},0,1);
+        $refaPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutUcastPkts,$ghOptions{'cachedir'},0,1);
+        #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Standard MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+        #    "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+        #    "If not enough, consider decreasing delta";
+    } else {
+        # get all interface in/out traffic octet counters - no caching !
+        $refaPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInUcastPkts,$ghOptions{'cachedir'},0,1);
+        $refaPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutUcastPkts,$ghOptions{'cachedir'},0,1);
+        #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using standard MIB 32-bit counters, with delta $ghOptions{'delta'}. " .
+        #    "Can monitor a bandwidth of ".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+        #    "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
+    }
+
+    # post-processing interface pkts counters
+    #------------------------------------------
+
+    Get_PacketsInOut ($refaPktInLines, "PktsIn");
+    Get_PacketsInOut ($refaPktOutLines, "PktsOut");
+
+    return 0;
+}
 
 # oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 # GENERAL FUNCTIONS
@@ -3518,9 +3573,12 @@ sub Get_Speed {
                 } else {
                     logger(1, " $ifName($Index) -> interface speed exceeding standard counter (oid_ifSpeed.$Index: ".$refhIfSpeed->{"$Index"}.
                         "). No high speed counter available, so the speed should be incorrect.");
-                    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
+                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
                     denormalize($ifName)." ($Index). ".
                         "No high speed counter available, so the speed should be incorrect.</div>";
+                    #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
+                    #denormalize($ifName)." ($Index). ".
+                    #    "No high speed counter available, so the speed should be incorrect.</div>";
                 }
             }
         } else {
@@ -3534,8 +3592,10 @@ sub Get_Speed {
         # Recommendation in case Gigabit detected
         if ($refhIfSpeed->{"$Index"} >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
             logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-            $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like" .
-            denormalize($ifName)." ($Index). If possible, consider the use of highperf mib (--64bits).</div>";
+            $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like" .
+            denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
+            #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32 bit counters not recommended with high speed interfaces like" .
+            #denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
         }
         # Store ifSpeed in a machine and human readable format
         $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $refhIfSpeed->{"$Index"};
@@ -3709,8 +3769,8 @@ sub Get_Stp {
 			}
 		}
 	} else {
-        logger(2, "No entries returned from $oid_dot1dBasePortIfIndex->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_dot1dBasePortIfIndex->{'oid'} ($oid_dot1dBasePortIfIndex->{'mib'})");
-        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $oid_dot1dBasePortIfIndex->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $oid_dot1dBasePortIfIndex->{'oid'} ($oid_dot1dBasePortIfIndex->{'mib'})</div>";
+        logger(2, "No entries returned from $oid_dot1dBasePortIfIndex{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_dot1dBasePortIfIndex{'oid'} ($oid_dot1dBasePortIfIndex{'mib'})");
+        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $oid_dot1dBasePortIfIndex{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $oid_dot1dBasePortIfIndex{'oid'} ($oid_dot1dBasePortIfIndex{'mib'})</div>";
     }
 	
     return 0;
