@@ -448,6 +448,7 @@ if ($ghOptions{'nodetype'} eq "bigip") {
 # Read interface related data (from snmp/cache)
 # ------------------------------------------------------------------------------
 
+# +++++ Cisco +++++
 if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
@@ -459,11 +460,21 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets) 
         || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
-    #($ghOptions{'pkt'}) && Get_Packets (); # Gather interface packet traffic
+    if ($ghOptions{'pkt'}) {
+        # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
+            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
     ($ghOptions{'vlan'}) && Get_Vlan_Cisco (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
-} elsif ($ghOptions{'nodetype'} eq "hp") {
+    
+} 
+# +++++ HP +++++
+elsif ($ghOptions{'nodetype'} eq "hp") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
@@ -477,7 +488,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
-} elsif ($ghOptions{'nodetype'} eq "netapp") {
+} 
+# +++++ Netapp +++++
+elsif ($ghOptions{'nodetype'} eq "netapp") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
@@ -491,7 +504,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Error_Discard();
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
 
-} elsif ($ghOptions{'nodetype'} eq "netscreen") {
+} 
+# +++++ Netscreen +++++
+elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status   
     Get_OperStatus (); # Gather interface operational status   
@@ -506,7 +521,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     Get_Specific_Netscreen (); # Gather Juniper Netscreen specific info
 
-} elsif ($ghOptions{'nodetype'} eq "bigip") {
+} 
+# +++++ F5 BigIp +++++
+elsif ($ghOptions{'nodetype'} eq "bigip") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceEnabled_Bigip (); # Gather interface administration status
     Get_InterfaceStatus_Bigip (); # Gather interface operational status
@@ -516,7 +533,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Traffic ('64', \%oid_bigip_sysIfxStatHcInOctets, \%oid_bigip_sysIfxStatHcOutOctets); # Gather interface traffics (in/out and packet errors/discards)
 #    Get_Error_Drop_Collision_Bigip ();
 
-} elsif ($ghOptions{'nodetype'} eq "bluecoat") {
+} 
+# +++++ BlueCoat +++++
+elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
@@ -530,7 +549,9 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
-} else {    # nodetype standard
+} 
+# +++++ Standard device +++++
+else {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (); # Gather interface administration status
     Get_OperStatus (); # Gather interface operational status
@@ -541,6 +562,15 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets) 
         || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
     Get_Error_Discard();
+    if ($ghOptions{'pkt'}) {
+        # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
+            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
@@ -1442,28 +1472,28 @@ sub Get_Traffic {
         my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
         my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
         # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsIn,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsOut,$ghOptions{'cachedir'},0,1);
+        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsIn,$ghOptions{'cachedir'},0,1);
+        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsOut,$ghOptions{'cachedir'},0,1);
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit counters, with delta $ghOptions{'delta'}. " .
             "Can monitor a bandwidth of ".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
         # post-processing interface octet counters
-        Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $refhOIDoctetsIn{'oid'});
-        Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $refhOIDoctetsOut{'oid'});
+        Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $refhOIDoctetsIn->{'oid'});
+        Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $refhOIDoctetsOut->{'oid'});
     } elsif ("$counterType" eq "64") {
         my $refhOIDoctetsIn = shift;
         my $refhOIDoctetsOut = shift;
-        my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
-        my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+        my $refaOctetInLines = ();
+        my $refaOctetOutLines = ();
         # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsIn,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsOut,$ghOptions{'cachedir'},0,1);
+        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsIn,$ghOptions{'cachedir'},0,1);
+        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsOut,$ghOptions{'cachedir'},0,1);
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
             "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
             "If not enough, consider decreasing delta";
         # post-processing interface octet counters
-        Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $refhOIDoctetsIn{'oid'});
-        Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $refhOIDoctetsOut{'oid'});
+        Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $refhOIDoctetsIn->{'oid'});
+        Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $refhOIDoctetsOut->{'oid'});
     } elsif ("$counterType" eq "HighLow") {
         # 64-bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
         # get all interface in/out traffic octet counters (Low and High counters) - no caching !
@@ -1471,14 +1501,16 @@ sub Get_Traffic {
         my $refhOIDoctetsInLow = shift;
         my $refhOIDoctetsOutHigh = shift;
         my $refhOIDoctetsOutLow = shift;
-        my $refaOctetInLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsInHigh,$ghOptions{'cachedir'},0,1);
-        my $refaOctetInLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsInLow,$ghOptions{'cachedir'},0,1);
-        my $refaOctetOutLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsOutHigh,$ghOptions{'cachedir'},0,1);
-        my $refaOctetOutLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%refhOIDoctetsOutLow,$ghOptions{'cachedir'},0,1);
+        my $refaOctetInLines = ();
+        my $refaOctetOutLines = ();
+        my $refaOctetInLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsInHigh,$ghOptions{'cachedir'},0,1);
+        my $refaOctetInLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsInLow,$ghOptions{'cachedir'},0,1);
+        my $refaOctetOutLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsOutHigh,$ghOptions{'cachedir'},0,1);
+        my $refaOctetOutLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDoctetsOutLow,$ghOptions{'cachedir'},0,1);
         # build a table from gathered low+high in octet counters
         my $refhOctetInLinesHigh = ();
         foreach (@$refaOctetInLinesHigh) {
-            $refhOctetInLinesHigh->{"$1"}=$2 if /$refhOIDoctetsInHigh{'oid'}\.([0-9]*) (.*)$/;
+            $refhOctetInLinesHigh->{"$1"}=$2 if /$refhOIDoctetsInHigh->{'oid'}\.([0-9]*) (.*)$/;
         }
         my $refhOctetInLinesLow = ();
         foreach (@$refaOctetInLinesLow) {
@@ -1495,7 +1527,7 @@ sub Get_Traffic {
         # build a table from gathered low+high out octet counters
         my $refhOctetOutLinesHigh = ();
         foreach (@$refaOctetOutLinesHigh) {
-            $refhOctetOutLinesHigh->{"$1"}=$2 if /$refhOIDoctetsOutHigh{'oid'}\.([0-9]*) (.*)$/;
+            $refhOctetOutLinesHigh->{"$1"}=$2 if /$refhOIDoctetsOutHigh->{'oid'}\.([0-9]*) (.*)$/;
         }
         my $refhOctetOutLinesLow = ();
         foreach (@$refaOctetOutLinesLow) {
@@ -1520,172 +1552,172 @@ sub Get_Traffic {
     return 0;
 }
 
-# ------------------------------------------------------------------------------
-# Get_Traffic_OLD
-# ------------------------------------------------------------------------------
-# Description: gather interface traffic in/out
-# ------------------------------------------------------------------------------
-# Function call:
-#  Get_Traffic();
-# Arguments:
-#  None
-# Output:
-#  None
-# ------------------------------------------------------------------------------
-sub Get_Traffic_OLD {
-    my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
-    my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
-    
-    # Get info from snmp/cache
-    #------------------------------------------
-    
-    if ($ghSNMPOptions{'64bits'}) {
-        # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInOctets,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutOctets,$ghOptions{'cachedir'},0,1);
-        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Standard MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
-            "If not enough, consider decreasing delta";
-    } else {
-        # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInOctets,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutOctets,$ghOptions{'cachedir'},0,1);
-        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using standard MIB 32-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
-            "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
-    }
-
-    # post-processing interface octet counters
-    #------------------------------------------
-
-    Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn");
-    Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut");
-
-    return 0;
-}
-
-
-# ------------------------------------------------------------------------------
-# Get_Traffic_Netapp
-# ------------------------------------------------------------------------------
-# Description: gather interface traffic in/out for NetApp filers
-# ------------------------------------------------------------------------------
-# Function call:
-#  Get_Traffic_Netapp();
-# Arguments:
-#  None
-# Output:
-#  None
-# ------------------------------------------------------------------------------
-sub Get_Traffic_Netapp {
-    my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
-    my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
-    
-    # Get info from snmp/cache
-    #------------------------------------------
-    
-    if ($ghSNMPOptions{'64bits'}) {
-        # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64InOctets,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64OutOctets,$ghOptions{'cachedir'},0,1);
-        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
-            "If not enough, consider decreasing delta";
-    } else {
-        # Netapp provide a 64-bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
-        # get all interface in/out traffic octet counters (Low and High counters) - no caching !
-        my $refaOctetInLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighInOctets,$ghOptions{'cachedir'},0,1);
-        my $refaOctetInLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowInOctets,$ghOptions{'cachedir'},0,1);
-        my $refaOctetOutLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighOutOctets,$ghOptions{'cachedir'},0,1);
-        my $refaOctetOutLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowOutOctets,$ghOptions{'cachedir'},0,1);
-        # build a table from gathered low+high in octet counters
-        my $refhOctetInLinesHigh = ();
-        foreach (@$refaOctetInLinesHigh) {
-            $refhOctetInLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighInOctets{'oid'}\.([0-9]*) (.*)$/;
-        }
-        my $refhOctetInLinesLow = ();
-        foreach (@$refaOctetInLinesLow) {
-            my $res = 0;
-            my ($index,$low) = split / /,$_,2;
-            $index =~ s/^.*\.//g;    # remove all but the index
-            $low =~ s/\s+$//g;     # remove invisible chars from the end
-            $res = $low;
-            if ( defined $refhOctetInLinesHigh->{"$index"} and $refhOctetInLinesHigh->{"$index"} > 0 ) {
-                $res += $refhOctetInLinesHigh->{"$index"}<<32;
-            } 
-            push(@$refaOctetInLines,"$index $res");
-        }
-        # build a table from gathered low+high out octet counters
-        my $refhOctetOutLinesHigh = ();
-        foreach (@$refaOctetOutLinesHigh) {
-            $refhOctetOutLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighOutOctets{'oid'}\.([0-9]*) (.*)$/;
-        }
-        my $refhOctetOutLinesLow = ();
-        foreach (@$refaOctetOutLinesLow) {
-            my $res = 0;
-            my ($index,$low) = split / /,$_,2;
-            $index =~ s/^.*\.//g;    # remove all but the index
-            $low =~ s/\s+$//g;     # remove invisible chars from the end
-            $res = $low;
-            if ( defined $refhOctetOutLinesHigh->{"$index"} and $refhOctetOutLinesHigh->{"$index"} > 0 ) {
-                $res += $refhOctetOutLinesHigh->{"$index"}<<32;
-            } 
-            push(@$refaOctetOutLines,"$index $res");
-        }
-        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume((2**(32+32)-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
-            "If not enough, consider decreasing delta";
-    }
-
-    # post-processing interface octet counters
-    #------------------------------------------
-
-    Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn");
-    Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut");
-
-    return 0;
-}
-
-
-# ------------------------------------------------------------------------------
-# Get_Traffic_Bigip
-# ------------------------------------------------------------------------------
-# Description: gather interface traffic in/out
-# ------------------------------------------------------------------------------
-# Function call:
-#  Get_Traffic_Bigip();
-# Arguments:
-#  None
-# Output:
-#  None
-# ------------------------------------------------------------------------------
-sub Get_Traffic_Bigip {
-    my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
-    my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
-    
-    # Get info from snmp/cache
-    #------------------------------------------
-    
-    if ($ghSNMPOptions{'64bits'}) {
-        # get all interface in/out traffic octet counters - no caching !
-        $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcInOctets,$ghOptions{'cachedir'},0,1);
-        $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcOutOctets,$ghOptions{'cachedir'},0,1);
-        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Bigip MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
-            "If not enough, consider decreasing delta";
-    } else {
-        # NO 32-bit counters
-    }
-
-    # post-processing interface octet counters
-    #------------------------------------------
-
-
-    Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $oid_bigip_sysIfxStatHcInOctets{oid});
-    Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $oid_bigip_sysIfxStatHcOutOctets{oid});
-
-    return 0;
-}
+##  # ------------------------------------------------------------------------------
+##  # Get_Traffic
+##  # ------------------------------------------------------------------------------
+##  # Description: gather interface traffic in/out
+##  # ------------------------------------------------------------------------------
+##  # Function call:
+##  #  Get_Traffic();
+##  # Arguments:
+##  #  None
+##  # Output:
+##  #  None
+##  # ------------------------------------------------------------------------------
+##  sub Get_Traffic {
+##      my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
+##      my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+##      
+##      # Get info from snmp/cache
+##      #------------------------------------------
+##      
+##      if ($ghSNMPOptions{'64bits'}) {
+##          # get all interface in/out traffic octet counters - no caching !
+##          $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInOctets,$ghOptions{'cachedir'},0,1);
+##          $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutOctets,$ghOptions{'cachedir'},0,1);
+##          $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Standard MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+##              "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+##              "If not enough, consider decreasing delta";
+##      } else {
+##          # get all interface in/out traffic octet counters - no caching !
+##          $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInOctets,$ghOptions{'cachedir'},0,1);
+##          $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutOctets,$ghOptions{'cachedir'},0,1);
+##          $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using standard MIB 32-bit counters, with delta $ghOptions{'delta'}. " .
+##              "Can monitor a bandwidth of ".format_volume((2**32-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+##              "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
+##      }
+##  
+##      # post-processing interface octet counters
+##      #------------------------------------------
+##  
+##      Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn");
+##      Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut");
+##  
+##      return 0;
+##  }
+##  
+##  
+##  # ------------------------------------------------------------------------------
+##  # Get_Traffic_Netapp
+##  # ------------------------------------------------------------------------------
+##  # Description: gather interface traffic in/out for NetApp filers
+##  # ------------------------------------------------------------------------------
+##  # Function call:
+##  #  Get_Traffic_Netapp();
+##  # Arguments:
+##  #  None
+##  # Output:
+##  #  None
+##  # ------------------------------------------------------------------------------
+##  sub Get_Traffic_Netapp {
+##      my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
+##      my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+##      
+##      # Get info from snmp/cache
+##      #------------------------------------------
+##      
+##      if ($ghSNMPOptions{'64bits'}) {
+##          # get all interface in/out traffic octet counters - no caching !
+##          $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64InOctets,$ghOptions{'cachedir'},0,1);
+##          $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_if64OutOctets,$ghOptions{'cachedir'},0,1);
+##          $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+##              "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+##              "If not enough, consider decreasing delta";
+##      } else {
+##          # Netapp provide a 64-bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
+##          # get all interface in/out traffic octet counters (Low and High counters) - no caching !
+##          my $refaOctetInLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighInOctets,$ghOptions{'cachedir'},0,1);
+##          my $refaOctetInLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowInOctets,$ghOptions{'cachedir'},0,1);
+##          my $refaOctetOutLinesHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifHighOutOctets,$ghOptions{'cachedir'},0,1);
+##          my $refaOctetOutLinesLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_netapp_ifLowOutOctets,$ghOptions{'cachedir'},0,1);
+##          # build a table from gathered low+high in octet counters
+##          my $refhOctetInLinesHigh = ();
+##          foreach (@$refaOctetInLinesHigh) {
+##              $refhOctetInLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighInOctets{'oid'}\.([0-9]*) (.*)$/;
+##          }
+##          my $refhOctetInLinesLow = ();
+##          foreach (@$refaOctetInLinesLow) {
+##              my $res = 0;
+##              my ($index,$low) = split / /,$_,2;
+##              $index =~ s/^.*\.//g;    # remove all but the index
+##              $low =~ s/\s+$//g;     # remove invisible chars from the end
+##              $res = $low;
+##              if ( defined $refhOctetInLinesHigh->{"$index"} and $refhOctetInLinesHigh->{"$index"} > 0 ) {
+##                  $res += $refhOctetInLinesHigh->{"$index"}<<32;
+##              } 
+##              push(@$refaOctetInLines,"$index $res");
+##          }
+##          # build a table from gathered low+high out octet counters
+##          my $refhOctetOutLinesHigh = ();
+##          foreach (@$refaOctetOutLinesHigh) {
+##              $refhOctetOutLinesHigh->{"$1"}=$2 if /$oid_netapp_ifHighOutOctets{'oid'}\.([0-9]*) (.*)$/;
+##          }
+##          my $refhOctetOutLinesLow = ();
+##          foreach (@$refaOctetOutLinesLow) {
+##              my $res = 0;
+##              my ($index,$low) = split / /,$_,2;
+##              $index =~ s/^.*\.//g;    # remove all but the index
+##              $low =~ s/\s+$//g;     # remove invisible chars from the end
+##              $res = $low;
+##              if ( defined $refhOctetOutLinesHigh->{"$index"} and $refhOctetOutLinesHigh->{"$index"} > 0 ) {
+##                  $res += $refhOctetOutLinesHigh->{"$index"}<<32;
+##              } 
+##              push(@$refaOctetOutLines,"$index $res");
+##          }
+##          $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Netapp MIB 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
+##              "Can monitor a bandwidth of ".format_volume((2**(32+32)-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+##              "If not enough, consider decreasing delta";
+##      }
+##  
+##      # post-processing interface octet counters
+##      #------------------------------------------
+##  
+##      Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn");
+##      Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut");
+##  
+##      return 0;
+##  }
+##  
+##  
+##  # ------------------------------------------------------------------------------
+##  # Get_Traffic_Bigip
+##  # ------------------------------------------------------------------------------
+##  # Description: gather interface traffic in/out
+##  # ------------------------------------------------------------------------------
+##  # Function call:
+##  #  Get_Traffic_Bigip();
+##  # Arguments:
+##  #  None
+##  # Output:
+##  #  None
+##  # ------------------------------------------------------------------------------
+##  sub Get_Traffic_Bigip {
+##      my $refaOctetInLines = ();        # Lines returned from snmpwalk storing ifOctetsIn
+##      my $refaOctetOutLines = ();       # Lines returned from snmpwalk storing ifOctetsOut
+##      
+##      # Get info from snmp/cache
+##      #------------------------------------------
+##      
+##      if ($ghSNMPOptions{'64bits'}) {
+##          # get all interface in/out traffic octet counters - no caching !
+##          $refaOctetInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcInOctets,$ghOptions{'cachedir'},0,1);
+##          $refaOctetOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysIfxStatHcOutOctets,$ghOptions{'cachedir'},0,1);
+##          $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using Bigip MIB 64-bit counters, with delta $ghOptions{'delta'}. " .
+##              "Can monitor a bandwidth of ".format_volume((2**64-1 )/($ghOptions{'delta'}*4/3))."bps maximum. " .
+##              "If not enough, consider decreasing delta";
+##      } else {
+##          # NO 32-bit counters
+##      }
+##  
+##      # post-processing interface octet counters
+##      #------------------------------------------
+##  
+##  
+##      Get_TrafficInOut ($refaOctetInLines, "OctetsIn", "BitsIn", $oid_bigip_sysIfxStatHcInOctets{oid});
+##      Get_TrafficInOut ($refaOctetOutLines, "OctetsOut", "BitsOut", $oid_bigip_sysIfxStatHcOutOctets{oid});
+##  
+##      return 0;
+##  }
 
 
 # ------------------------------------------------------------------------------
@@ -1740,35 +1772,86 @@ sub Get_Error_Discard {
 #  None
 # ------------------------------------------------------------------------------
 sub Get_Packets {
-    my $refaPktInLines = ();        # Lines returned from snmpwalk storing ifInUcastPkts
-    my $refaPktOutLines = ();       # Lines returned from snmpwalk storing ifOutUcastPkts
+    my $counterType = shift;
     
-    # Get info from snmp/cache
-    #------------------------------------------
+    my $refaUcastPktInLines = ();        # Lines returned from snmpwalk storing ifInUcastPkts
+    my $refaUcastPktOutLines = ();       # Lines returned from snmpwalk storing ifOutUcastPkts
+    my $refaNUcastPktInLines = ();
+    my $refaNUcastPktOutLines = ();
     
-    if ($ghSNMPOptions{'64bits'}) {
+    if ("$counterType" eq "64") {
+        my $refhOidUCastIn = shift;
+        my $refhOidUCastOut = shift;
+        my $refhOidMulticastIn = shift;
+        my $refhOidMulticastOut = shift;
+        my $refhOidBroadcastIn = shift;
+        my $refhOidBroadcastOut = shift;
+        
+        my $refaMulticastPktInLines = ();        # Lines returned from snmpwalk storing ifxxxxxxxxxxxxxxxx
+        my $refaMulticastPktOutLines = ();       # Lines returned from snmpwalk storing ifxxxxxxxxxxxxxxxx
+        my $refaBroadcastPktInLines = ();        # Lines returned from snmpwalk storing ifxxxxxxxxxxxxxxxx
+        my $refaBroadcastPktOutLines = ();       # Lines returned from snmpwalk storing ifxxxxxxxxxxxxxxxx
+
         # get all interface in/out traffic octet counters - no caching !
-        $refaUcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInUcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutUcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaMulticastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInMulticastPkts,$ghOptions{'cachedir'},0,1);
-        $refaMulticastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutMulticastPkts,$ghOptions{'cachedir'},0,1);
-        $refaBroadcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCInBroadcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaBroadcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifHCOutBroadcastPkts,$ghOptions{'cachedir'},0,1);
-        #$refaNUcastPktOutLines = 
-        #$refaNUcastPktOutLines = 
-    } else {
+        $refaUcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidUCastIn,$ghOptions{'cachedir'},0,1);
+        $refaUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidUCastOut,$ghOptions{'cachedir'},0,1);
+        $refaMulticastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidMulticastIn,$ghOptions{'cachedir'},0,1);
+        $refaMulticastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidMulticastOut,$ghOptions{'cachedir'},0,1);
+        $refaBroadcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidBroadcastIn,$ghOptions{'cachedir'},0,1);
+        $refaBroadcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidBroadcastOut,$ghOptions{'cachedir'},0,1);
+        
+        my $refhNUcastPktIn = ();
+        foreach (@$refaMulticastPktInLines) {
+            my ($Index,$Value) = split / /,$_,2;
+            $Index =~ s/^\.*$refhOidMulticastIn->{'oid'}\.//g;    # remove all but the index
+            $Value =~ s/\s+$//g;                                     # remove invisible chars from the end
+            $refhNUcastPktIn->{"$Index"} = 0 if not defined $refhNUcastPktIn->{"$Index"};
+            $refhNUcastPktIn->{"$Index"} += $Value;
+        }
+        foreach (@$refaBroadcastPktInLines) {
+            my ($Index,$Value) = split / /,$_,2;
+            $Index =~ s/^\.*$refhOidBroadcastIn->{'oid'}\.//g;    # remove all but the index
+            $Value =~ s/\s+$//g;                                     # remove invisible chars from the end
+            $refhNUcastPktIn->{"$Index"} = 0 if not defined $refhNUcastPktIn->{"$Index"};
+            $refhNUcastPktIn->{"$Index"} += $Value;
+            push @$refaNUcastPktInLines,"$Index $refhNUcastPktIn->{$Index}";
+        }
+        
+        my $refhNUcastPktOut = ();
+        foreach (@$refaMulticastPktOutLines) {
+            my ($Index,$Value) = split / /,$_,2;
+            $Index =~ s/^\.*$refhOidMulticastOut->{'oid'}\.//g;    # remove all but the index
+            $Value =~ s/\s+$//g;                                     # remove invisible chars from the end
+            $refhNUcastPktOut->{"$Index"} = 0 if not defined $refhNUcastPktOut->{"$Index"};
+            $refhNUcastPktOut->{"$Index"} += $Value;
+        }
+        foreach (@$refaBroadcastPktOutLines) {
+            my ($Index,$Value) = split / /,$_,2;
+            $Index =~ s/^\.*$refhOidBroadcastOut->{'oid'}\.//g;    # remove all but the index
+            $Value =~ s/\s+$//g;                                     # remove invisible chars from the end
+            $refhNUcastPktOut->{"$Index"} = 0 if not defined $refhNUcastPktOut->{"$Index"};
+            $refhNUcastPktOut->{"$Index"} += $Value;
+            push @$refaNUcastPktOutLines,"$Index $refhNUcastPktOut->{$Index}";
+        }
+        
+    } elsif ("$counterType" eq "32") {
+        my $refhOidUCastIn = shift;
+        my $refhOidUCastOut = shift;
+        my $refhOidNUCastIn = shift;
+        my $refhOidNUCastOut = shift;
+        
         # get all interface in/out traffic octet counters - no caching !
-        $refaUcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInUcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutUcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaNUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifInNUcastPkts,$ghOptions{'cachedir'},0,1);
-        $refaNUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_ifOutNUcastPkts,$ghOptions{'cachedir'},0,1);
+        $refaUcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidUCastIn,$ghOptions{'cachedir'},0,1);
+        $refaUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidUCastOut,$ghOptions{'cachedir'},0,1);
+        $refaNUcastPktInLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidNUCastIn,$ghOptions{'cachedir'},0,1);
+        $refaNUcastPktOutLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOidNUCastOut,$ghOptions{'cachedir'},0,1);
     }
 
     # post-processing interface pkts counters
     #------------------------------------------
 
-    Get_PacketsInOut ($refaPktInLines, "PktsIn");
-    Get_PacketsInOut ($refaPktOutLines, "PktsOut");
+    #Get_PacketsInOut ($refaPktInLines, "PktsIn");
+    #Get_PacketsInOut ($refaPktOutLines, "PktsOut");
 
     return 0;
 }
@@ -5098,6 +5181,7 @@ sub check_options () {
         'duplex!',                              # Add Duplex mode info for each interface
         'stp!',                                 # Add Spanning Tree Protocol info for each interface
         'vlan!',                                # Add vlan attribution info for each interface
+        'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
                                                 #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
@@ -5194,6 +5278,7 @@ sub check_options () {
         'duplex'                    => 0,
         'stp'                       => 0,
         'vlan'                      => 0,
+        'pkt'                       => 0,
         'nodetype'                  => "standard",
         'ifloadgradient'            => 1,
         'human'                     => 1,
@@ -5412,6 +5497,9 @@ sub check_options () {
         $ghOptions{'vlan'} = $commandline{vlan};
     } else {
         $ghOptions{'vlan'} = 0;
+    }
+    if (exists $commandline{pkt}) {
+        $ghOptions{'pkt'} = $commandline{pkt};
     }
     if (exists $commandline{snapshot}) {
         $ghOptions{'snapshot'} = $commandline{snapshot};
