@@ -426,13 +426,13 @@ logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 logger(1, "Retrieve target system information");
-$grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+$grefhSNMP = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$grefhSNMP->{$oid_sysDescr{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$grefhSNMP->{$oid_sysName{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysContact} = "$grefhSNMP->{$oid_sysContact{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysLocation}  = "$grefhSNMP->{$oid_sysLocation{'oid'}}";
 if ($ghOptions{'nodetype'} eq "cisco") {
-    $grefhSNMP = GetMultipleDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+    $grefhSNMP = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
     $grefhCurrent->{MD}->{Node}->{cisco_type}   = "$grefhSNMP->{$oid_cisco_ChassisModel{'oid'}}";
     $grefhCurrent->{MD}->{Node}->{cisco_serial} = "$grefhSNMP->{$oid_cisco_ChassisSrNumStr{'oid'}}";
 }
@@ -5171,7 +5171,6 @@ sub check_options () {
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
-        'community=s',                          # community string
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
         'usemacaddr',                           # use mac address (if unique) instead of index when reformatting duplicate interface description
