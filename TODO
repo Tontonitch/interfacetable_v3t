@@ -26,6 +26,7 @@
 #           modem) where the download and upload speeds are different 
 #         - option for (re-)adding/remove some bw stats
 #         - in unixsnmp mode, switching any remaining use of net-snmp perl binding
+#             -> use of snmpget/snmpbulkget
 # DONE    - enhance code flexibility for easier device support extension
 # DONE    - infobulle pkt err/discard
 # DONE    - notes and recommendations in the config table (bandwidth monitoring capacity calculation,...)
@@ -75,6 +76,14 @@
 #             -> exemple: when host unreachable ([ERROR] Could not read sysUpTime information from host "x.x.x.x" with snmp)
 #         - bps perfdata: Warning, critical and max levels in graph
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
+#         - code simplifications
+#             -> cachedir in snmp options
+#             -> merge of GetDataWithSnmp and GetMultipleDataWithSnmp
+#             -> snmp functions rewamp
+#         - all functions of SnmpUtils return 2 hashs, one for the results and one for the errors. No more arrays.
+#         - new cache storage methods to store hashs and arrays
+#         - usage help update
+#         - website help & doc update
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
