@@ -29,7 +29,7 @@ BEGIN {
     @ISA         = qw(Exporter);
     @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString format_volume format_volume_bytes);
     @EXPORT_OK   = qw();
-    $VERSION     = 0.1;
+    $VERSION     = 0.2;
     $AUTHOR      = "Y. Charton";
 }
 
