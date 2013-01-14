@@ -176,7 +176,7 @@ sub SnmpGet {
                     }
                 } else {
                     logger(0, "SNMP problem: ".$refoSession->error());
-                    $refhErrorOutput->{code} = 1;
+                    $refhErrorOutput->{code} = 2;
                     $refhErrorOutput->{msg} = "SNMP problem: ".$refoSession->error();
                     $refoSession->close();
                     return ($refhResultOutput, $refhErrorOutput);
@@ -191,10 +191,12 @@ sub SnmpGet {
             # fill hash with data
             $refhResultOutput->{$OID} = $refhSnmpResult->{$OID};
         }
+        # finally close the session
+        $refoSession->close();
     } else { 
         # session establishment problem
         logger(0, "SNMP session object creation problem: ".$sessionError);
-        $refhErrorOutput->{code} = 1;
+        $refhErrorOutput->{code} = 2;
         $refhErrorOutput->{msg} = "SNMP session object creation problem: ".$sessionError;
     }
 
@@ -457,6 +459,8 @@ sub SnmpGetTable {
             # fill hash with data
             @$refhResultOutput{keys %$refhSnmpResult} = values %$refhSnmpResult;
         }
+        # finally close the session
+        $refoSession->close();
     } else {
         # session establishment problem
         logger(0, "SNMP session object creation problem: ".$sessionError);
@@ -597,21 +601,18 @@ sub ExecuteCommand {
     my $Command         = $refhStruct->{Command};
     my $GlobalCacheDir  = $refhStruct->{CacheDir};
 
-    my $refaLines=[];   # Pointer to Array of strings (output)
-
+    my $refaLines;      # Pointer to Array of strings (output)
     my $CacheFile;      # Filename storing cached data
     my $ExitCode;       # exit code of the unix command
-
-    my $Now=time();     # current time in seconds since epoch
-
-    my $CacheDir="$GlobalCacheDir/ExecuteCommand/"; # cache dir
+    my $Now = time();   # current time in seconds since epoch
+    my $CacheDir = "$GlobalCacheDir/ExecuteCommand/"; # cache dir
 
     # Create Cachedir if not exist
     not -d $CacheDir and MyMkdir($CacheDir);
 
     # If caching for this command is enabled
     if ($refhStruct->{CacheTimer} > 0) {
-        $CacheFile = $CacheDir . normalize ("$Command");
+        $CacheFile = $CacheDir . normalize ("$Command") . ".dat";
         if (-r "$CacheFile") {
             logger(3, "Cached data file found: $CacheFile, cacheTimer=$refhStruct->{CacheTimer}s");
             my @FileProperties=stat($CacheFile);
@@ -620,10 +621,8 @@ sub ExecuteCommand {
             # only read the cache file if it is not too old
             if ($Now-$refhStruct->{CacheTimer} < $FileProperties[9]) {
                 logger(3, " valid cached data, loading");
-                # open (IN,"<$CacheFile");
-                #     @$refaLines=<IN>;
-                # close (IN);
                 $refaLines = retrieve($CacheFile);
+                die "Unable to retrieve from ${CacheFile}: $!\n" unless defined $refaLines;
                 foreach (@$refaLines) {
                     $_ =~ s/\n$//g;
                     logger(3, "   data: $_");
@@ -657,9 +656,6 @@ sub ExecuteCommand {
     if ($refhStruct->{CacheTimer} > 0) {
         logger(3, "Write cache file $CacheFile, CacheTimer=$refhStruct->{CacheTimer}");
         umask "0000"; # change to rw-rw-rw maybe changed later because of security
-        # open (OUT,">$CacheFile") or return ($refaLines,$ExitCode);
-        #     print OUT @$refaLines;
-        # close (OUT);
         store ($refaLines, "$CacheFile") or die "cannot store to $CacheFile: $!";
     }
     return ($refaLines,$ExitCode);
