@@ -3848,6 +3848,7 @@ $PERL subst lib/SnmpUtils.pm
 $PERL subst libexec/check_interface_table_v3t.pl
 $PERL subst etc/settings.cfg-sample
 $PERL subst etc/interfacetable_v3t.conf.httpd
+$PERL subst contrib/utilities/test_snmp.pl
 
 echo ""
 echo ""

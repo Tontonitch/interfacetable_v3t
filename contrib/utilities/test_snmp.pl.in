@@ -1,0 +1,651 @@
+#!/usr/bin/perl
+
+# ------------------------------------------------------------------------
+# Program: @PKG_NAME@
+# Version: @PKG_VERSION@
+# Author:  Yannick Charton - tontonitch-pro@yahoo.fr
+# License: GPLv3
+# Copyright (c) 2009-2013 Yannick Charton (@PKG_HOME_URL@)
+
+# COPYRIGHT:
+# This software and the additional scripts provided with this software are
+# Copyright (c) 2009-2012 Yannick Charton (tontonitch-pro@yahoo.fr)
+# (Except where explicitly superseded by other copyright notices)
+#
+# LICENSE:
+# This work is made available to you under the terms of version 3 of
+# the GNU General Public License. A copy of that license should have
+# been provided with this software.
+# If not, see <http://www.gnu.org/licenses/>.
+#
+# This work is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# Nagios and the Nagios logo are registered trademarks of Ethan Galstad.
+# ------------------------------------------------------------------------
+
+use strict;
+use warnings;
+
+use lib ('@libdir@');
+use Net::SNMP qw(oid_base_match);
+use Config::General;
+use Data::Dumper;
+  $Data::Dumper::Sortkeys = 1;
+use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
+use Sort::Naturally;
+use GeneralUtils;
+use Settings;
+use SnmpUtils;
+
+
+
+# ========================================================================
+# VARIABLES
+# ========================================================================
+
+# ------------------------------------------------------------------------
+# global variable definitions
+# ------------------------------------------------------------------------
+use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
+$TIMEOUT = 15;
+%ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
+$PROGNAME       = $0;
+$REVISION       = '0.05-workspace';
+$CONTACT        = 'tontonitch-pro@yahoo.fr';
+my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
+my %COLORS      = ('HighLight' => '#81BEF7');
+my $UMASK       = "0000";
+my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
+my $STARTTIME   = time ();                      # time of program start
+
+# ------------------------------------------------------------------------
+# OIDs definitions
+# Format: hash containing name, [mib], oid, [convertToReadable]
+# ------------------------------------------------------------------------
+
+# Standard OIDs
+# ------------------------------------------------------------------------
+my %oid_sysDescr        = ( name => "sysDescr",     mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.1.0" );
+my %oid_sysUpTime       = ( name => "sysUpTime",    mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.3.0" );
+my %oid_sysContact      = ( name => "sysContact",   mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.4.0" );
+my %oid_sysName         = ( name => "sysName",      mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.5.0" );
+my %oid_sysLocation     = ( name => "sysLocation",  mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.6.0" );
+
+my %oid_ifDescr         = ( name => "ifDescr",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
+my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
+my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
+my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
+my %oid_ifPhysAddress   = ( name => "ifPhysAddress", mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.6" );     # + ".<index>"
+my %oid_ifAdminStatus   = ( name => "ifAdminStatus", mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.7", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
+my %oid_ifOperStatus    = ( name => "ifOperStatus",  mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.8", convertToReadable => {1=>'up', 2=>'down', 3=>'testing', 4=>'unknown', 5=>'dormant', 6=>'notPresent', 7=>'lowerLayerDown'} );     # + ".<index>"
+#my %oid_ifLastChange    = ( name => "ifLastChange",  mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.9" );     # + ".<index>", not used
+
+my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-MIB", oid => "1.3.6.1.2.1.10.7.2.1.19", convertToReadable => {1=>'unknown', 2=>'half', 3=>'full'});  # + ".<index>"
+
+my %oid_ipAdEntIfIndex   = ( name => "ipAdEntIfIndex",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.2" ); # + ".<IP address>"
+my %oid_ipAdEntNetMask   = ( name => "ipAdEntNetMask",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.3" ); # + ".<index>"
+my %oid_ipAddressIfIndex = ( name => "ipAddressIfIndex", mib => "IP-MIB", oid => "1.3.6.1.2.1.4.34.1.3" ); # + ".<IP address>"
+
+my %oid_ifVlanName      = ( name => "entLogicalDescr", mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
+
+my %oid_dot1dBasePortIfIndex = ( name => "dot1dBasePortIfIndex", mib => 'BRIDGE-MIB', oid => '1.3.6.1.2.1.17.1.4.1.2' ); # map from dot1base port table to ifindex table
+my %oid_dot1dStpPortState    = ( name => "dot1dStpPortState",    mib => 'BRIDGE-MIB', oid => '1.3.6.1.2.1.17.2.15.1.3', 
+    convertToReadable => {0=>'unknown',1=>'disabled',2=>'blocking',3=>'listening',4=>'learning',5=>'forwarding',6=>'broken'} ); # stp port states
+
+# RFC1213 - Extracts about in/out stats
+# ifInOctets:     The total number of octets received on the interface, including framing characters.
+# ifInErrors:     The number of inbound packets that contained errors preventing them from being deliverable to a
+#                 higher-layer protocol.
+# ifInDiscards:   The number of inbound packets which were chosen to be discarded even though no errors had been
+#                 detected to prevent their being deliverable to a higher-layer protocol. One possible reason for
+#                 discarding such a packet could be to free up buffer space.
+# ifOutOctets:    The total number of octets transmitted out of the interface, including framing characters.
+# ifOutErrors:    The number of outbound packets that could not be transmitted because of errors.
+# ifOutDiscards:  The number of outbound packets which were chosen to be discarded even though no errors had been
+#                 detected to prevent their being transmitted. One possible reason for discarding such a packet could
+#                 be to free up buffer space.
+my %oid_ifInOctets       = ( name => "ifInOctets",       mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.10' );    # + ".<index>"
+my %oid_ifInDiscards     = ( name => "ifInDiscards",     mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.13' );    # + ".<index>"
+my %oid_ifInErrors       = ( name => "ifInErrors",       mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.14' );    # + ".<index>"
+my %oid_ifOutOctets      = ( name => "ifOutOctets",      mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.16' );    # + ".<index>"
+my %oid_ifOutDiscards    = ( name => "ifOutDiscards",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.19' );    # + ".<index>"
+my %oid_ifOutErrors      = ( name => "ifOutErrors",      mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.20' );    # + ".<index>"
+my %oid_ifHCInOctets     = ( name => "ifHCInOctets",     mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.6' );  # + ".<index>"
+my %oid_ifHCOutOctets    = ( name => "ifHCOutOctets",    mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.10' ); # + ".<index>"
+my %oid_ifInUcastPkts     = ( name => "ifInUcastPkts",    mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.11' );    # + ".<index>"
+my %oid_ifOutUcastPkts     = ( name => "ifOutUcastPkts",   mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.17' );    # + ".<index>"
+my %oid_ifInNUcastPkts     = ( name => "ifInNUcastPkts",   mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.12' );    # + ".<index>"
+my %oid_ifOutNUcastPkts     = ( name => "ifOutNUcastPkts",  mib => "IF-MIB", oid => '1.3.6.1.2.1.2.2.1.18' );    # + ".<index>"
+my %oid_ifHCInUcastPkts     = ( name => "ifHCInUcastPkts",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.7' );  # + ".<index>"
+my %oid_ifHCOutUcastPkts = ( name => "ifHCOutUcastPkts", mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.11' ); # + ".<index>"
+my %oid_ifHCInMulticastPkts     = ( name => "ifHCInMulticastPkts",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.8' );  # + ".<index>"
+my %oid_ifHCInBroadcastPkts     = ( name => "ifHCInBroadcastPkts",  mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.9' );  # + ".<index>"
+my %oid_ifHCOutMulticastPkts = ( name => "ifHCOutMulticastPkts", mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.12' ); # + ".<index>"
+my %oid_ifHCOutBroadcastPkts = ( name => "ifHCOutBroadcastPkts", mib => "IF-MIB", oid => '1.3.6.1.2.1.31.1.1.1.13' ); # + ".<index>"
+
+# Cisco specific OIDs
+# ------------------------------------------------------------------------
+my %oid_cisco_ChassisModel     = ( name => "ChassisModel",     mib => "CISCO-STACK-MIB",           oid => '1.3.6.1.4.1.9.5.1.2.16.0' ); # ex: WS-C3550-48-SMI
+my %oid_cisco_ChassisSrNumStr  = ( name => "ChassisSrNumStr",  mib => "CISCO-STACK-MIB",           oid => '1.3.6.1.4.1.9.5.1.2.19.0' ); # ex: CAT0645Z0HB
+my %oid_cisco_vmVlan           = ( name => "vmVlan",           mib => "CISCO-VLAN-MEMBERSHIP-MIB", oid => '1.3.6.1.4.1.9.9.68.1.2.2.1.2' ); # + ".?.<index>"
+# NOT USED - my $oid_locIfIntBitsSec = '1.3.6.1.4.1.9.2.2.1.1.6';   # need to append integer for specific interface
+# NOT USED - my $oid_locIfOutBitsSec = '1.3.6.1.4.1.9.2.2.1.1.8';   # need to append integer for specific interface
+# NOT USED - my $cisco_ports         = '1.3.6.1.4.1.9.5.1.3.1.1.14.1'; # number of ports of the switch
+
+# For use in Cisco CATOS special hacks - NOT USED YET
+# my $oid_cisco_port_name_table               = '1.3.6.1.4.1.9.5.1.4.1.1.4';    # table of port names (the ones you set with 'set port name')
+# my $oid_cisco_port_ifindex_map              = '1.3.6.1.4.1.9.5.1.4.1.1.11';   # map from cisco port table to normal SNMP ifindex table
+# my $oid_cisco_port_linkfaultstatus_table    = '1.3.6.1.4.1.9.5.1.4.1.1.22.';  # see table below for possible codes
+# my $oid_cisco_port_operstatus_table         = '1.3.6.1.4.1.9.5.1.4.1.1.6.';   # see table below for possible values
+# my $oid_cisco_port_addoperstatus_table      = '1.3.6.1.4.1.9.5.1.4.1.1.23.';  # see table below for possible codes
+# my %cisco_port_linkfaultstatus = (1=>'up',2=>'nearEndFault',3=>'nearEndConfigFail',4=>'farEndDisable',5=>'farEndFault',6=>'farEndConfigFail',7=>'otherFailure');
+# my %cisco_port_operstatus      = (0=>'operstatus:unknown',1=>'operstatus:other',2=>'operstatus:ok',3=>'operstatus:minorFault',4=>'operstatus:majorFault');
+# my %cisco_port_addoperstatus   = (0=>'other',1=>'connected',2=>'standby',3=>'faulty',4=>'notConnected',5=>'inactive',6=>'shutdown',7=>'dripDis',8=>'disable',9=>'monitor',10=>'errdisable',11=>'linkFaulty',12=>'onHook',13=>'offHook',14=>'reflector');
+
+# HP specific OIDs
+# ------------------------------------------------------------------------
+my %oid_hp_ifVlanPort = ( name => "hpSwitchIgmpPortIndex2", mib => "CONFIG-MIB (HP)", oid => '1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.3.1.2' );   # + ".<index>"
+# Or? ifVlan = ".1.3.6.1.4.1.11.2.14.11.5.1.7.1.15.1.1.1 (hpSwitchIgmpVlanIndex)";
+#TODO my $oid_hp_ifDuplexStatus      = '.1.3.6.1.4.1.11.2.14.11.5.1.7.1.3.1.1.10';   # + ".<index>"
+#TODO my %hp_ifDuplexStatus          = (1=>'HD10',2=>'HD10',3=>'FD10',4=>'FD100',5=>'auto neg');
+
+# Juniper Netscreen specific OIDs (from NETSCREEN-INTERFACE/ZONE/VSYS-MIB)
+# ------------------------------------------------------------------------
+my %oid_juniper_nsIfIndex   = ( name => "nsIfIndex",    mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.1' );  # + ".<index>"
+my %oid_juniper_nsIfName    = ( name => "nsIfName",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.2' );  # + ".<index>"
+my %oid_juniper_nsIfDescr   = ( name => "nsIfDescr",    mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.22' ); # + ".<index>"
+my %oid_juniper_nsIfZone    = ( name => "nsIfZone",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.4' );  # + ".<index>"
+my %oid_juniper_nsIfVsys    = ( name => "nsIfVsys",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.3' );  # + ".<index>"
+my %oid_juniper_nsIfStatus  = ( name => "nsIfStatus",   mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.5' );  # + ".<index>"
+my %oid_juniper_nsIfIp      = ( name => "nsIfIp",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.6' );  # + ".<index>"
+my %oid_juniper_nsIfNetmask = ( name => "nsIfNetmask",  mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.7' );  # + ".<index>"
+my %oid_juniper_nsIfMode    = ( name => "nsIfMode",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.10' ); # + ".<index>"
+my %oid_juniper_nsIfMAC     = ( name => "nsIfMAC",      mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.11' ); # + ".<index>"
+
+my %oid_juniper_nsIfMngTelnet     = ( name => "nsIfMngTelnet",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.12' ); # + ".<index>"
+my %oid_juniper_nsIfMngSCS        = ( name => "nsIfMngSCS",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.13' ); # + ".<index>"
+my %oid_juniper_nsIfMngWEB        = ( name => "nsIfMngWEB",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.14' ); # + ".<index>"
+my %oid_juniper_nsIfMngSSL        = ( name => "nsIfMngSSL",        mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.15' ); # + ".<index>"
+my %oid_juniper_nsIfMngSNMP       = ( name => "nsIfMngSNMP",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.16' ); # + ".<index>"
+my %oid_juniper_nsIfMngGlobal     = ( name => "nsIfMngGlobal",     mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.17' ); # + ".<index>"
+my %oid_juniper_nsIfMngGlobalPro  = ( name => "nsIfMngGlobalPro",  mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.18' ); # + ".<index>"
+my %oid_juniper_nsIfMngPing       = ( name => "nsIfMngPing",       mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.19' ); # + ".<index>"
+my %oid_juniper_nsIfMngIdentReset = ( name => "nsIfMngIdentReset", mib => "NETSCREEN-INTERFACE-MIB", oid => '1.3.6.1.4.1.3224.9.1.1.20' ); # + ".<index>"
+
+#NOT USED YET
+#my $oid_juniper_nsIfMonPlyDeny      = '1.3.6.1.4.1.3224.9.4.1.3'; # + ".<index>"
+#my $oid_juniper_nsIfMonAuthFail     = '1.3.6.1.4.1.3224.9.4.1.4'; # + ".<index>"
+#my $oid_juniper_nsIfMonUrlBlock     = '1.3.6.1.4.1.3224.9.4.1.5'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngQueue   = '1.3.6.1.4.1.3224.9.4.1.6'; # + ".<index>"
+#my $oid_juniper_nsIfMonTrMngDrop    = '1.3.6.1.4.1.3224.9.4.1.7'; # + ".<index>"
+#my $oid_juniper_nsIfMonEncFail      = '1.3.6.1.4.1.3224.9.4.1.8'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSa         = '1.3.6.1.4.1.3224.9.4.1.9'; # + ".<index>"
+#my $oid_juniper_nsIfMonNoSaPly      = '1.3.6.1.4.1.3224.9.4.1.10'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaInactive   = '1.3.6.1.4.1.3224.9.4.1.11'; # + ".<index>"
+#my $oid_juniper_nsIfMonSaPolicyDeny = '1.3.6.1.4.1.3224.9.4.1.12'; # + ".<index>"
+
+my %oid_juniper_nsZoneCfgId   = ( name => "nsZoneCfgId",   mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.1' ); # + ".<index>"
+my %oid_juniper_nsZoneCfgName = ( name => "nsZoneCfgName", mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.2' ); # + ".<index>"
+my %oid_juniper_nsZoneCfgType = ( name => "nsZoneCfgType", mib => "NETSCREEN-ZONE-MIB", oid => '1.3.6.1.4.1.3224.8.1.1.1.3' ); # + ".<index>"
+
+my %oid_juniper_nsVsysCfgId   = ( name => "nsVsysCfgId",   mib => "NETSCREEN-VSYS-MIB", oid => '1.3.6.1.4.1.3224.15.1.1.1.1' ); # + ".<index>"
+my %oid_juniper_nsVsysCfgName = ( name => "nsVsysCfgName", mib => "NETSCREEN-VSYS-MIB", oid => '1.3.6.1.4.1.3224.15.1.1.1.2' ); # + ".<index>"
+
+# Netapp specific OIDs (from NETWORK-APPLIANCE-MIB)
+# ------------------------------------------------------------------------
+my %oid_netapp_productModel     = ( name => "productModel",     mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.1.5.0" );
+my %oid_netapp_if64InOctets     = ( name => "if64InOctets",     mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.25" ); # + ".<index>"
+my %oid_netapp_if64OutOctets    = ( name => "if64OutOctets",    mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.31" ); # + ".<index>"
+my %oid_netapp_ifHighInOctets   = ( name => "ifHighInOctets",   mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.3" );  # + ".<index>"
+my %oid_netapp_ifLowInOctets    = ( name => "ifLowInOctets",    mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.4" );  # + ".<index>"
+my %oid_netapp_ifHighOutOctets  = ( name => "ifHighOutOctets",  mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.15" ); # + ".<index>"
+my %oid_netapp_ifLowOutOctets   = ( name => "ifLowOutOctets",   mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.16" ); # + ".<index>"
+
+# F5 BIG-IP specific OIDs (from F5-BIGIP-SYSTEM-MIB)
+# ------------------------------------------------------------------------
+my %oid_bigip_sysGeneralHwName    = ( name => "sysGeneralHwName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.3.3.1.0" );     # since 9.0.5
+my %oid_bigip_sysInterfaceName    = ( name => "sysInterfaceName",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.1" ); # + ".<index>" ex: 3.49.46.49
+my %oid_bigip_sysInterfaceMacAddr = ( name => "sysInterfaceMacAddr", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.6" ); # + ".<index>"
+my %oid_bigip_sysIfxStatAlias     = ( name => "sysIfxStatAlias",     mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.17" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceEnabled = ( name => "sysInterfaceEnabled", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.8", convertToReadable => {0=>'false',1=>'true'}); # + ".<index>"
+my %oid_bigip_sysInterfaceStatus  = ( name => "sysInterfaceStatus",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.17", convertToReadable => {0=>'up',1=>'down',2=>'disabled',3=>'uninitialized',4=>'loopback',5=>'unpopulated'}); # + ".<index>"
+my %oid_bigip_sysIfxStatHighSpeed = ( name => "sysIfxStatHighSpeed", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.14" ); # + ".<index>"
+
+#my %oid_bigip_sysInterfaceStatBytesIn  = ( name => "sysInterfaceStatBytesIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.3" ); # + ".<index>"
+#my %oid_bigip_sysInterfaceStatBytesOut = ( name => "sysInterfaceStatBytesOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.5" ); # + ".<index>"
+my %oid_bigip_sysIfxStatHcInOctets     = ( name => "sysIfxStatHcInOctets",     mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.6" ); # + ".<index>"
+my %oid_bigip_sysIfxStatHcOutOctets    = ( name => "sysIfxStatHcOutOctets",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.5.3.1.10" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceStatErrorsIn   = ( name => "sysInterfaceStatErrorsIn",   mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.8" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatErrorsOut  = ( name => "sysInterfaceStatErrorsOut",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.9" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatDropsIn    = ( name => "sysInterfaceStatDropsIn",    mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.10" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatDropsOut   = ( name => "sysInterfaceStatDropsOut",   mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.11" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatCollisions = ( name => "sysInterfaceStatCollisions", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.12" ); # + ".<index>"
+
+my %oid_bigip_sysInterfaceStatPktsIn  = ( name => "sysInterfaceStatPktsIn",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.2" ); # + ".<index>"
+my %oid_bigip_sysInterfaceStatPktsOut = ( name => "sysInterfaceStatPktsOut", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.4.3.1.4" ); # + ".<index>"
+
+#my %oid_bigip_sysInterfaceMediaActiveSpeed  = ( name => "sysInterfaceMediaActiveSpeed",  mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.4" ); # + ".<index>"
+my %oid_bigip_sysInterfaceMediaActiveDuplex = ( name => "sysInterfaceMediaActiveDuplex", mib => "F5-BIGIP-SYSTEM-MIB", oid => "1.3.6.1.4.1.3375.2.1.2.4.1.2.1.5", convertToReadable => {0=>'none',1=>'half',2=>'full'}); # + ".<index>"
+
+#IP?
+
+# ------------------------------------------------------------------------
+# Other global variables
+# ------------------------------------------------------------------------
+my %ghOptions = ();
+my %ghSNMPOptions = ();
+
+# ------------------------------------------------------------------------
+# Other global initializations
+# ------------------------------------------------------------------------
+
+my $gShortCacheTimer                 = 0;            # Short cache timer are calculated by check_options
+my $gLongCacheTimer                  = 0;            # Long cache timer are calculated by check_options
+my $grefhResult;
+my $grefError;
+
+# ========================================================================
+# FUNCTION DECLARATIONS
+# ========================================================================
+sub check_options();
+
+
+
+
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO    MAIN    OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOO            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+# OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+
+# Get command line options and adapt default values in %ghOptions
+check_options();
+
+# Set the timeout
+logger(1, "Set global plugin timeout to ${TIMEOUT}s");
+alarm($TIMEOUT);
+$SIG{ALRM} = sub {
+  logger(0, "Plugin timed out (${TIMEOUT}s).\nYou may need to extend the plugin timeout by using the -t option.");
+  exit $ERRORS{"UNKNOWN"};
+};
+
+
+# ------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------
+
+print "=============================================\n";
+print "Test 1: One oid (uptime), no cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0);
+print "Result 1: ".Dumper($grefhResult)."\n";
+print "Error 1: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 2: Multiple oids, no cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},0);
+print "Result 2: ".Dumper($grefhResult)."\n";
+print "Error 2: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 3: Oid tree, no cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},0,1);
+print "Result 3: ".Dumper($grefhResult)."\n";
+print "Error 3: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 4: Multiple oid tree, no cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},0,1);
+print "Result 4: ".Dumper($grefhResult)."\n";
+print "Error 4: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 5: One oid (uptime), with cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+print "Result 5: ".Dumper($grefhResult)."\n";
+print "Error 5: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 6: Multiple oids, with cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+print "Result 6: ".Dumper($grefhResult)."\n";
+print "Error 6: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 7: Oid tree, with cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1);
+print "Result 7: ".Dumper($grefhResult)."\n";
+print "Error 7: ".Dumper($grefError)."\n\n";
+
+print "=============================================\n";
+print "Test 8: Multiple oid tree, with cache\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1);
+print "Result 8: ".Dumper($grefhResult)."\n";
+print "Error 8: ".Dumper($grefError)."\n\n";
+
+# ------------------------------------------------------------------------
+# various functions reporting plugin information & usages
+# ------------------------------------------------------------------------
+sub print_usage () {
+  print <<EOUS;
+
+  Usage:
+
+    * basic usage:
+      $PROGNAME [-vvvvv] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>]
+
+    * advanced usage:
+      $PROGNAME [-vvvvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>]
+        [--domain <transport domain>] [-P <port>] [--nodetype <type>] [-d <delta>] [--ifs <separator>] 
+        [--cache <cache retention time>] [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
+        [--(no)unixsnmp]
+
+    * other usages:
+      $PROGNAME [--help | -?]
+      $PROGNAME [--version | -V]
+      $PROGNAME [--showdefaults | -D]
+
+EOUS
+
+}
+sub print_defaults () {
+  print "\nDefault option values:\n";
+  print "----------------------\n\n";
+  print "General options:\n\n";
+  print Dumper(\%ghOptions);
+  print "\nSnmp options:\n\n";
+  print Dumper(\%ghSNMPOptions);
+}
+sub print_help () {
+  print "Copyright (c) 2009-2012 Yannick Charton\n\n";
+  print "\n";
+  print "  Check various statistics of network interfaces \n";
+  print "\n";
+  print_usage();
+  support();
+}
+sub print_revision ($$) {
+  my $commandName = shift;
+  my $pluginRevision = shift;
+  $pluginRevision =~ s/^\$Revision: //;
+  $pluginRevision =~ s/ \$\s*$//;
+  print "$commandName ($pluginRevision)\n";
+  print "This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute\ncopies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).\n";
+}
+sub support () {
+  my $support='Send email to tontonitch-pro@yahoo.fr if you have questions\nregarding the use of this plugin. \nPlease include version information with all correspondence (when possible,\nuse output from the -V option of the plugin itself).\n';
+  $support =~ s/@/\@/g;
+  $support =~ s/\\n/\n/g;
+  print $support;
+}
+
+# ------------------------------------------------------------------------
+# command line options processing
+# ------------------------------------------------------------------------
+sub check_options () {
+    my %commandline = ();
+    my %configfile = ();
+    my @params = (
+        #------- general options --------#
+        'help|?',
+        'verbose|v+',
+        'showdefaults|D',                        # print all option default values
+        #--- plugin specific options ----#
+        'hostquery|H=s',
+        'hostdisplay|h=s',
+        'cachedir=s',                           # caching directory
+        'ifs=s',
+        'cache=s',                              # cache timer
+        'timeout=i',                            # global plugin timeout
+        #-------- SNMP related ----------#
+        'domain=s',                             # SNMP transport domain
+        'port|P=i',                             # SNMP port
+        'community|C=s',                        # Specifies the snmp v1/v2c community string.
+        'v2c|2',                                # Use snmp v2c
+        'login|l=s',                            # Login for snmpv3 authentication
+        'passwd|x=s',                           # Password for snmpv3 authentication
+        'privpass|X=s',                         # Priv password for snmpv3 (AuthPriv protocol)
+        'protocols|L=s',                        # Format: <authproto>,<privproto>;
+        'contextname=s',                        # context name for snmp requests
+        'snmp-timeout=i',                       # timeout for snmp requests
+        'snmp-retries=i',                       # retries for snmp requests
+        '64bits',                               # Use 64-bits counters
+        'max-repetitions=i',                    # Max-repetitions tells the get-bulk command to attempt up to M get-next operations to retrieve the remaining objects.
+        'unixsnmp!',                            # Use unix snmp utilities in some cases, in place of perl bindings
+        );
+
+    # gathering commandline options
+    if (! GetOptions(\%commandline, @params)) {
+        print_help();
+        exit $ERRORS{UNKNOWN};
+    }
+
+    #====== Configuration hashes ======#
+    # Default values: general options
+    %ghOptions = (
+        #------- general options --------#
+        'help'                      => 0,
+        'verbose'                   => 0,
+        'showdefaults'              => 0,
+        #--- plugin specific options ----#
+        'hostquery'                 => '',
+        'hostdisplay'               => '',
+        'cachedir'                  => "@cachedir@",
+        'ifs'                       => ',',
+        'cache'                     => 3600,
+        'timeout'                   => $TIMEOUT,
+    );
+    # Default values: snmp options
+    %ghSNMPOptions = (
+        'domain'                    => "udp",
+        'port'                      => 161,
+        'community'                 => "public",
+        'version'                   => "1",         # 1, 2c, 3
+        'login'                     => "",
+        'passwd'                    => "",
+        'privpass'                  => "",
+        'authproto'                 => "md5",       # md5, sha
+        'privproto'                 => "des",       # des, aes
+        'contextname'               => "",
+        'timeout'                   => 2,
+        'retries'                   => 2,
+        '64bits'                    => 0,
+        'max-repetitions'           => undef,
+        'unixsnmp'                  => 0
+    );
+
+    ### mandatory commandline options: hostquery
+    # applying commandline options
+
+    #------- general options --------#
+    if (exists $commandline{verbose}) {
+        $ghOptions{'verbose'} = $commandline{verbose};
+        setLoglevel($commandline{verbose});
+    }
+    if (exists $commandline{help}) {
+        print_help();
+        exit $ERRORS{OK};
+    }
+    if (exists $commandline{showdefaults}) {
+        print_defaults();
+        exit $ERRORS{OK};
+    }
+
+    #--- plugin specific options ----#
+    if (exists $commandline{ifs}) {
+        $ghOptions{'ifs'} = "$commandline{ifs}";
+    }
+    if (! exists $commandline{'hostquery'}) {
+        logger(0, "host to query not defined (-H)\n");
+        print_help();
+        exit $ERRORS{UNKNOWN};
+    } else {
+        $ghOptions{'hostquery'} = "$commandline{hostquery}";
+    }
+    if (exists $commandline{hostdisplay}) {
+        $ghOptions{'hostdisplay'} = "$commandline{hostdisplay}";
+    } elsif (defined $ENV{'NAGIOS_HOSTNAME'} and $ENV{'NAGIOS_HOSTNAME'} ne "") {
+        $ghOptions{'hostdisplay'} = $ENV{'NAGIOS_HOSTNAME'};
+    } elsif (defined $ENV{'ICINGA_HOSTNAME'} and $ENV{'ICINGA_HOSTNAME'} ne "") {
+        $ghOptions{'hostdisplay'} = $ENV{'ICINGA_HOSTNAME'};
+    } else {
+        $ghOptions{'hostdisplay'} = "$commandline{hostquery}";
+    }
+    if (exists $commandline{cachedir}) {
+        $ghOptions{'cachedir'} = "$commandline{cachedir}";
+    }
+    $ghOptions{'cachedir'} = "$ghOptions{'cachedir'}/$commandline{hostquery}";
+    -d "$ghOptions{'cachedir'}" or MyMkdir ("$ghOptions{'cachedir'}");
+    
+    if (exists $commandline{cache}) {
+        $ghOptions{'cache'} = "$commandline{cache}";
+    }
+    # ------------------------------------------------------------------------
+    # extract two cache timers out of the commandline --cache option
+    #
+    # Examples:
+    #   --cache 150              $gShortCacheTimer = 150 and $Long... = 300
+    #   --cache 3600,86400       $gShortCacheTimer = 3600 and $Long...= 86400
+    #
+    # ------------------------------------------------------------------------
+    # only one number entered
+    if ($ghOptions{'cache'} =~ /^\d+$/) {
+        $gShortCacheTimer = $ghOptions{'cache'};
+        $gLongCacheTimer  = 2*$gShortCacheTimer;
+    # two numbers entered - separated with a comma
+    } elsif ($ghOptions{'cache'} =~ /^\d+$ghOptions{'ifs'}\d+$/) {
+        ($gShortCacheTimer,$gLongCacheTimer) = split (/$ghOptions{'ifs'}/,$ghOptions{'cache'});
+    } else {
+        logger(0, "Wrong cache timer specified\n");
+        exit $ERRORS{"UNKNOWN"};
+    }
+    logger(1, "Set ShortCacheTimer = $gShortCacheTimer and LongCacheTimer = $gLongCacheTimer");
+    if (exists $commandline{timeout}) {
+        $ghOptions{'timeout'} = $commandline{timeout};
+        $TIMEOUT = $ghOptions{'timeout'};
+    }
+    
+    #-------- SNMP related ----------#
+    if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
+        logger(0, "Can't mix snmp v1,2c,3 protocols!\n");
+        print_usage();
+        exit $ERRORS{"UNKNOWN"};
+    }
+    if (exists $commandline{v2c}) {
+        $ghSNMPOptions{'version'} = "2";
+    } elsif (exists $commandline{login}) {
+        $ghSNMPOptions{'version'} = "3";
+    } else {
+        $ghSNMPOptions{'version'} = "1";
+    }
+    if (exists $commandline{'max-repetitions'}) {
+        $ghSNMPOptions{'max-repetitions'} = $commandline{'max-repetitions'};
+    }
+    if (exists $commandline{domain}) {
+        if ($commandline{domain} =~ /^udp$|^tcp$|^udp6$|^tcp6$/i) {
+            $ghSNMPOptions{'domain'} = "$commandline{domain}";
+            if ($commandline{domain} eq "udp") {
+                $ghSNMPOptions{'port'} = 161;
+            } elsif ($commandline{domain} eq "tcp") {
+                $ghSNMPOptions{'port'} = 1161;
+            } elsif ($commandline{domain} eq "udp6") {
+                $ghSNMPOptions{'port'} = 10161;
+            } elsif ($commandline{domain} eq "tcp6") {
+                $ghSNMPOptions{'port'} = 1611;
+            }
+        } else {
+            logger(0, "Specified transport domain \"$commandline{domain}\" is not valid. Valid domains are: udp, tcp, udp6, tcp6.");
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
+    if (exists $commandline{port}) {
+        $ghSNMPOptions{'port'} = "$commandline{port}";
+    }
+    if (exists $commandline{community}) {
+        $ghSNMPOptions{'community'} = "$commandline{community}";
+    }
+    if (exists $commandline{login}) {
+        $ghSNMPOptions{'login'} = "$commandline{login}";
+    }
+    if (exists $commandline{passwd}) {
+        $ghSNMPOptions{'passwd'} = "$commandline{passwd}";
+    }
+    if (exists $commandline{privpass}) {
+        $ghSNMPOptions{'privpass'} = "$commandline{privpass}";
+    }
+    if (exists $commandline{'protocols'}) {
+        if (!exists $commandline{'login'}) {
+            logger(0, "Put snmp V3 login info with protocols!\n");
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+        my @v3proto=split(/,/,$commandline{'protocols'});
+        if ((defined ($v3proto[0])) && ($v3proto[0] ne "")) {
+            $ghSNMPOptions{'authproto'} = $v3proto[0];
+        }
+        if (defined ($v3proto[1])) {
+            $ghSNMPOptions{'privproto'} = $v3proto[1];
+        }
+        if ((defined ($v3proto[1])) && (!exists $commandline{'privpass'})) {
+            logger(0, "Put snmp V3 priv login info with priv protocols!\n");
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
+    if (exists $commandline{'contextname'}) {
+        if (!exists $commandline{'login'}) {
+            logger(0, "Put snmp V3 login info with context name!\n");
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+        $ghSNMPOptions{'contextname'} = "$commandline{'contextname'}";
+    }
+    if (exists $commandline{'snmp-timeout'}) {
+        $ghSNMPOptions{'timeout'} = "$commandline{'snmp-timeout'}";
+    }
+    if (exists $commandline{'snmp-retries'}) {
+        $ghSNMPOptions{'retries'} = "$commandline{'snmp-retries'}";
+    }
+    if (exists $commandline{'64bits'}) {
+        $ghSNMPOptions{'64bits'} = 1;
+    }
+    # Check snmpv2c or v3 with 64-bit counters
+    if ( $ghSNMPOptions{'64bits'} && $ghSNMPOptions{'version'} == 1) {
+        logger(0, "Can't get 64-bit counters with snmp version 1\n");
+        print_usage();
+        exit $ERRORS{"UNKNOWN"};
+    }
+    if ($ghSNMPOptions{'64bits'}) {
+        if (eval "require bigint") {
+            use bigint;
+        } else {
+            logger(0, "Need bigint module for 64-bit counters\n");
+            print_usage();
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
+    if (exists $commandline{'unixsnmp'}) {
+        $ghSNMPOptions{'unixsnmp'} = $commandline{'unixsnmp'};
+    }
+
+    # print the options in command line, and the resulting full option hash
+    logger(5, "commandline: \n".Dumper(\%commandline));
+    logger(5, "general options: \n".Dumper(\%ghOptions));
+    logger(5, "snmp options: \n".Dumper(\%ghSNMPOptions));
+}
+
+__END__
+
+# vi: set ts=4 sw=4 expandtab :
