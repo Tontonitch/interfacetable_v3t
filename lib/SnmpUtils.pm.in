@@ -262,7 +262,7 @@ sub GetDataWithSnmp {
         ($refhResult, $refhError) = SnmpGet (\%refhSnmpQueryOptions);
     } else {
         # gather data via unix snmpget
-        my $snmpQueryCommand = "snmpbulkget";
+        my $snmpQueryCommand = "snmpget";
         my $snmpQueryOptions = "-Oqne -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
         $snmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
@@ -271,31 +271,27 @@ sub GetDataWithSnmp {
             } else {
                 $snmpQueryOptions .= "-u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} "
             }
-            defined $refhSNMPOptions->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhSNMPOptions->{'max-repetitions'} ";
             defined $refhSNMPOptions->{'contextname'} and $snmpQueryOptions .= "-n$refhSNMPOptions->{'contextname'} ";
-        } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
-            $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
-            defined $refhSNMPOptions->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhSNMPOptions->{'max-repetitions'} ";
         } else {
-            $snmpQueryCommand = "snmpget";
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
         my $snmpQueryOID = join(' ',@$refaOID);
         my ($refaCommandResult, $commandExitCode) = ExecuteCommand ({
-                Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $snmpQueryOID",
-                Retry       => 2,
-                CacheDir    => $CacheDir,
-                CacheTimer  => int rand ($CacheTimer),
-            });
+            Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $snmpQueryOID",
+            Retry       => 2,
+            CacheDir    => $CacheDir,
+            CacheTimer  => int rand ($CacheTimer),
+        });
+        $refhError->{msg} = "$!";
         $refhError->{code} = $commandExitCode;
-        $refhError->{msg} = "";
         
+        # check result validity and push to final hash
         foreach my $line (@$refaCommandResult) {
             if ($stdSNMPOutBehavior == 1) {
                 $line = StandardizeSNMPOutputBehaviour($line);
             }
             if ($line ne "") {
-                my ($OID,$Value) = split / /,$_,2;
+                my ($OID,$Value) = split(' ',$line,2);
                 $OID   =~ s/\s+$//g;     # remove invisible chars from the end
                 $Value =~ s/\s+$//g;     # remove invisible chars from the end
                 $refhResult->{"$OID"} = "$Value";
@@ -449,7 +445,7 @@ sub SnmpGetTable {
                     }
                 } else {
                     logger(0, "SNMP problem: ".$refoSession->error());
-                    $refhErrorOutput->{code} = 1;
+                    $refhErrorOutput->{code} = 2;
                     $refhErrorOutput->{msg} = "SNMP problem: ".$refoSession->error();
                     $refoSession->close();
                     return ($refhResultOutput, $refhErrorOutput);
@@ -464,7 +460,7 @@ sub SnmpGetTable {
     } else {
         # session establishment problem
         logger(0, "SNMP session object creation problem: ".$sessionError);
-        $refhErrorOutput->{code} = 1;
+        $refhErrorOutput->{code} = 2;
         $refhErrorOutput->{msg} = "SNMP session object creation problem: ".$sessionError;
     }
       
@@ -501,9 +497,6 @@ sub GetTableDataWithSnmp {
     my $refhError;
     $refhError->{code} = 0;
     $refhError->{msg} = "";
-    my $refaLinesTmp    = ();
-    my $refaLines       = ();
-    my $refhOID; #TEMPORARY
     
     if ( not $refhSNMPOptions->{'unixsnmp'} ) {
         # gather data via perl's snmp
@@ -555,20 +548,27 @@ sub GetTableDataWithSnmp {
             $snmpQueryCommand = "snmpwalk";
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
-        ($refaLinesTmp) = ExecuteCommand ({
-            Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $refhOID->{'oid'}",
-            Retry       => 2,
-            CacheDir    => $CacheDir,
-            CacheTimer  => int rand ($CacheTimer),
-        });
-
-        # check result validity
-        foreach my $line ( @$refaLinesTmp ) {
-            if ($stdSNMPOutBehavior == 1) {
-                $line = StandardizeSNMPOutputBehaviour($line);
-            }
-            if ($line ne "") {
-                push(@$refaLines, $line);
+        foreach my $singleoid (@$refaOID) {
+            my ($refaCommandResult, $commandExitCode) = ExecuteCommand ({
+                Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $singleoid",
+                Retry       => 2,
+                CacheDir    => $CacheDir,
+                CacheTimer  => int rand ($CacheTimer),
+            });
+            $refhError->{msg} = "$!";
+            $refhError->{code} = $commandExitCode;
+            
+            # check result validity and push to final hash
+            foreach my $line (@$refaCommandResult) {
+                if ($stdSNMPOutBehavior == 1) {
+                    $line = StandardizeSNMPOutputBehaviour($line);
+                }
+                if ($line ne "") {
+                    my ($OID,$Value) = split(' ',$line,2);
+                    $OID   =~ s/\s+$//g;     # remove invisible chars from the end
+                    $Value =~ s/\s+$//g;     # remove invisible chars from the end
+                    $refhResult->{"$OID"} = "$Value";
+                }
             }
         }
     }
