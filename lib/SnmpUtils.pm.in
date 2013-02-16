@@ -20,6 +20,8 @@
 # 2012-11-10 v0.06   Y. Charton    Prevent double-quoted values in unixsnmp
 #                                  Force non-translated values in unixsnmp
 # 2013-01-02 v0.07   Y. Charton    Specific StandardizeSNMPOutputBehaviour function
+# 2013-01-19 v0.08   Y. Charton    ...
+#                                  Not empty check on result array moved back to the main script
 #
 ##############################################################################
 
@@ -41,7 +43,7 @@ BEGIN {
     @ISA         = qw(Exporter);
     @EXPORT      = qw(SnmpGet GetDataWithSnmp SnmpGetTable GetTableDataWithSnmp ExecuteCommand StandardizeSNMPOutputBehaviour);
     @EXPORT_OK   = qw();
-    $VERSION     = 0.07;
+    $VERSION     = 0.08;
     $AUTHOR      = "Y. Charton";
 }
 
@@ -74,12 +76,14 @@ sub SnmpGet {
     my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
     my $GlobalCacheDir      = $refhStruct->{CacheDir};
     my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
+    my $OutputHashKeyIdx    = $refhStruct->{OutputHashKeyIdx};
     
     my $stdSNMPOutBehavior  = 1;
 
     delete $refhStruct->{OID};
     delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
+    delete $refhStruct->{OutputHashKeyIdx};
 
     my $refoSession;    # SNMP session object
     my $sessionError;   # SNMP session error
@@ -157,7 +161,7 @@ sub SnmpGet {
                 }
             }
 
-            unless (defined $refhSnmpResult) {$refhSnmpResult = {};}
+            $refhSnmpResult = {} unless (defined $refhSnmpResult);
             # snmp value not from cache - read it from the net
             if ($readFromCache == 0) {
                 $refhSnmpResult = $refoSession->get_request(%$refhQuery);
@@ -165,10 +169,19 @@ sub SnmpGet {
                     logger(3, "Data collected from net: OID=${OID}, value='$refhSnmpResult->{\"$OID\"}', cacheTimer=${CacheTimer}s");
                     
                     # remove non ascii chars incl. \r and \n
-                    $refhSnmpResult->{"$OID"} =~  s/[\000-\037]|[\177-\377]//g;
-                    # replace ; with , - just to be sure
-                    $refhSnmpResult->{"$OID"} =~  s/;/,/g;
+                    $refhSnmpResult->{"$OID"} =~ s/[\000-\037]|[\177-\377]//g;
+                    # replace ";" by ","
+                    $refhSnmpResult->{"$OID"} =~ s/;/,/g;
+                    # replace "|" by space
+                    $refhSnmpResult->{"$OID"} =~ s/\|/ /g;
+                    # remove invisible chars from the end
+                    $refhSnmpResult->{"$OID"} =~ s/\s+$//g;
 
+                    # check result validity
+                    if ($stdSNMPOutBehavior == 1) {
+                        $refhSnmpResult->{"$OID"} = StandardizeSNMPOutputBehaviour($refhSnmpResult->{"$OID"});
+                    }
+            
                     if ($CacheTimer > 0) {
                         logger(3, "Write cache file ${CacheDir}/${OID}.dat, CacheTimer=$CacheTimer");
                         umask "0000"; # change to rw-rw-rw maybe changed later because of security
@@ -182,14 +195,24 @@ sub SnmpGet {
                     return ($refhResultOutput, $refhErrorOutput);
                 }
             }
-
-            # check result validity
-            if ($stdSNMPOutBehavior == 1) {
-                $refhSnmpResult->{"$OID"} = StandardizeSNMPOutputBehaviour($refhSnmpResult->{"$OID"});
+            
+            # remove the oid and keep the index
+            if ($OutputHashKeyIdx) {
+                for my $key (keys %$refhSnmpResult) {
+                    (my $newkey = $key) =~ s/^.*\.//g;   # remove all but the index
+                    $refhSnmpResult->{$newkey} = delete $refhSnmpResult->{$key};
+                }
             }
             
             # fill hash with data
-            $refhResultOutput->{$OID} = $refhSnmpResult->{$OID};
+            #$refhResultOutput->{$OID} = $refhSnmpResult->{$OID};
+            foreach my $key ( keys %$refhSnmpResult ) {
+                if (defined $refhResultOutput->{$key}) {
+                    $refhResultOutput->{$key} .= "|".delete $refhSnmpResult->{$key};
+                } else {
+                    $refhResultOutput->{$key} = delete $refhSnmpResult->{$key};
+                }
+            }
         }
         # finally close the session
         $refoSession->close();
@@ -225,10 +248,13 @@ sub GetDataWithSnmp {
     my $refaOID         = shift;    # ref to array of OIDs
     my $CacheDir        = shift;
     my $CacheTimer      = shift;
+    my $OutputHashKeyIdx = shift;
     
-    unless ($CacheTimer) {$CacheTimer = 0;}
+    $CacheTimer = 0 unless ($CacheTimer);
+    $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
     my $stdSNMPOutBehavior  = 1;
     my $refhResult;
+    my $refaCommandResult;
     my $refhError;
     $refhError->{code} = 0;
     $refhError->{msg} = "";
@@ -246,6 +272,7 @@ sub GetDataWithSnmp {
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
+            OutputHashKeyIdx => $OutputHashKeyIdx,
         );
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
@@ -263,7 +290,7 @@ sub GetDataWithSnmp {
     } else {
         # gather data via unix snmpget
         my $snmpQueryCommand = "snmpget";
-        my $snmpQueryOptions = "-Oqne -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
+        my $snmpQueryOptions = "-Oqnet -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
         $snmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
@@ -276,14 +303,13 @@ sub GetDataWithSnmp {
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
         my $snmpQueryOID = join(' ',@$refaOID);
-        my ($refaCommandResult, $commandExitCode) = ExecuteCommand ({
+        ($refaCommandResult, $refhError) = ExecuteCommand ({
             Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $snmpQueryOID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),
         });
-        $refhError->{msg} = "$!";
-        $refhError->{code} = $commandExitCode;
+        return ($refhResult, $refhError) if ($refhError->{code});
         
         # check result validity and push to final hash
         foreach my $line (@$refaCommandResult) {
@@ -293,8 +319,13 @@ sub GetDataWithSnmp {
             if ($line ne "") {
                 my ($OID,$Value) = split(' ',$line,2);
                 $OID   =~ s/\s+$//g;     # remove invisible chars from the end
+                $OID   =~ s/^.*\.//g if $OutputHashKeyIdx;     # remove all but the index
                 $Value =~ s/\s+$//g;     # remove invisible chars from the end
-                $refhResult->{"$OID"} = "$Value";
+                if (defined $refhResult->{"$OID"}) {
+                    $refhResult->{"$OID"} .= "|$Value";
+                } else {
+                    $refhResult->{"$OID"} = "$Value";
+                }
             }
         }
     }
@@ -328,13 +359,15 @@ sub SnmpGetTable {
     my $refaOIDs            = $refhStruct->{OID}; # ref to array of OIDs
     my $GlobalCacheDir      = $refhStruct->{CacheDir};
     my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
+    my $OutputHashKeyIdx    = $refhStruct->{OutputHashKeyIdx};
     
     my $stdSNMPOutBehavior     = 1;
 
     delete $refhStruct->{OID};
     delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
-
+    delete $refhStruct->{OutputHashKeyIdx};
+    
     my $refoSession;    # SNMP session object
     my $sessionError;   # SNMP session error
 
@@ -415,7 +448,7 @@ sub SnmpGetTable {
                 }
             }
             
-            unless (defined $refhSnmpResult) {$refhSnmpResult = {};}
+            $refhSnmpResult = {} unless (defined $refhSnmpResult);
             # snmp value not from cache - read it from the net
             if ($readFromCache == 0) {
                 $refhSnmpResult = $refoSession->get_table(%$refhQuery);
@@ -427,16 +460,19 @@ sub SnmpGetTable {
                         
                         # remove non ascii chars incl. \r and \n
                         $refhSnmpResult->{"$i"} =~  s/[\000-\037]|[\177-\377]//g;
-                        # replace ; with , - just to be sure
-                        $refhSnmpResult->{"$i"} =~  s/;/,/g;
-        
+                        # replace ";" by ","
+                        $refhSnmpResult->{"$i"} =~ s/;/,/g;
+                        # replace "|" by space
+                        $refhSnmpResult->{"$i"} =~ s/\|/ /g;
+                        # remove invisible chars from the end
+                        $refhSnmpResult->{"$i"} =~ s/\s+$//g;
+
                         # check result validity
                         if ($stdSNMPOutBehavior == 1) {
                             $refhSnmpResult->{"$i"} = StandardizeSNMPOutputBehaviour($refhSnmpResult->{"$i"});
                         }
                     }                    
                 
-                    
                     # write a cache file if the cache timer > 0
                     if ($CacheTimer > 0) {
                         logger(3, "Write cache file ${CacheDir}/${OID}.dat, CacheTimer=$CacheTimer");
@@ -452,9 +488,25 @@ sub SnmpGetTable {
                 }
             }
             
+            # remove the oid and keep the index
+            if ($OutputHashKeyIdx) {
+                for my $key (keys %$refhSnmpResult) {
+                    (my $newkey = $key) =~ s/^\.*${OID}\.//g;   # remove all but the index
+                    $refhSnmpResult->{$newkey} = delete $refhSnmpResult->{$key};
+                }
+            }
+
             # fill hash with data
-            @$refhResultOutput{keys %$refhSnmpResult} = values %$refhSnmpResult;
+            #@$refhResultOutput{keys %$refhSnmpResult} = values %$refhSnmpResult;
+            foreach my $key ( keys %$refhSnmpResult ) {
+                if (defined $refhResultOutput->{$key}) {
+                    $refhResultOutput->{$key} .= "|".delete $refhSnmpResult->{$key};
+                } else {
+                    $refhResultOutput->{$key} = delete $refhSnmpResult->{$key};
+                }
+            }
         }
+
         # finally close the session
         $refoSession->close();
     } else {
@@ -480,7 +532,6 @@ sub GetTableDataWithSnmp {
     #  * arg 2: hash of info on the target OID
     #  * arg 3: Directory for cached data
     #  * arg 4: Cache timer
-    #  * arg 5: notEmpty flag (error when empty result array)
     #  * return: hash of values retrieved by snmp
     ################################
 
@@ -489,11 +540,13 @@ sub GetTableDataWithSnmp {
     my $refaOID         = shift;    # ref to array of OIDs
     my $CacheDir        = shift;
     my $CacheTimer      = shift;
-    my $notEmpty        = shift;
+    my $OutputHashKeyIdx = shift;
     
-    unless ($CacheTimer) {$CacheTimer = 0;}
+    $CacheTimer = 0 unless ($CacheTimer);
+    $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
     my $stdSNMPOutBehavior = 1;
     my $refhResult;
+    my $refaCommandResult;
     my $refhError;
     $refhError->{code} = 0;
     $refhError->{msg} = "";
@@ -510,6 +563,7 @@ sub GetTableDataWithSnmp {
             OID         => $refaOID,
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching;
+            OutputHashKeyIdx => $OutputHashKeyIdx,
         );
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
@@ -531,7 +585,7 @@ sub GetTableDataWithSnmp {
     } else {
         # gather data via unix snmpwalk/snmpbulkwalk
         my $snmpQueryCommand = "snmpbulkwalk";
-        my $snmpQueryOptions = "-Oqne -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
+        my $snmpQueryOptions = "-Oqnet -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
         $snmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
@@ -549,14 +603,13 @@ sub GetTableDataWithSnmp {
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
         foreach my $singleoid (@$refaOID) {
-            my ($refaCommandResult, $commandExitCode) = ExecuteCommand ({
+            ($refaCommandResult, $refhError) = ExecuteCommand ({
                 Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $singleoid",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
                 CacheTimer  => int rand ($CacheTimer),
             });
-            $refhError->{msg} = "$!";
-            $refhError->{code} = $commandExitCode;
+            return ($refhResult, $refhError) if ($refhError->{code});
             
             # check result validity and push to final hash
             foreach my $line (@$refaCommandResult) {
@@ -565,22 +618,18 @@ sub GetTableDataWithSnmp {
                 }
                 if ($line ne "") {
                     my ($OID,$Value) = split(' ',$line,2);
-                    $OID   =~ s/\s+$//g;     # remove invisible chars from the end
-                    $Value =~ s/\s+$//g;     # remove invisible chars from the end
-                    $refhResult->{"$OID"} = "$Value";
+                    $OID =~ s/\s+$//g;                                      # remove invisible chars from the end
+                    $OID =~ s/^\.*$singleoid\.//g if $OutputHashKeyIdx;     # remove all but the index
+                    $Value =~ s/\s+$//g;                                    # remove invisible chars from the end
+                    if (defined $refhResult->{"$OID"}) {
+                        $refhResult->{"$OID"} .= "|$Value";
+                    } else {
+                        $refhResult->{"$OID"} = "$Value";
+                    }
                 }
             }
         }
     }
-    
-    #  if ( $notEmpty and $#$refaLines < 0 ) {
-    #      if ($refhOID->{'mib'}) {
-    #          logger(0, "Could not read $refhOID->{'name'} information from host \"$host\" with snmp\nCheck the access to the oid $refhOID->{'oid'} ($refhOID->{'mib'})\n");
-    #      } else {
-    #          logger(0, "Could not read $refhOID->{'name'} information from host \"$host\" with snmp\nCheck the access to the oid $refhOID->{'oid'}\n");
-    #      }
-    #      exit 3;
-    #  }
 
     return ($refhResult, $refhError);
 }
@@ -603,10 +652,14 @@ sub ExecuteCommand {
 
     my $refaLines;      # Pointer to Array of strings (output)
     my $CacheFile;      # Filename storing cached data
-    my $ExitCode;       # exit code of the unix command
     my $Now = time();   # current time in seconds since epoch
     my $CacheDir = "$GlobalCacheDir/ExecuteCommand/"; # cache dir
 
+    my $refhErrorOutput;
+    $refhErrorOutput->{code} = 0;
+    $refhErrorOutput->{msg} = "";
+    my $refhResultOutput;
+    
     # Create Cachedir if not exist
     not -d $CacheDir and MyMkdir($CacheDir);
 
@@ -628,7 +681,7 @@ sub ExecuteCommand {
                     logger(3, "   data: $_");
                 }
                 # leave this subroutine with cached data found
-                return ($refaLines,0);
+                return ($refaLines,$refhErrorOutput);
             } else {
                 logger(3, " expired cached data, skipping");
             }
@@ -636,20 +689,21 @@ sub ExecuteCommand {
     }
 
     # execute the unix command
-    open(UNIX,"$Command |") or die "[ERROR] Failed to execute \"$Command\", $!";
+    open(UNIX,"$Command 2>&1|") or die "[ERROR] Failed to execute \"$Command\", $!";
         while (<UNIX>) {
             $_ =~ s/^\.*([0-9.]*) "?(.*)/\1 \2/g;
             $_ =~ s/"$//g;
             push @$refaLines,$_;
         }
     close(UNIX);
-    $ExitCode=$? >> 8; # calculate the exit code
-    logger(3, "Executed \"$Command\" and got ExitCode \"$ExitCode\"");
+    $refhErrorOutput->{code} = $? >> 8; # calculate the exit code
+    logger(3, "Executed \"$Command\" and got exit code \"$refhErrorOutput->{code}\"");
 
     # stop in case of error
-    if ($ExitCode != 0) {
-        logger(0, "The UNIX command \"$Command\" returned the ExitCode \"$ExitCode\"");
-        exit 1;
+    if ($refhErrorOutput->{code}) {
+        $refhErrorOutput->{msg} = $refaLines->[0] if (defined $refaLines->[0]);
+        $refhErrorOutput->{msg} =~ s/\s+$//g;
+        return ($refaLines,$refhErrorOutput);
     }
 
     # write a cache file if the cache timer > 0
@@ -658,7 +712,7 @@ sub ExecuteCommand {
         umask "0000"; # change to rw-rw-rw maybe changed later because of security
         store ($refaLines, "$CacheFile") or die "cannot store to $CacheFile: $!";
     }
-    return ($refaLines,$ExitCode);
+    return ($refaLines,$refhErrorOutput);
 }
 
 sub StandardizeSNMPOutputBehaviour {
