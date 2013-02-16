@@ -2,13 +2,15 @@
 # "GeneralUtils" library
 # A collection of shared functions for general usage.
 #
-# Version 0.02
-# Written by Y. Charton, extracts some libraries of Nconf and NagiosBp
+# Version 0.03
+# Written by Y. Charton, parts based on some extracts from Nconf and NagiosBp 
+# libraries
 #
 # Revision history:
 # 2011-06-08 v0.01   Y. Charton    First release
 # 2012-08-26 v0.02   Y. Charton    Added hexToString and stringToHex
 #                                  Some conversion functions
+# 2013-02-07 v0.03   Y. Charton    Added log to file, changed volume formating
 #
 ##############################################################################
 
@@ -17,8 +19,9 @@ use strict;
 use lib ('@libdir@');
 use Exporter;
 
-use vars qw($LOGLEVEL);
+use vars qw($LOGLEVEL $LOGDEST);
 $LOGLEVEL = 0;
+$LOGDEST = "";
 
 ##############################################################################
 ### I N I T ##################################################################
@@ -27,9 +30,9 @@ $LOGLEVEL = 0;
 BEGIN {
     use vars qw(@ISA @EXPORT @EXPORT_OK $VERSION $AUTHOR);
     @ISA         = qw(Exporter);
-    @EXPORT      = qw(setLoglevel logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString format_volume format_volume_bytes);
+    @EXPORT      = qw(setLoglevel setLogdest logger printArray printHash fixedLen cutOffSpaces getHostnameFromUrl getProtocolFromUrl MyMkdir normalize denormalize trim stringToHex hexToString format_volume_decimal format_volume_binary);
     @EXPORT_OK   = qw();
-    $VERSION     = 0.2;
+    $VERSION     = 0.3;
     $AUTHOR      = "Y. Charton";
 }
 
@@ -38,7 +41,9 @@ BEGIN {
 ##############################################################################
 
 #----------------------------------------------------------------------------#
+# List:
 # setLoglevel
+# setLogdest
 # logger
 # printArray
 # printHash
@@ -50,10 +55,13 @@ BEGIN {
 # normalize
 # denormalize
 # trim
-# GetDataWithSnmp
-# GetMultipleDataWithSnmp
 # stringToHex
 # hexToString
+# bytes2bits
+# unit2bytes
+# unit2bits
+# format_volume_decimal
+# format_volume_binary
 #----------------------------------------------------------------------------#
 
 
@@ -69,6 +77,20 @@ sub setLoglevel {
     if($loglevel >= 1 && $loglevel <= 5){
         $LOGLEVEL = $loglevel;
     }
+}
+
+#----------------------------------------------------------------------------#
+
+sub setLogdest {
+
+    ################################
+    # SUB use: Set destination log file
+    # SUB specs: ###################
+    #  * arg 0: the destination log file
+    ################################
+
+    my $logdest = shift;
+    $LOGDEST = $logdest;
 }
 
 #----------------------------------------------------------------------------#
@@ -125,19 +147,28 @@ sub logger {
         if(length($level_labels{$loglevel}) == 4){$space=" "}
         # show the calling function, if loglevel is higher than 2
         if($LOGLEVEL >= 2){
-            print "[$level_labels{$loglevel}]$space $caller";
+            print "[$level_labels{$loglevel}]$space $caller $msg\n";
         }else{
-            print "[$level_labels{$loglevel}]$space ";
+            print "[$level_labels{$loglevel}]$space $msg\n";
 
         }
-        print $msg,"\n";
+        if ($LOGDEST) {
+            umask "0222";
+            open (FILE,">>$LOGDEST") or die "cannot open $LOGDEST $!";
+            flock (FILE, 2) or die "cannot flock $LOGDEST ($!)"; # get exclusive lock;
+            if($LOGLEVEL >= 2){
+                print FILE "[$level_labels{$loglevel}]$space $caller $msg\n";
+            }else{
+                print FILE "[$level_labels{$loglevel}]$space $msg\n";
+            }
+            close(FILE);
+        }
     }
 }
 
 #----------------------------------------------------------------------------#
 
-sub printArray
-{
+sub printArray {
     my $array = shift;
     my $prefix = shift;
     my $output = "";
@@ -160,8 +191,7 @@ sub printArray
 
 #----------------------------------------------------------------------------#
 
-sub printHash
-{
+sub printHash {
     my $hash = shift;
     my $prefix = shift || "";
     my $output = "";
@@ -439,7 +469,7 @@ sub hexToString {
 
 sub bytes2bits {
  return unit2bytes(@_)*8;
-};
+}
 
 #Converts an input value to value in bytes
 sub unit2bytes {
@@ -463,9 +493,10 @@ sub unit2bytes {
  elsif ($unit eq 'K') {
    return $value*1024;
  }
- else { return $value }
-
-};
+ else { 
+   return $value;
+ }
+}
 
 sub unit2bits {
  my ( $value, $unit ) = @_;
@@ -492,69 +523,71 @@ sub unit2bits {
 
 };
 
-sub format_volume {
- my $prefix_x="";
- my ($x)=@_;
+sub format_volume_decimal {
+ my $volume=shift;
+ my $suffix=shift;
+ my $prefix="";
+ 
+ if ( $volume>=1000000000000000000 ) {
+  $volume=$volume/1000000000000000000;
+  $prefix="E";
+ } 
+ elsif ( $volume>=1000000000000000 ) {
+  $volume=$volume/1000000000000000;
+  $prefix="P";
+ } 
+ elsif ( $volume>=1000000000000 ) {
+  $volume=$volume/1000000000000;
+  $prefix="T";
+ } 
+ elsif ( $volume>=1000000000 ) {
+  $volume=$volume/1000000000;
+  $prefix="G";
+ }
+ elsif ( $volume>=1000000 ) {
+  $volume=$volume/1000000;
+  $prefix="M";
+ }
+ elsif ( $volume>=1000 ) {
+  $volume=$volume/1000;
+  $prefix="K";
+ }
+ $volume=sprintf("%.2f",$volume);
+ return $volume." ".$prefix.$suffix;
+}
 
- if ( $x>1000000000000000000 ) {
-  $x=$x/1000000000000000000;
-  $prefix_x="E";
- };
- if ( $x>1000000000000000 ) {
-  $x=$x/1000000000000000;
-  $prefix_x="P";
- };
- if ( $x>1000000000000 ) {
-  $x=$x/1000000000000;
-  $prefix_x="T";
- };
- if ( $x>1000000000 ) {
-  $x=$x/1000000000;
-  $prefix_x="G";
- };
- if ( $x>1000000 ) {
-  $x=$x/1000000;
-  $prefix_x="M";
- };
- if ( $x>1000 ) {
-  $x=$x/1000;
-  $prefix_x="K";
- };
- $x=sprintf("%.2f",$x);
- return $x.$prefix_x;
-};
-
-sub format_volume_bytes {
- my $prefix_x;
- my ($x)=@_;
-
- if ( $x>1152921504606846976 ) {
-  $x=$x/1152921504606846976;
-  $prefix_x="E";
- };
- if ( $x>1125899906842624 ) {
-  $x=$x/1125899906842624;
-  $prefix_x="P";
- };
- if ( $x>1099511627776 ) {
-  $x=$x/1099511627776;
-  $prefix_x="T";
- };
- if ( $x>1073741824 ) {
-  $x=$x/1073741824;
-  $prefix_x="G";
- };
- if ( $x>1048576 ) {
-  $x=$x/1048576;
-  $prefix_x="M";
- };
- if ( $x>1024 ) {
-  $x=$x/1024;
-  $prefix_x="K";
- };
- $x=sprintf("%.2f",$x);
- return $x.$prefix_x;
-};
+sub format_volume_binary {
+ my $volume=shift;
+ my $suffix=shift;
+ my $prefix="";
+ 
+ if ( $volume>=1152921504606846976 ) {
+  $volume=$volume/1152921504606846976;
+  $prefix="E";
+ }
+ elsif ( $volume>=1125899906842624 ) {
+  $volume=$volume/1125899906842624;
+  $prefix="P";
+ }
+ elsif ( $volume>=1099511627776 ) {
+  $volume=$volume/1099511627776;
+  $prefix="T";
+ }
+ elsif ( $volume>=1073741824 ) {
+  $volume=$volume/1073741824;
+  $prefix="G";
+ }
+ elsif ( $volume>=1048576 ) {
+  $volume=$volume/1048576;
+  $prefix="M";
+ }
+ elsif ( $volume>=1024 ) {
+  $volume=$volume/1024;
+  $prefix="K";
+ }
+ $volume=sprintf("%.2f",$volume);
+ return $volume." ".$prefix.$suffix;
+}
 
 1;
 
