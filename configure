@@ -2229,8 +2229,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 else
-	{ $as_echo "$as_me:$LINENO: WARNING: snmpget is required! Get it from http://net-snmp.sourceforge.net" >&5
-$as_echo "$as_me: WARNING: snmpget is required! Get it from http://net-snmp.sourceforge.net" >&2;}
+	{ $as_echo "$as_me:$LINENO: WARNING: snmpget is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net" >&5
+$as_echo "$as_me: WARNING: snmpget is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net" >&2;}
 fi
 # Extract the first word of "snmpwalk", so it can be a program name with args.
 set dummy snmpwalk; ac_word=$2
@@ -2280,8 +2280,8 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 else
-	{ $as_echo "$as_me:$LINENO: WARNING: snmpwalk is required! Get it from http://net-snmp.sourceforge.net" >&5
-$as_echo "$as_me: WARNING: snmpwalk is required! Get it from http://net-snmp.sourceforge.net" >&2;}
+	{ $as_echo "$as_me:$LINENO: WARNING: snmpwalk is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net" >&5
+$as_echo "$as_me: WARNING: snmpwalk is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net" >&2;}
 fi
 # Extract the first word of "sudo", so it can be a program name with args.
 set dummy sudo; ac_word=$2
@@ -2438,8 +2438,8 @@ then
 	{ $as_echo "$as_me:$LINENO: result: found" >&5
 $as_echo "found" >&6; }
 else
-	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Net::SNMP perl module!" >&5
-$as_echo "$as_me: WARNING: not found - install Net::SNMP perl module!" >&2;}
+	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Net::SNMP perl module or use the Netsnmp binaries" >&5
+$as_echo "$as_me: WARNING: not found - install Net::SNMP perl module or use the Netsnmp binaries" >&2;}
 fi
 
 { $as_echo "$as_me:$LINENO: checking for Config::General perl module" >&5
@@ -2484,6 +2484,28 @@ $as_echo "found" >&6; }
 else
 	{ $as_echo "$as_me:$LINENO: WARNING: not found - install CGI module!" >&5
 $as_echo "$as_me: WARNING: not found - install CGI module!" >&2;}
+fi
+
+{ $as_echo "$as_me:$LINENO: checking for Storable perl module" >&5
+$as_echo_n "checking for Storable perl module... " >&6; }
+if ( $PERL -M"Storable" -e 'exit' 2>/dev/null  )
+then
+	{ $as_echo "$as_me:$LINENO: result: found" >&5
+$as_echo "found" >&6; }
+else
+	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Storable module!" >&5
+$as_echo "$as_me: WARNING: not found - install Storable module!" >&2;}
+fi
+
+{ $as_echo "$as_me:$LINENO: checking for Sort::Naturally perl module" >&5
+$as_echo_n "checking for Sort::Naturally perl module... " >&6; }
+if ( $PERL -M"Sort::Naturally" -e 'exit' 2>/dev/null  )
+then
+	{ $as_echo "$as_me:$LINENO: result: found" >&5
+$as_echo "found" >&6; }
+else
+	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Sort::Naturally module!" >&5
+$as_echo "$as_me: WARNING: not found - install Sort::Naturally module!" >&2;}
 fi
 
 ### Checks for header files.
@@ -3848,7 +3870,7 @@ $PERL subst lib/SnmpUtils.pm
 $PERL subst libexec/check_interface_table_v3t.pl
 $PERL subst etc/settings.cfg-sample
 $PERL subst etc/interfacetable_v3t.conf.httpd
-$PERL subst contrib/utilities/test_snmp.pl
+$PERL subst contrib/test/test_snmp.pl
 
 echo ""
 echo ""

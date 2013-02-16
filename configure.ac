@@ -43,14 +43,14 @@ if test -n "$SNMPGET"
 then
 	AC_DEFINE_UNQUOTED(SNMPGET,"$SNMPGET",[path to snmpget binary])
 else
-	AC_MSG_WARN([snmpget is required! Get it from http://net-snmp.sourceforge.net])
+	AC_MSG_WARN([snmpget is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net])
 fi
 AC_PATH_PROG(SNMPWALK,snmpwalk)
 if test -n "$SNMPWALK"
 then
 	AC_DEFINE_UNQUOTED(SNMPWALK,"$SNMPWALK",[path to snmpwalk binary])
 else
-	AC_MSG_WARN([snmpwalk is required! Get it from http://net-snmp.sourceforge.net])
+	AC_MSG_WARN([snmpwalk is required if you want to use the snmp binaries instead of the Perl bindings (--unixsnmp). Get it from http://net-snmp.sourceforge.net])
 fi
 AC_PATH_PROG(SUDO,sudo)
 if test -n "$SUDO"
@@ -71,7 +71,7 @@ if ( $PERL -M"Net::SNMP" -e 'exit' 2>/dev/null  )
 then
 	AC_MSG_RESULT([found])
 else
-	AC_MSG_WARN([not found - install Net::SNMP perl module!])
+	AC_MSG_WARN([not found - install Net::SNMP perl module or use the Netsnmp binaries])
 fi
 
 dnl Checking Config::General
@@ -108,6 +108,24 @@ then
 	AC_MSG_RESULT([found])
 else
 	AC_MSG_WARN([not found - install CGI module!])
+fi
+
+dnl Checking Storable
+AC_MSG_CHECKING(for Storable perl module)
+if ( $PERL -M"Storable" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Storable module!])
+fi
+
+dnl Checking Sort::Naturally
+AC_MSG_CHECKING(for Sort::Naturally perl module)
+if ( $PERL -M"Sort::Naturally" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Sort::Naturally module!])
 fi
 
 ### Checks for header files.
@@ -250,7 +268,7 @@ $PERL subst lib/SnmpUtils.pm
 $PERL subst libexec/check_interface_table_v3t.pl
 $PERL subst etc/settings.cfg-sample
 $PERL subst etc/interfacetable_v3t.conf.httpd
-$PERL subst contrib/utilities/test_snmp.pl
+$PERL subst contrib/test/test_snmp.pl
 
 dnl Review options
 echo ""
