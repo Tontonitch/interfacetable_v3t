@@ -289,7 +289,7 @@ print "\n=============================================\n";
 print "Test A1: One oid (uptime)\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0);
+   [ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0,0,0);
 print "Result A1: ".Dumper($grefhResult)."\n";
 print "Error A1: ".Dumper($grefError)."\n";
 
@@ -297,7 +297,7 @@ print "=============================================\n";
 print "Test A2: Multiple oids\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},0);
+   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},0,0,0);
 print "Result A2: ".Dumper($grefhResult)."\n";
 print "Error A2: ".Dumper($grefError)."\n";
 
@@ -305,7 +305,7 @@ print "=============================================\n";
 print "Test A3: Multiple oids, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}.2","$oid_ifOperStatus{'oid'}.2","$oid_ifAdminStatus{'oid'}.2" ],$ghOptions{'cachedir'},0,1);
+   [ "$oid_ifDescr{'oid'}.2","$oid_ifOperStatus{'oid'}.2","$oid_ifAdminStatus{'oid'}.2" ],$ghOptions{'cachedir'},0,1,0);
 print "Result A3: ".Dumper($grefhResult)."\n";
 print "Error A3: ".Dumper($grefError)."\n";
 
@@ -319,7 +319,7 @@ print "=============================================\n";
 print "Test B1: Oid tree\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},0);
+   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},0,0,0);
 print "Result B1: ".Dumper($grefhResult)."\n";
 print "Error B1: ".Dumper($grefError)."\n";
 
@@ -327,7 +327,7 @@ print "=============================================\n";
 print "Test B2: Multiple oid tree\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},0);
+   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},0,0,0);
 print "Result B2: ".Dumper($grefhResult)."\n";
 print "Error B2: ".Dumper($grefError)."\n";
 
@@ -335,7 +335,7 @@ print "=============================================\n";
 print "Test B3: Oid tree, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},0,1);
+   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},0,1,0);
 print "Result B3: ".Dumper($grefhResult)."\n";
 print "Error B3: ".Dumper($grefError)."\n";
 
@@ -343,7 +343,7 @@ print "=============================================\n";
 print "Test B4: Multiple oid tree, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}","$oid_ifAdminStatus{'oid'}" ],$ghOptions{'cachedir'},0,1);
+   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}","$oid_ifAdminStatus{'oid'}" ],$ghOptions{'cachedir'},0,1,0);
 print "Result D4: ".Dumper($grefhResult)."\n";
 print "Error D4: ".Dumper($grefError)."\n";
 
@@ -357,7 +357,7 @@ print "=============================================\n";
 print "Test C1: One oid (uptime)\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+   [ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
 print "Result C1: ".Dumper($grefhResult)."\n";
 print "Error C1: ".Dumper($grefError)."\n";
 
@@ -365,7 +365,7 @@ print "=============================================\n";
 print "Test C2: Multiple oids\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0);
 print "Result C2: ".Dumper($grefhResult)."\n";
 print "Error C2: ".Dumper($grefError)."\n";
 
@@ -373,7 +373,7 @@ print "=============================================\n";
 print "Test C3: Multiple oids, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}.2","$oid_ifOperStatus{'oid'}.2","$oid_ifAdminStatus{'oid'}.2" ],$ghOptions{'cachedir'},$gLongCacheTimer,1);
+   [ "$oid_ifDescr{'oid'}.2","$oid_ifOperStatus{'oid'}.2","$oid_ifAdminStatus{'oid'}.2" ],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
 print "Result C3: ".Dumper($grefhResult)."\n";
 print "Error C3: ".Dumper($grefError)."\n";
 
@@ -387,7 +387,7 @@ print "=============================================\n";
 print "Test D1: Oid tree\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
 print "Result D1: ".Dumper($grefhResult)."\n";
 print "Error D1: ".Dumper($grefError)."\n";
 
@@ -395,7 +395,7 @@ print "=============================================\n";
 print "Test D2: Multiple oid tree\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer);
+   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
 print "Result D2: ".Dumper($grefhResult)."\n";
 print "Error D2: ".Dumper($grefError)."\n";
 
@@ -403,7 +403,7 @@ print "=============================================\n";
 print "Test D3: Oid tree, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1);
+   [ "$oid_ifDescr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
 print "Result D3: ".Dumper($grefhResult)."\n";
 print "Error D3: ".Dumper($grefError)."\n";
 
@@ -411,9 +411,33 @@ print "=============================================\n";
 print "Test D4: Multiple oid tree, with output key idx\n";
 print "=============================================\n";
 ($grefhResult,$grefError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
-   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1);
+   [ "$oid_ifDescr{'oid'}","$oid_ifOperStatus{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
 print "Result D4: ".Dumper($grefhResult)."\n";
 print "Error D4: ".Dumper($grefError)."\n";
+
+
+# ------------------------------------------------------------------------
+
+print "#############################################\n";
+print "#   TEST PART E : ERROR CASES\n";
+print "#############################################\n\n";
+
+print "=============================================\n";
+print "Test E1: Multiple oids with one which doesn't exist, no empty check\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
+   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","1.3.6.1.2.1.2.1.1.1.1.1.1.1.1.1","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,1);
+print "Result E1: ".Dumper($grefhResult)."\n";
+print "Error E1: ".Dumper($grefError)."\n";
+
+print "=============================================\n";
+print "Test E1: Multiple oids with one which doesn't exist, empty check\n";
+print "=============================================\n";
+($grefhResult,$grefError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,
+   [ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","1.3.6.1.2.1.2.1.1.1.1.1.1.1.1.1","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,1);
+print "Result E1: ".Dumper($grefhResult)."\n";
+print "Error E1: ".Dumper($grefError)."\n";
+
 
 
 # ------------------------------------------------------------------------
