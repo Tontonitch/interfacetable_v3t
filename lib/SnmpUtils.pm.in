@@ -77,6 +77,7 @@ sub SnmpGet {
     my $GlobalCacheDir      = $refhStruct->{CacheDir};
     my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
     my $OutputHashKeyIdx    = $refhStruct->{OutputHashKeyIdx};
+    my $CheckEmpty          = $refhStruct->{CheckEmpty};
     
     my $stdSNMPOutBehavior  = 1;
 
@@ -84,7 +85,8 @@ sub SnmpGet {
     delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
     delete $refhStruct->{OutputHashKeyIdx};
-
+    delete $refhStruct->{CheckEmpty};
+    
     my $refoSession;    # SNMP session object
     my $sessionError;   # SNMP session error
 
@@ -181,6 +183,14 @@ sub SnmpGet {
                     if ($stdSNMPOutBehavior == 1) {
                         $refhSnmpResult->{"$OID"} = StandardizeSNMPOutputBehaviour($refhSnmpResult->{"$OID"});
                     }
+                    
+                    # check empty
+                    if ($CheckEmpty and $refhSnmpResult->{"$OID"} eq "") {
+                        logger(0, "Not expected empty value for oid \"$OID\"");
+                        $refhErrorOutput->{code} = 1000;
+                        $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"");
+                        return ($refhResultOutput, $refhErrorOutput);
+                    }
             
                     if ($CacheTimer > 0) {
                         logger(3, "Write cache file ${CacheDir}/${OID}.dat, CacheTimer=$CacheTimer");
@@ -205,7 +215,6 @@ sub SnmpGet {
             }
             
             # fill hash with data
-            #$refhResultOutput->{$OID} = $refhSnmpResult->{$OID};
             foreach my $key ( keys %$refhSnmpResult ) {
                 if (defined $refhResultOutput->{$key}) {
                     $refhResultOutput->{$key} .= "|".delete $refhSnmpResult->{$key};
@@ -249,9 +258,11 @@ sub GetDataWithSnmp {
     my $CacheDir        = shift;
     my $CacheTimer      = shift;
     my $OutputHashKeyIdx = shift;
+    my $CheckEmpty      = shift;
     
-    $CacheTimer = 0 unless ($CacheTimer);
+    $CacheTimer       = 0 unless ($CacheTimer);
     $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
+    $CheckEmpty       = 0 unless ($CheckEmpty);
     my $stdSNMPOutBehavior  = 1;
     my $refhResult;
     my $refaCommandResult;
@@ -273,6 +284,7 @@ sub GetDataWithSnmp {
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
             OutputHashKeyIdx => $OutputHashKeyIdx,
+            CheckEmpty  => $CheckEmpty,
         );
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
@@ -321,6 +333,13 @@ sub GetDataWithSnmp {
                 $OID   =~ s/\s+$//g;     # remove invisible chars from the end
                 $OID   =~ s/^.*\.//g if $OutputHashKeyIdx;     # remove all but the index
                 $Value =~ s/\s+$//g;     # remove invisible chars from the end
+                # check empty
+                if ($CheckEmpty and $Value eq "") {
+                    logger(0, "Not expected empty value for oid \"$OID\"");
+                    $refhErrorOutput->{code} = 1000;
+                    $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"");
+                    return ($refhResultOutput, $refhErrorOutput);
+                }
                 if (defined $refhResult->{"$OID"}) {
                     $refhResult->{"$OID"} .= "|$Value";
                 } else {
@@ -360,13 +379,15 @@ sub SnmpGetTable {
     my $GlobalCacheDir      = $refhStruct->{CacheDir};
     my $GlobalCacheTimer    = $refhStruct->{CacheTimer};
     my $OutputHashKeyIdx    = $refhStruct->{OutputHashKeyIdx};
+    my $CheckEmpty          = $refhStruct->{CheckEmpty};
     
-    my $stdSNMPOutBehavior     = 1;
+    my $stdSNMPOutBehavior  = 1;
 
     delete $refhStruct->{OID};
     delete $refhStruct->{CacheDir};
     delete $refhStruct->{CacheTimer};
     delete $refhStruct->{OutputHashKeyIdx};
+    delete $refhStruct->{CheckEmpty};
     
     my $refoSession;    # SNMP session object
     my $sessionError;   # SNMP session error
@@ -471,7 +492,15 @@ sub SnmpGetTable {
                         if ($stdSNMPOutBehavior == 1) {
                             $refhSnmpResult->{"$i"} = StandardizeSNMPOutputBehaviour($refhSnmpResult->{"$i"});
                         }
-                    }                    
+                    }
+                    
+                    # check empty tree
+                    if ($CheckEmpty and not %$refhSnmpResult) {
+                        logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
+                        $refhErrorOutput->{code} = 1001;
+                        $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
+                        return ($refhResultOutput, $refhErrorOutput);
+                    }
                 
                     # write a cache file if the cache timer > 0
                     if ($CacheTimer > 0) {
@@ -541,9 +570,11 @@ sub GetTableDataWithSnmp {
     my $CacheDir        = shift;
     my $CacheTimer      = shift;
     my $OutputHashKeyIdx = shift;
+    my $CheckEmpty      = shift;
     
-    $CacheTimer = 0 unless ($CacheTimer);
+    $CacheTimer       = 0 unless ($CacheTimer);
     $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
+    $CheckEmpty       = 0 unless ($CheckEmpty);
     my $stdSNMPOutBehavior = 1;
     my $refhResult;
     my $refaCommandResult;
@@ -564,6 +595,7 @@ sub GetTableDataWithSnmp {
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching;
             OutputHashKeyIdx => $OutputHashKeyIdx,
+            CheckEmpty  => $CheckEmpty,
         );
         if ( $refhSNMPOptions->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
@@ -610,6 +642,14 @@ sub GetTableDataWithSnmp {
                 CacheTimer  => int rand ($CacheTimer),
             });
             return ($refhResult, $refhError) if ($refhError->{code});
+            
+            # check empty tree
+            if ($CheckEmpty and not @$refaCommandResult) {
+                logger(0, "Not expected empty tree for base-oid \"$singleoid\"");
+                $refhErrorOutput->{code} = 1001;
+                $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"$singleoid\"");
+                return ($refhResult, $refhError);
+            }
             
             # check result validity and push to final hash
             foreach my $line (@$refaCommandResult) {
