@@ -188,7 +188,7 @@ sub SnmpGet {
                     if ($CheckEmpty and $refhSnmpResult->{"$OID"} eq "") {
                         logger(0, "Not expected empty value for oid \"$OID\"");
                         $refhErrorOutput->{code} = 1000;
-                        $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"");
+                        $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"";
                         return ($refhResultOutput, $refhErrorOutput);
                     }
             
@@ -336,9 +336,9 @@ sub GetDataWithSnmp {
                 # check empty
                 if ($CheckEmpty and $Value eq "") {
                     logger(0, "Not expected empty value for oid \"$OID\"");
-                    $refhErrorOutput->{code} = 1000;
-                    $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"");
-                    return ($refhResultOutput, $refhErrorOutput);
+                    $refhError->{code} = 1000;
+                    $refhError->{msg} = "Not expected empty value for oid \"$OID\"";
+                    return ($refhResult, $refhError);
                 }
                 if (defined $refhResult->{"$OID"}) {
                     $refhResult->{"$OID"} .= "|$Value";
@@ -498,7 +498,7 @@ sub SnmpGetTable {
                     if ($CheckEmpty and not %$refhSnmpResult) {
                         logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
                         $refhErrorOutput->{code} = 1001;
-                        $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
+                        $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"";
                         return ($refhResultOutput, $refhErrorOutput);
                     }
                 
@@ -646,8 +646,8 @@ sub GetTableDataWithSnmp {
             # check empty tree
             if ($CheckEmpty and not @$refaCommandResult) {
                 logger(0, "Not expected empty tree for base-oid \"$singleoid\"");
-                $refhErrorOutput->{code} = 1001;
-                $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"$singleoid\"");
+                $refhError->{code} = 1001;
+                $refhError->{msg} = "Not expected empty tree for base-oid \"$singleoid\"";
                 return ($refhResult, $refhError);
             }
             
