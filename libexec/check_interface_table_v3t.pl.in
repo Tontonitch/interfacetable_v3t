@@ -6,11 +6,11 @@
 # Version: @PKG_VERSION@
 # Author:  Yannick Charton - tontonitch-pro@yahoo.fr
 # License: GPLv3
-# Copyright (c) 2009-2012 Yannick Charton (@PKG_HOME_URL@)
+# Copyright (c) 2009-2013 Yannick Charton (@PKG_HOME_URL@)
 
 # COPYRIGHT:
 # This software and the additional scripts provided with this software are
-# Copyright (c) 2009-2012 Yannick Charton (tontonitch-pro@yahoo.fr)
+# Copyright (c) 2009-2013 Yannick Charton (tontonitch-pro@yahoo.fr)
 # (Except where explicitly superseded by other copyright notices)
 #
 # LICENSE:
@@ -410,7 +410,7 @@ $grefAoHConfigTableData->[8]->[1]->{Value} = "";
 # get uptime of the host - no caching !
 
 logger(1, "Check that the target \"$ghOptions{hostquery}\" is reachable via snmp");
-($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0,1);
+($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0,0,1);
 ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
 $grefhCurrent->{MD}->{Node}->{sysUpTime} = $refhSNMPResult->{$oid_sysUpTime{'oid'}};
 
@@ -761,18 +761,18 @@ for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
     my $ifNameReadable = denormalize ($ifName);
     # Update the config table
     if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
-        $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= "<br>";
+        $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= ", ";
         $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable";
     } else {
         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo} and $ConfigTableOtherMsgInfo .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo};
         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} and $ConfigTableOtherMsgWarn .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn};
         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} and $ConfigTableOtherMsgCrit .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit};
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
-            $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= "<br>";
+            $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= ", ";
             $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable";
         }
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedPropertyTrack} eq "true") {
-            $grefAoHConfigTableData->[2]->[1]->{Value} ne "" and $grefAoHConfigTableData->[2]->[1]->{Value} .= "<br>";
+            $grefAoHConfigTableData->[2]->[1]->{Value} ne "" and $grefAoHConfigTableData->[2]->[1]->{Value} .= ", ";
             $grefAoHConfigTableData->[2]->[1]->{Value} .= "$ifNameReadable";
         }
     }
@@ -891,6 +891,9 @@ if ( $gInitialRun ) {
 # Add extra info to the output message
 # ------------------------------------------------------------------------------
 
+my $EndTime = time ();
+my $TimeDiff = $EndTime-$STARTTIME;
+
 # Cisco node info 
 if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
@@ -906,8 +909,6 @@ if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory a
 # ------------------------------------------------------------------------------
 
 # Write Html Table
-my $EndTime = time ();
-my $TimeDiff = $EndTime-$STARTTIME;
 WriteHtmlFile ({
     InfoTable       => $gInfoTableHTML,
     InterfaceTable  => $gInterfaceTableHTML,
@@ -1030,8 +1031,8 @@ sub Get_InterfaceNames {
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     
     # get all interface mac addresses
-    ($refhSNMPResultIfPhysAddress,$refhSNMPError) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress{'oid'},$ghOptions{'cachedir'},0,0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifPhysAddress{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,0,1);
+    ($refhSNMPResultIfPhysAddress,$refhSNMPError) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress{'oid'},$ghOptions{'cachedir'},0,1,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifPhysAddress{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     
     # Look for duplicate values
@@ -1057,7 +1058,7 @@ sub Get_InterfaceNames {
     while ( my ($Index,$Desc) = each(%$refhSNMPResultIfDescr) ) {
         $Index =~ s/^\.*$oid_ifDescr{'oid'}\.//g; # remove all but the index
         logger(2, "Index=$Index Descr=\"$Desc\" (long cache: $gLongCacheTimer)");
-        my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$oid_ifPhysAddress{'oid'}.'.'.$Index}) ? "$refhSNMPResultIfPhysAddress->{$oid_ifPhysAddress{'oid'}.$Index}" : "";
+        my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$Index}) ? "$refhSNMPResultIfPhysAddress->{$Index}" : "";
 
         # Interface name formatting
         # -----------------------------------------------------------
@@ -1161,22 +1162,24 @@ sub Get_AdminStatus {
     my $refhSNMPError;
     
     # get all interface adminstatus - no caching !
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifAdminStatus{'oid'}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifAdminStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
 
-    while ( my ($AdminStatus,$Index) = each(%$refhSNMPResult) ) {
-        $Index =~ s/^\.*$oid_ifAdminStatus{'oid'}\.//g; # remove all but the index
-        #Check that the index match a known interface. skip if not
-        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-        
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
-        logger(2, "Index=$Index ($ifName)");
-
-        # Store ifAdminStatus converted from a digit to "up" or "down"
-        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatusNumber} = $AdminStatus;
-        $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} = (defined $oid_ifAdminStatus{'convertToReadable'}{"$AdminStatus"})
-            ? $oid_ifAdminStatus{'convertToReadable'}{"$AdminStatus"} : $AdminStatus;
-        logger(2, "  AdminStatus=".$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus});
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        if (defined $refhSNMPResult->{$Index}) {
+            my $AdminStatus = $refhSNMPResult->{$Index};
+            # Store ifAdminStatus converted from a digit to "up" or "down"
+            $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatusNumber} = "$AdminStatus";
+            $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} = (defined $oid_ifAdminStatus{'convertToReadable'}{"$AdminStatus"})
+                ? $oid_ifAdminStatus{'convertToReadable'}{"$AdminStatus"} : $AdminStatus;
+            logger(2, "Index=$Index ($ifName): AdminStatus=".$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus});
+        } else {
+            #$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatusNumber} = undef;
+            #$grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus} = undef;
+            logger(2, "Index=$Index ($ifName): AdminStatus not found for the interface");
+        }
     }
     return 0;
 }
@@ -1190,134 +1193,138 @@ sub Get_OperStatus {
     my $refhSNMPError;
     
     # get all interface adminstatus - no caching !
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOperStatus{'oid'}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOperStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
 
     # Example of $refaOperStatusLines
     #    .1.3.6.1.2.1.2.2.1.8.1 up
     #    .1.3.6.1.2.1.2.2.1.8.2 down
-    while ( my ($Index,$OperStatus) = each(%$refhSNMPResult) ) {
-        $Index =~ s/^\.*$oid_ifOperStatus{'oid'}\.//g; # remove all but the index
-        #Check that the index match a known interface. skip if not
-        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-        
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+    
         logger(2, "Index=$Index ($ifName)");
-        
-        # Store the oper status as property of the current interface
-        $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = "$OperStatus";
-        defined $oid_ifOperStatus{'convertToReadable'}{"$OperStatus"} and $OperStatus = $oid_ifOperStatus{'convertToReadable'}{"$OperStatus"};       
-        $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatus";
-
-        # Retrieve adminstatus for special rules
-        my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
-
-        #
-        # Store a CacheTimer (seconds) where we cache the next
-        # reads from the net - we have the following possibilities
-        #
-        # ifOperStatus:
-        #
-        # Current state | first state  |  CacheTimer
-        # -----------------------------------------
-        # up              up              $gShortCacheTimer
-        # up              down            0
-        # down            down            $gLongCacheTimer
-        # down            up              0
-        # other           *               0
-        # *               other           0
-        #
-        # One exception to that logic is the "Changed" flag. If this
-        # is set we detected a change on an interface property and do not
-        # cache !
-        #
-        my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
-        $OperStatusFile = "" unless ($OperStatusFile);
-        logger(2, "  Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
-        # set cache timer for further reads
-        if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gShortCacheTimer;
-        } elsif ("$OperStatusNow" eq "down" and "$OperStatusFile" eq "down") {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gLongCacheTimer;
+        if (defined $refhSNMPResult->{$Index}) {
+            my $OperStatusNow = $refhSNMPResult->{$Index};
+            # Store the oper status as property of the current interface
+            $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = "$OperStatusNow";
+            defined $oid_ifOperStatus{'convertToReadable'}{"$OperStatusNow"} and $OperStatusNow = $oid_ifOperStatus{'convertToReadable'}{"$OperStatusNow"};       
+            $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+    
+            # Retrieve adminstatus for special rules
+            my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
+    
+            #
+            # Store a CacheTimer (seconds) where we cache the next
+            # reads from the net - we have the following possibilities
+            #
+            # ifOperStatus:
+            #
+            # Current state | first state  |  CacheTimer
+            # -----------------------------------------
+            # up              up              $gShortCacheTimer
+            # up              down            0
+            # down            down            $gLongCacheTimer
+            # down            up              0
+            # other           *               0
+            # *               other           0
+            #
+            # One exception to that logic is the "Changed" flag. If this
+            # is set we detected a change on an interface property and do not
+            # cache !
+            #
+            my $OperStatusFile = $grefhFile->{If}->{"$ifName"}->{ifOperStatus};
+            $OperStatusFile = "" unless ($OperStatusFile);
+            logger(2, "  Now=\"$OperStatusNow\" File=\"$OperStatusFile\"");
+            # set cache timer for further reads
+            if ("$OperStatusNow" eq "up" and "$OperStatusFile" eq "up") {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gShortCacheTimer;
+            } elsif ("$OperStatusNow" eq "down" and "$OperStatusFile" eq "down") {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = $gLongCacheTimer;
+            } else {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = 0;
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
+                    "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
+            }
+            logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
+    
+            # remember change time of the interface property
+            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
+                    $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
+            } else {
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+            }
+    
+            #
+            # Some rules with ifOperStatus
+            #
+            # Between initial ifOperStatus and current ifOperStatus
+            # current ifOperStatus | initial ifOperStatus | action
+            # ---------------------------------------------------------------------
+            # up                   | *                    | no alarm and update ifOperStatus initial state
+            # *                    | empty,down           | no alarm and update ifOperStatus initial state
+            #
+            # Between current ifOperStatus and current ifAdminStatus
+            # current ifOperStatus | current ifAdminStatus | action
+            # ---------------------------------------------------------------------
+            # down                 | *                     | no alarm and update ifOperStatus initial state
+            #
+    
+            # track changes of the oper status
+            if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
+                # delete the changed flag and reset the time when it was changed
+                if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                    delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                    $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+                }
+            }
+            # ifOperstatus has changed to up, no alert
+            elsif ("$OperStatusNow" eq "up") {
+                # update the state in the status file
+                $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+                # delete the changed flag and reset the time when it was changed
+                if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                    delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                    $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+                }
+            }
+            # ifOperstatus has changed from 'empty' or 'down'
+            elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
+                # update the state in the status file
+                $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+                # delete the changed flag and reset the time when it was changed
+                if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                    delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                    $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+                }
+            }
+            # ifOperstatus has changed to 'down' and ifAdminstatus is 'down'
+            elsif ("$OperStatusNow" eq "down" and "$AdminStatusNow" eq "down") {
+                # update the state in the status file
+                $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
+                # delete the changed flag and reset the time when it was changed
+                if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                    delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
+                    $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+                }
+            }
+            # ifOperstatus has changed, alerting
+            else {
+                # flag if changes already tracked
+                if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
+                    $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
+                }
+    
+                # remember the change every run of this program, this is useful if the
+                # ifOperStatus changes from "up" to "testing" to "down"
+                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
+                    "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
+            }
         } else {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer} = 0;
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
-                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
-        }
-        logger(2, "  CacheTimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer});
-
-        # remember change time of the interface property
-        if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
-                $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}
-        } else {
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-        }
-
-        #
-        # Some rules with ifOperStatus
-        #
-        # Between initial ifOperStatus and current ifOperStatus
-        # current ifOperStatus | initial ifOperStatus | action
-        # ---------------------------------------------------------------------
-        # up                   | *                    | no alarm and update ifOperStatus initial state
-        # *                    | empty,down           | no alarm and update ifOperStatus initial state
-        #
-        # Between current ifOperStatus and current ifAdminStatus
-        # current ifOperStatus | current ifAdminStatus | action
-        # ---------------------------------------------------------------------
-        # down                 | *                     | no alarm and update ifOperStatus initial state
-        #
-
-        # track changes of the oper status
-        if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed to up, no alert
-        elsif ("$OperStatusNow" eq "up") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed from 'empty' or 'down'
-        elsif ("$OperStatusFile" eq "" or "$OperStatusFile" eq "down") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed to 'down' and ifAdminstatus is 'down'
-        elsif ("$OperStatusNow" eq "down" and "$AdminStatusNow" eq "down") {
-            # update the state in the status file
-            $grefhFile->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-            # delete the changed flag and reset the time when it was changed
-            if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                delete $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText};
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-        }
-        # ifOperstatus has changed, alerting
-        else {
-            # flag if changes already tracked
-            if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
-                $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
-            }
-
-            # remember the change every run of this program, this is useful if the
-            # ifOperStatus changes from "up" to "testing" to "down"
-            $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
-                "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
+            #$grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = undef;
+            #$grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = undef;
+            logger(2, "Index=$Index ($ifName): OperStatus not found for the interface");
         }
 
     }
@@ -1338,61 +1345,66 @@ sub Get_Speed {
 
     # get ifSpeed table (units of bits per second)
     if (defined $refhOIDIfSpeed) {
-        ($refhSNMPResultIfSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfSpeed{'oid'}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultIfSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     }
     
     # get ifHighSpeed table (units of 1,000,000 bits per second)
     if (defined $refhOIDIfHighSpeed) {
-        ($refhSNMPResultIfHighSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfHighSpeed{'oid'}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultIfHighSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfHighSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     }
 
-    while ( my ($Index,$IfSpeed) = each(%$refhSNMPResultIfSpeed) ) {
-        #Check that the index match a known interface. skip if not
-        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
         
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
-        logger(2, "Index=$Index ($ifName)");
-
-        # Get the speed in normal or highperf speed counters
-        if ($IfSpeed and $IfSpeed ne ""){
-            if ($IfSpeed >= 4294967294) { 
-                # Too high for this counter (cf IF-MIB)
-                # get ifHighSpeed table (units of 1,000,000 bits per second)
+        if (defined $refhSNMPResultIfSpeed->{$Index}) {
+            my $IfSpeed = $refhSNMPResultIfSpeed->{$Index};
+            # Get the speed in normal or highperf speed counters
+            if ($IfSpeed and $IfSpeed ne ""){
+                if ($IfSpeed >= 4294967294) { 
+                    # Too high for this counter (cf IF-MIB)
+                    # get ifHighSpeed table (units of 1,000,000 bits per second)
+                    if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
+                        $IfSpeed = $refhSNMPResultIfHighSpeed->{"$Index"} * 1000000;
+                    } else {
+                        logger(1, " $ifName($Index) -> interface speed exceeding standard counter ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). ".
+                            "No high speed counter available, so the speed should be incorrect.");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
+                            denormalize($ifName)." ($Index). No high speed counter available, so the speed should be incorrect.</div>";
+                        #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
+                        #denormalize($ifName)." ($Index). ".
+                        #    "No high speed counter available, so the speed should be incorrect.</div>";
+                    }
+                }
+            } else {
                 if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
                     $IfSpeed = $refhSNMPResultIfHighSpeed->{"$Index"} * 1000000;
+                    logger(2, " $ifName($Index) -> no standard speed counter but high speed counter available");
                 } else {
-                    logger(1, " $ifName($Index) -> interface speed exceeding standard counter ($oid_ifSpeed.$Index: $IfSpeed). ".
-                        "No high speed counter available, so the speed should be incorrect.");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
-                        denormalize($ifName)." ($Index). No high speed counter available, so the speed should be incorrect.</div>";
-                    #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
-                    #denormalize($ifName)." ($Index). ".
-                    #    "No high speed counter available, so the speed should be incorrect.</div>";
+                    $IfSpeed = -1;
                 }
             }
-        } else {
-            if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
-                $IfSpeed = $refhSNMPResultIfHighSpeed->{"$Index"} * 1000000;
-                logger(2, " $ifName($Index) -> no standard speed counter but high speed counter available");
-            } else {
-                $IfSpeed = -1;
+            # Recommendation in case Gigabit detected
+            if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
+                logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
+                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
+                denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
+                #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
+                #denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
             }
+            # Store ifSpeed in a machine and human readable format
+            $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
+            $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = format_volume_decimal ($IfSpeed,"bit");
+            logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
+        } else {
+            #$grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = undef;
+            #$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = undef;
+            logger(2, "Index=$Index ($ifName): Speed not found for the interface");
         }
-        # Recommendation in case Gigabit detected
-        if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
-            logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-            $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
-            denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
-            #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
-            #denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
-        }
-        # Store ifSpeed in a machine and human readable format
-        $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
-        $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = format_volume_decimal ($IfSpeed,"bit");
-        logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
     }
+    
     return 0;
 }
 
@@ -1406,35 +1418,21 @@ sub Get_Alias {
     my $refhSNMPError;
     
     # get ifAlias table - returned result can be empty
-    ($refhSNMPResult,$refhSNMPError) = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias{'oid'}"],$ghOptions{'cachedir'},0,0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+    ($refhSNMPResult,$refhSNMPError) = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},0,0,0)
+        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     
-    # --- Solution 1 --- #
-    while ( my ($Index,$Alias) = each(%$refhSNMPResult) ) {
-        $Index =~ s/^\.*$refhOIDIfAlias{'oid'}\.//g; # remove all but the index
-        #Check that the index match a known interface. skip if not
-        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-        
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
-        logger(2, "Index=$Index ($ifName)");
-
-        # Store ifAlias normalized to not get into trouble with special chars
-        $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = normalize ($Alias);
-        logger(2, "Index=$Index ($ifName): Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
-    }
-    
-    # --- Solution 2 --- #
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        my $IdxOid = "$refhOIDIfAlias{'oid'}.$Index";
-        if (defined $refhSNMPResult->{$refhSNMPResult{$IdxOid}}) {
+        
+        if (defined $refhSNMPResult->{$Index}) {
+            my $Alias = "$refhSNMPResult->{$Index}";
             # Store ifAlias normalized to not get into trouble with special chars
-            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = normalize ($refhSNMPResult->{$refhSNMPResult{$IdxOid}});
+            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = normalize ($Alias);
             logger(2, "Index=$Index ($ifName): Alias=\"".$grefhCurrent->{If}->{"$ifName"}->{ifAlias}."\"");
         } else {
-            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
+            #$grefhCurrent->{If}->{"$ifName"}->{ifAlias} = undef;
             logger(2, "Index=$Index ($ifName): Alias not found for the interface");
         }
     }
@@ -1452,28 +1450,23 @@ sub Get_Duplex {
     my $refhSNMPError;
     
     # get ifDuplexStatus table
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOID{oid}"],$ghOptions{'cachedir'},0,0,0);
+    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOID->{oid}"],$ghOptions{'cachedir'},0,0,0);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     
-    foreach (@$refaIfDuplexStatus) {
-        $refhIfDuplexStatus->{"$1"}=$2 if /$refhOID->{'oid'}\.([0-9.]*) (.*)$/;
-    }
-    if ($refhIfDuplexStatus) {
-        # loop through all found interfaces
-        for my $ifName (keys %{$grefhCurrent->{If}}) {
-            # Extract the index out of the MetaData
-            my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-            if (defined $refhIfDuplexStatus->{$Index}) {
-                # Store ifDuplexStatus converted from a digit to string
-                $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"})
-                    ? $refhOID->{'convertToReadable'}{"$refhIfDuplexStatus->{$Index}"} : $refhIfDuplexStatus->{$Index};
-                logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
-            }
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        if (defined $refhSNMPResult->{$Index}) {
+            # Store ifDuplexStatus converted from a digit to string
+            $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = (defined $refhOID->{'convertToReadable'}{"$refhSNMPResult->{$Index}"})
+                ? $refhOID->{'convertToReadable'}{"$refhSNMPResult->{$Index}"} : $refhSNMPResult->{$Index};
+            logger(2, "Index=$Index ($ifName): ifDuplexStatus=" . $grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus});
+        } else {
+            #$grefhCurrent->{If}->{"$ifName"}->{ifDuplexStatus} = undef;
+            logger(2, "Index=$Index ($ifName): ifDuplexStatus not found for the interface");
         }
-    } else {
-        logger(2, "No entries returned from $refhOID->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $refhOID->{'oid'} ($refhOID->{'mib'})");
-        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $refhOID->{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $refhOID->{'oid'} ($refhOID->{'mib'})</div>";
     }
+
     return 0;
 }
 
@@ -1481,39 +1474,39 @@ sub Get_Duplex {
 # get Spanning Tree
 # ------------------------------------------------------------------------
 sub Get_Stp {
-    my $refaSTPIfIndexMapLines;                         # Lines returned from snmpwalk storing stp port->ifindex map table
-    my $refaSTPPortStateLines;                          # Lines returned from snmpwalk storing stp port states
 
+    my $refhSNMPResultStpIfIndexMap;  # Lines returned from snmpwalk storing stp port->ifindex map table
+    my $refhSNMPResultStpPortState;   # Lines returned from snmpwalk storing stp port states
+    my $refhSNMPError;
+    
     # get stp port->ifindex map table
-    $refaSTPIfIndexMapLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dBasePortIfIndex,$ghOptions{'cachedir'},0,0);
-    if ($refaSTPIfIndexMapLines) {
-        for (@$refaSTPIfIndexMapLines) {
-            if (/$oid_dot1dBasePortIfIndex{'oid'}\.([0-9]*) ([0-9]*)/) {
-                $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$1"} = $2;
-                $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{IndexToStpIndex}->{"$2"} = $1;
-                $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{NameToStpIndex}->{"$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}"} = $1;
-                $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{"$1"} = "$grefhCurrent->{MD}->{Map}->{IndexToName}->{$2}";
-            }
+    ($refhSNMPResultStpIfIndexMap,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_dot1dBasePortIfIndex{oid}"],$ghOptions{'cachedir'},0,1,1);
+    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    
+    while ( my ($Idx1,$Idx2) = each(%$refhSNMPResultStpIfIndexMap) ) {
+        $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$Idx1"} = $Idx2;
+        $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{IndexToStpIndex}->{"$Idx2"} = $Idx1;
+        $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{NameToStpIndex}->{"$grefhCurrent->{MD}->{Map}->{IndexToName}->{$Idx2}"} = $Idx1;
+        $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{"$Idx1"} = "$grefhCurrent->{MD}->{Map}->{IndexToName}->{$Idx2}";
+    }
+        
+    ($refhSNMPResultStpPortState,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_dot1dStpPortState{oid"],$ghOptions{'cachedir'},0,1,1);
+    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $StpIndex = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{NameToStpIndex}->{"$ifName"};
+        if (defined $refhSNMPResultStpPortState->{$StpIndex}) {
+            my $Portstate = $refhSNMPResultStpPortState->{$StpIndex};
+            defined $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"} and $Portstate = $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"};
+            logger(2, "IfName=\"$ifName\", StpIndex=\"$StpIndex\", StpPortstate=\"$Portstate\"");
+    
+            # Store the Portstate as property of the current interface
+            $grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
+            logger(2, "IfName=\"$ifName\", StpIndex not found for the interface");
         }
-        
-        $refaSTPPortStateLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_dot1dStpPortState,$ghOptions{'cachedir'},0,1);
-        for (@$refaSTPPortStateLines) {
-            my ($Index,$Portstate) = split / /,$_,2;
-            $Index =~ s/^.*\.//g;    # remove all but the index
-            $Portstate =~ s/\s+$//g;    # remove invisible chars from the end
-        
-            if (defined $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index}) {
-                my $ifName = $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{$Index};
-                defined $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"} and $Portstate = $oid_dot1dStpPortState{'convertToReadable'}{"$Portstate"};
-                logger(2, "IfName=\"$ifName\", StpIndex=\"$Index\", StpPortstate=\"$Portstate\"");
-        
-                # Store the Portstate as property of the current interface
-                $grefhCurrent->{If}->{"$ifName"}->{ifStpState} = "$Portstate";
-            }
-        }
-    } else {
-        logger(2, "No entries returned from $oid_dot1dBasePortIfIndex{'name'} for host \"$ghOptions{'hostquery'}\" with snmp\nCheck the access to the oid $oid_dot1dBasePortIfIndex{'oid'} ($oid_dot1dBasePortIfIndex{'mib'})");
-        $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">No entries returned from $oid_dot1dBasePortIfIndex{'name'} for host \"$ghOptions{'hostquery'}\" with snmp. Check the access / the content for the oid $oid_dot1dBasePortIfIndex{'oid'} ($oid_dot1dBasePortIfIndex{'mib'})</div>";
     }
     
     return 0;
@@ -1565,7 +1558,7 @@ sub Get_IpInfo {
     #------------------------------------------
 
     # get all interface ip info - resulting table can be empty
-    ($refhSNMPResultIpAddr,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDip,$ghOptions{'cachedir'},0,0);
+    ($refhSNMPResultIpAddr,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDip,$ghOptions{'cachedir'},0,0,0);
 
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
@@ -1578,9 +1571,9 @@ sub Get_IpInfo {
     # get the subnet masks with caching 0 only if the ip addresses
     # have changed - resulting table can be empty
     if (defined $grefhFile->{MD}->{CachedInfo}->{IpInfo} and $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} eq $grefhFile->{MD}->{CachedInfo}->{IpInfo}) {
-        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},$gLongCacheTimer);
+        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
     } else {
-        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},0);
+        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},0,0,0);
     }
 
     # Get info from snmp/cache
@@ -1661,9 +1654,9 @@ sub Get_Traffic {
         my $refhSNMPError;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
         
         # traffic monitoring capacity advice
@@ -1683,9 +1676,9 @@ sub Get_Traffic {
         my $refhSNMPError;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
         
         # traffic monitoring capacity advice
@@ -1708,13 +1701,13 @@ sub Get_Traffic {
         my $refhSNMPResultOctetOut;
         my $refhSNMPError;
         
-        (my $refhSNMPResultOctetInHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInHigh{oid}"],$ghOptions{'cachedir'},0,0,1);
+        (my $refhSNMPResultOctetInHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetInLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInLow{oid}"],$ghOptions{'cachedir'},0,0,1);
+        (my $refhSNMPResultOctetInLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetOutHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutHigh{oid}"],$ghOptions{'cachedir'},0,0,1);
+        (my $refhSNMPResultOctetOutHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetOutLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutLow{oid}"],$ghOptions{'cachedir'},0,0,1);
+        (my $refhSNMPResultOctetOutLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
         
         # build a hashs gathering low+high in octet counters
@@ -1771,13 +1764,13 @@ sub Get_Error_Discard {
     #------------------------------------------
 
     # get all interface in/out packet error/discarded octet counters - no caching !
-    ($refhSNMPResultInErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_ifInErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResultInErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultOutErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_ifOutErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResultOutErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultInDiscards,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_ifInDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResultInDiscards,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultOutDiscard,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_ifOutDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
+    ($refhSNMPResultOutDiscard,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
     ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     
     # post-processing interface octet counters
@@ -1826,17 +1819,17 @@ sub Get_Packets {
         my $refhSNMPResultBroadcastPktOut;   # Lines returned from snmpwalk storing Broadcast Pkts Out
 
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultMulticastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultMulticastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultMulticastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultMulticastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultBroadcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultBroadcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultBroadcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultBroadcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
         
         foreach my $key (keys %$refhSNMPResultMulticastPktIn) {
@@ -1857,13 +1850,13 @@ sub Get_Packets {
         my $refhOidNUCastOut = shift;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultNUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastIn{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultNUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultNUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastOut{oid}"],$ghOptions{'cachedir'},0,0,1);
+        ($refhSNMPResultNUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
         ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
     }
 
@@ -1900,22 +1893,6 @@ sub Process_IfCounter {
     # Example of $refaOctetLines
     #    .1.3.6.1.2.1.2.2.1.10.2 2510821601
     #    .1.3.6.1.2.1.2.2.1.10.3 0
-    while ( my ($Index,$Value) = each(%$refhCounter) ) {
-        if (defined $lOid) {
-            $Index = "$1" if /^.*$lOid\.([0-9.]*)/;
-        } else {
-            $Index =~ s/^.*\.//g; # remove all but the index
-        }
-        #Check that the index match a known interface. skip if not
-        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-        logger(2, "Index=$Index $WhatCounter=$Value");
-
-        # Store the counter value of the current interface
-        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
-        $grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = "$Value";
-        $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = "$Value";
-    }
-    
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
@@ -1924,7 +1901,7 @@ sub Process_IfCounter {
             $grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = $refhCounter->{$Index};
             $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = $refhCounter->{$Index};
         } else {
-            $grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = undef;
+            #$grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = undef;
             logger(2, "Index=$Index ($ifName): $WhatCounter not found for the interface");
         }
     }
@@ -3137,7 +3114,7 @@ sub Get_Specific_Netscreen {
     # get netscreen interface name and build a map table with the standard interface description
     $refhSNMPResultNsIfName = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfName,$ghOptions{'cachedir'},0);
     # -TODO- check empty
-    for my $ifName (keys %{$grefhCurrent->{If}}) {
+    #for my $ifName (keys %{$grefhCurrent->{If}}) {
     
     
     for (@$refhSNMPResultNsIfName) {
@@ -3154,16 +3131,16 @@ sub Get_Specific_Netscreen {
 
     # Zones
     ## get netscreen zone id and name
-    $refaNsZoneCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsZoneCfgName,$ghOptions{'cachedir'},0,1);
-    for (@$refaNsZoneCfgNameLines) {
+    $refhSNMPResultNsZoneCfgName = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsZoneCfgName,$ghOptions{'cachedir'},0,1);
+    for (@$refhSNMPResultNsZoneCfgName) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $Value =~ s/\s+$//g;            # remove invisible chars from the end
         $refhNsZone->{"$Index"} = "$Value";
     }
     ## get netscreen zone id for all interfaces
-    $refaNsIfZoneLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfZone,$ghOptions{'cachedir'},0,1);
-    for (@$refaNsIfZoneLines) {
+    $refhSNMPResultNsIfZone = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfZone,$ghOptions{'cachedir'},0,1);
+    for (@$refhSNMPResultNsIfZone) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $Value =~ s/\s+$//g;            # remove invisible chars from the end
@@ -3175,16 +3152,16 @@ sub Get_Specific_Netscreen {
 
     # Vsys
     ## get netscreen vsys id and name
-    $refaNsVsysCfgNameLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsVsysCfgName,$ghOptions{'cachedir'},0,1);
-    for (@$refaNsVsysCfgNameLines) {
+    $refhSNMPResultNsVsysCfgName = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsVsysCfgName,$ghOptions{'cachedir'},0,1);
+    for (@$refhSNMPResultNsVsysCfgName) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $Value =~ s/\s+$//g;            # remove invisible chars from the end
         $refhNsVsys->{"$Index"} = "$Value";
     }
     ## get netscreen zone id for all interfaces
-    $refaNsIfVsysLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfVsys,$ghOptions{'cachedir'},0,1);
-    for (@$refaNsIfVsysLines) {
+    $refhSNMPResultNsIfVsys = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfVsys,$ghOptions{'cachedir'},0,1);
+    for (@$refhSNMPResultNsIfVsys) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;           # remove all but the index
         $Value =~ s/\s+$//g;            # remove invisible chars from the end
@@ -3196,16 +3173,16 @@ sub Get_Specific_Netscreen {
 
     # Management protocols
     # get permitted management protocols from : Telnet, SCS, WEB, SSL, SNMP, Global, GlobalPro, Ping, IdentReset
-    $refaNsIfMngTelnetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngTelnet,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngSCSLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSCS,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngWEBLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngWEB,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngSSLLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSSL,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngSNMPLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSNMP,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngGlobalLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngGlobal,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngGlobalProLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngGlobalPro,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngPingLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngPing,$ghOptions{'cachedir'},0,1);
-    $refaNsIfMngIdentResetLines = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngIdentReset,$ghOptions{'cachedir'},0,1);
-    foreach (@$refaNsIfMngTelnetLines) {
+    $refhSNMPResultNsIfMngTelnet = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngTelnet,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngSCS = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSCS,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngWEB = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngWEB,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngSSL = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSSL,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngSNMP = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngSNMP,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngGlobal = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngGlobal,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngGlobalPro = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngGlobalPro,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngPing = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngPing,$ghOptions{'cachedir'},0,1);
+    $refhSNMPResultNsIfMngIdentReset = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfMngIdentReset,$ghOptions{'cachedir'},0,1);
+    foreach (@$refhSNMPResultNsIfMngTelnet) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3217,7 +3194,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "Telnet";
         }
     }
-    foreach (@$refaNsIfMngSCSLines) {
+    foreach (@$refhSNMPResultNsIfMngSCS) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3229,7 +3206,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "SCS";
         }
     }
-    foreach (@$refaNsIfMngWEBLines) {
+    foreach (@$refhSNMPResultNsIfMngWEB) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3241,7 +3218,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "WEB";
         }
     }
-    foreach (@$refaNsIfMngSSLLines) {
+    foreach (@$refhSNMPResultNsIfMngSSL) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3253,7 +3230,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "SSL";
         }
     }
-    foreach (@$refaNsIfMngSNMPLines) {
+    foreach (@$refhSNMPResultNsIfMngSNMP) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3265,7 +3242,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "SNMP";
         }
     }
-    foreach (@$refaNsIfMngGlobalLines) {
+    foreach (@$refhSNMPResultNsIfMngGlobal) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3277,7 +3254,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "Global";
         }
     }
-    foreach (@$refaNsIfMngGlobalProLines) {
+    foreach (@$refhSNMPResultNsIfMngGlobalPro) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3289,7 +3266,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "GlobalPro";
         }
     }
-    foreach (@$refaNsIfMngPingLines) {
+    foreach (@$refhSNMPResultNsIfMngPing) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
@@ -3301,7 +3278,7 @@ sub Get_Specific_Netscreen {
             $refhNsIfMng->{"$Index"} .= "Ping";
         }
     }
-    foreach (@$refaNsIfMngIdentResetLines) {
+    foreach (@$refhSNMPResultNsIfMngIdentReset) {
         my ($Index,$Value) = split / /,$_,2;
         $Index =~ s/^.*\.//g;    # remove all but the index
         $Value =~ s/\s+$//g;    # remove invisible chars from the end
