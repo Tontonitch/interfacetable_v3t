@@ -3655,7 +3655,7 @@ sub GenerateInterfaceTableData {
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "ingraph") {
                             $CellContent .= '<a href="' .
-                                $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
+                                $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bit">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         }
                 }
