@@ -3653,6 +3653,10 @@ sub GenerateInterfaceTableData {
                             $CellContent .= '<a href="' .
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
+                        } elsif ($ghOptions{'grapher'} eq  "ingraph") {
+                            $CellContent .= '<a href="' .
+                                $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bit">' .
+                                '<img src="../img/chart.png" alt="Trends" /></a>';
                         }
                 }
                 # Retrieve detailed interface info via snmp link
@@ -4009,7 +4013,7 @@ sub WriteHtmlFile {
 # Perfdataout
 # --------------------------------------------------------------------
 # Description: write performance data
-# Grapher: pnp4nagios, nagiosgrapher, netwaysgrapherv2
+# Grapher: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph
 # Format:
 #    * full : generated performance data include plugin related stats,
 #             interface status, interface load stats, and packet error stats
@@ -4019,8 +4023,8 @@ sub WriteHtmlFile {
 # ------------------------------------------------------------------------
 sub Perfdataout {
 
-    #------  Pnp4nagios and (for the moment) Netwaysgrapherv2  ------#
-    if ( $ghOptions{'grapher'} eq  "pnp4nagios" ) {
+    #------  Pnp4nagios, Netwaysgrapherv2, ingraph  ------#
+    if (( $ghOptions{'grapher'} eq  "pnp4nagios" ) || ( $ghOptions{'grapher'} eq  "ingraph" )) {
 
         # plugin related stats
         $gPerfdata .= "Interface_global::check_interface_table_global::".
@@ -4648,7 +4652,7 @@ sub print_usage () {
         macros are enabled in nagios.cfg/icinga.cfg
     -g, --grapher (optional)
         Specify the used graphing solution.
-        Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2.
+        Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph.
     --grapherurl (optional)
         Graphing system url. Default values are:
         Ex: /pnp4nagios
@@ -4830,7 +4834,7 @@ sub check_options () {
         'perfdataformat=s',                     # define which performance data will be generated.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
-        'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+        'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
         'domain=s',                             # SNMP transport domain
@@ -5196,10 +5200,15 @@ sub check_options () {
 
     #------- performance data -------#
     if (exists $commandline{grapher}) {
-        if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$/i) {
+        if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$|^ingraph$/i) {
             $ghOptions{'grapher'} = "$commandline{grapher}";
+            if ($ghOptions{'grapher'} eq "pnp4nagios") {
+                $ghOptions{'grapherurl'} = "/pnp4nagios";
+            } elsif ($ghOptions{'grapher'} eq "ingraph") {
+                $ghOptions{'grapherurl'} = "/ingraph";
+            }
         } else {
-            logger(0, "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2.");
+            logger(0, "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph.");
             exit $ERRORS{"UNKNOWN"};
         }
     }
