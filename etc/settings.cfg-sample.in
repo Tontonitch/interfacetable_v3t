@@ -55,7 +55,7 @@ enableperfdata = 0
 # bit|octet: in/out traffic in perfdata could be reported in octets or in bits
 portperfunit = "bit"
 
-# graphing system. Can be pnp4nagios, nagiosgrapher or netwaysgrapherv2
+# graphing system. Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph
 grapher = "@grapher@"
 
 # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
