@@ -22,6 +22,7 @@
 # 2013-01-02 v0.07   Y. Charton    Specific StandardizeSNMPOutputBehaviour function
 # 2013-01-19 v0.08   Y. Charton    ...
 #                                  Not empty check on result array moved back to the main script
+#                                  Exception handling
 #
 ##############################################################################
 
@@ -33,6 +34,10 @@ use Data::Dumper;
 use Storable;
 use Exporter;
 use GeneralUtils;
+use Exception::Class (
+    'My::Exception::Common' => {
+       alias  => 'throw_error_common',
+       fields => [ 'code', 'message' ] } );
 
 ##############################################################################
 ### I N I T ##################################################################
@@ -87,8 +92,8 @@ sub SnmpGet {
     delete $refhStruct->{OutputHashKeyIdx};
     delete $refhStruct->{CheckEmpty};
     
-    my $refoSession;    # SNMP session object
-    my $sessionError;   # SNMP session error
+    my $refoSession;         # SNMP session object
+    my $sessionError;        # SNMP session error
 
     my $refhQuery = ();
     if (defined $refhStruct->{'-contextname'}) {
@@ -96,9 +101,6 @@ sub SnmpGet {
         delete $refhStruct->{'-contextname'};
     }
 
-    my $refhErrorOutput;
-    $refhErrorOutput->{code} = 0;
-    $refhErrorOutput->{msg} = "";
     my $refhResultOutput;
     
     # example cache dir name
@@ -154,7 +156,7 @@ sub SnmpGet {
                     if (time - $CacheTimer < $FileProperties[9]) {
                         logger(3, " valid cached data, loading");
                         $refhSnmpResult = retrieve("${CacheDir}/${OID}.dat");
-                        die "Unable to retrieve from ${CacheDir}/${OID}.dat: $!\n" unless defined $refhSnmpResult;
+                        throw_error_common(code=>3001, message=>"Unable to retrieve from ${CacheDir}/${OID}.dat: $!\n") unless defined $refhSnmpResult;
                         # leave this subroutine with cached data found
                         $readFromCache = 1;
                     } else {
@@ -186,23 +188,21 @@ sub SnmpGet {
                     
                     # check empty
                     if ($CheckEmpty and $refhSnmpResult->{"$OID"} eq "") {
+                        $refoSession->close();
                         logger(0, "Not expected empty value for oid \"$OID\"");
-                        $refhErrorOutput->{code} = 1000;
-                        $refhErrorOutput->{msg} = "Not expected empty value for oid \"$OID\"";
-                        return ($refhResultOutput, $refhErrorOutput);
+                        throw_error_common(code=>1010, message=>"Not expected empty value for oid \"$OID\"");
                     }
             
                     if ($CacheTimer > 0) {
                         logger(3, "Write cache file ${CacheDir}/${OID}.dat, CacheTimer=$CacheTimer");
                         umask "0000"; # change to rw-rw-rw maybe changed later because of security
-                        store ($refhSnmpResult, "${CacheDir}/${OID}.dat") or die "cannot store to ${CacheDir}/${OID}.dat: $!\n";
+                        store ($refhSnmpResult, "${CacheDir}/${OID}.dat") or throw_error_common(code=>3000, message=>"cannot store to ${CacheDir}/${OID}.dat: $!\n");
                     }
                 } else {
-                    logger(0, "SNMP problem: ".$refoSession->error());
-                    $refhErrorOutput->{code} = 2;
-                    $refhErrorOutput->{msg} = "SNMP problem: ".$refoSession->error();
+                    $sessionError = $refoSession->error();
                     $refoSession->close();
-                    return ($refhResultOutput, $refhErrorOutput);
+                    logger(0, "SNMP error: $sessionError");
+                    throw_error_common(code=>1001, message=>"SNMP error: $sessionError");
                 }
             }
             
@@ -227,14 +227,15 @@ sub SnmpGet {
         $refoSession->close();
     } else { 
         # session establishment problem
+        $sessionError = $refoSession->error();
+        $refoSession->close();
         logger(0, "SNMP session object creation problem: ".$sessionError);
-        $refhErrorOutput->{code} = 2;
-        $refhErrorOutput->{msg} = "SNMP session object creation problem: ".$sessionError;
+        throw_error_common(code=>1000, message=>"SNMP session object creation problem: $sessionError");
     }
 
     # return the complete hash with OIDs as keys or
     # undef if the SNMP session fails
-    return ($refhResultOutput, $refhErrorOutput);
+    return ($refhResultOutput);
 }
 
 # ------------------------------------------------------------------------
@@ -298,7 +299,7 @@ sub GetDataWithSnmp {
         } else {
             $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
         }
-        ($refhResult, $refhError) = SnmpGet (\%refhSnmpQueryOptions);
+        ($refhResult) = SnmpGet (\%refhSnmpQueryOptions);
     } else {
         # gather data via unix snmpget
         my $snmpQueryCommand = "snmpget";
@@ -315,13 +316,12 @@ sub GetDataWithSnmp {
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
         my $snmpQueryOID = join(' ',@$refaOID);
-        ($refaCommandResult, $refhError) = ExecuteCommand ({
+        ($refaCommandResult) = ExecuteCommand ({
             Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $snmpQueryOID",
             Retry       => 2,
             CacheDir    => $CacheDir,
             CacheTimer  => int rand ($CacheTimer),
         });
-        return ($refhResult, $refhError) if ($refhError->{code});
         
         # check result validity and push to final hash
         foreach my $line (@$refaCommandResult) {
@@ -336,9 +336,7 @@ sub GetDataWithSnmp {
                 # check empty
                 if ($CheckEmpty and $Value eq "") {
                     logger(0, "Not expected empty value for oid \"$OID\"");
-                    $refhError->{code} = 1000;
-                    $refhError->{msg} = "Not expected empty value for oid \"$OID\"";
-                    return ($refhResult, $refhError);
+                    throw_error_common(code=>1010, message=>"Not expected empty value for oid \"$OID\"");
                 }
                 if (defined $refhResult->{"$OID"}) {
                     $refhResult->{"$OID"} .= "|$Value";
@@ -349,7 +347,7 @@ sub GetDataWithSnmp {
         }
     }
     
-    return ($refhResult, $refhError);
+    return ($refhResult);
 }
 
 
@@ -460,7 +458,7 @@ sub SnmpGetTable {
                     if (time - $CacheTimer < $FileProperties[9]) {
                         logger(3, " valid cached data, loading");
                         $refhSnmpResult = retrieve("${CacheDir}/${OID}.dat");
-                        die "Unable to retrieve from ${CacheDir}/${OID}.dat: $!\n" unless defined $refhSnmpResult;
+                        throw_error_common(code=>3001, message=>"Unable to retrieve from ${CacheDir}/${OID}.dat: $!\n") unless defined $refhSnmpResult;
                         # leave this subroutine with cached data found
                         $readFromCache = 1;
                     } else {
@@ -497,23 +495,20 @@ sub SnmpGetTable {
                     # check empty tree
                     if ($CheckEmpty and not %$refhSnmpResult) {
                         logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
-                        $refhErrorOutput->{code} = 1001;
-                        $refhErrorOutput->{msg} = "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"";
-                        return ($refhResultOutput, $refhErrorOutput);
+                        throw_error_common(code=>1010, message=>"Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
                     }
                 
                     # write a cache file if the cache timer > 0
                     if ($CacheTimer > 0) {
                         logger(3, "Write cache file ${CacheDir}/${OID}.dat, CacheTimer=$CacheTimer");
                         umask "0000"; # change to rw-rw-rw maybe changed later because of security
-                        store ($refhSnmpResult, "${CacheDir}/${OID}.dat") or die "cannot store to ${CacheDir}/${OID}.dat: $!";
+                        store ($refhSnmpResult, "${CacheDir}/${OID}.dat") or throw_error_common(code=>3000, message=>"cannot store to ${CacheDir}/${OID}.dat: $!");
                     }
                 } else {
-                    logger(0, "SNMP problem: ".$refoSession->error());
-                    $refhErrorOutput->{code} = 2;
-                    $refhErrorOutput->{msg} = "SNMP problem: ".$refoSession->error();
+                    $sessionError = $refoSession->error();
                     $refoSession->close();
-                    return ($refhResultOutput, $refhErrorOutput);
+                    logger(0, "SNMP error: $sessionError");
+                    throw_error_common(code=>1001, message=>"SNMP error: $sessionError");
                 }
             }
             
@@ -540,12 +535,13 @@ sub SnmpGetTable {
         $refoSession->close();
     } else {
         # session establishment problem
+        $sessionError = $refoSession->error();
+        $refoSession->close();
         logger(0, "SNMP session object creation problem: ".$sessionError);
-        $refhErrorOutput->{code} = 2;
-        $refhErrorOutput->{msg} = "SNMP session object creation problem: ".$sessionError;
+        throw_error_common(code=>1000, message=>"SNMP session object creation problem: $sessionError");
     }
       
-    return ($refhResultOutput, $refhErrorOutput);
+    return ($refhResultOutput);
 }
 
 #----------------------------------------------------------------------------#
@@ -578,9 +574,6 @@ sub GetTableDataWithSnmp {
     my $stdSNMPOutBehavior = 1;
     my $refhResult;
     my $refaCommandResult;
-    my $refhError;
-    $refhError->{code} = 0;
-    $refhError->{msg} = "";
     
     if ( not $refhSNMPOptions->{'unixsnmp'} ) {
         # gather data via perl's snmp
@@ -613,7 +606,7 @@ sub GetTableDataWithSnmp {
         } else {
             $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
         }
-        ($refhResult, $refhError) = SnmpGetTable (\%refhSnmpQueryOptions);
+        ($refhResult) = SnmpGetTable (\%refhSnmpQueryOptions);
     } else {
         # gather data via unix snmpwalk/snmpbulkwalk
         my $snmpQueryCommand = "snmpbulkwalk";
@@ -635,20 +628,17 @@ sub GetTableDataWithSnmp {
             $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
         }
         foreach my $singleoid (@$refaOID) {
-            ($refaCommandResult, $refhError) = ExecuteCommand ({
+            ($refaCommandResult) = ExecuteCommand ({
                 Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $singleoid",
                 Retry       => 2,
                 CacheDir    => $CacheDir,
                 CacheTimer  => int rand ($CacheTimer),
             });
-            return ($refhResult, $refhError) if ($refhError->{code});
             
             # check empty tree
             if ($CheckEmpty and not @$refaCommandResult) {
                 logger(0, "Not expected empty tree for base-oid \"$singleoid\"");
-                $refhError->{code} = 1001;
-                $refhError->{msg} = "Not expected empty tree for base-oid \"$singleoid\"";
-                return ($refhResult, $refhError);
+                throw_error_common(code=>1010, message=>"Not expected empty tree for base-oid \"$singleoid\"");
             }
             
             # check result validity and push to final hash
@@ -671,7 +661,7 @@ sub GetTableDataWithSnmp {
         }
     }
 
-    return ($refhResult, $refhError);
+    return ($refhResult);
 }
 
 
@@ -695,9 +685,6 @@ sub ExecuteCommand {
     my $Now = time();   # current time in seconds since epoch
     my $CacheDir = "$GlobalCacheDir/ExecuteCommand/"; # cache dir
 
-    my $refhErrorOutput;
-    $refhErrorOutput->{code} = 0;
-    $refhErrorOutput->{msg} = "";
     my $refhResultOutput;
     
     # Create Cachedir if not exist
@@ -715,13 +702,13 @@ sub ExecuteCommand {
             if ($Now-$refhStruct->{CacheTimer} < $FileProperties[9]) {
                 logger(3, " valid cached data, loading");
                 $refaLines = retrieve($CacheFile);
-                die "Unable to retrieve from ${CacheFile}: $!\n" unless defined $refaLines;
+                throw_error_common(code=>3001, message=>"Unable to retrieve from ${CacheFile}: $!\n") unless defined $refaLines;
                 foreach (@$refaLines) {
                     $_ =~ s/\n$//g;
                     logger(3, "   data: $_");
                 }
                 # leave this subroutine with cached data found
-                return ($refaLines,$refhErrorOutput);
+                return ($refaLines);
             } else {
                 logger(3, " expired cached data, skipping");
             }
@@ -729,30 +716,32 @@ sub ExecuteCommand {
     }
 
     # execute the unix command
-    open(UNIX,"$Command 2>&1|") or die "[ERROR] Failed to execute \"$Command\", $!";
+    open(UNIX,"$Command 2>&1|") or throw_error_common(code=>$?>>8, message=>"Failed to execute \"$Command\", $!");
         while (<UNIX>) {
             $_ =~ s/^\.*([0-9.]*) "?(.*)/\1 \2/g;
             $_ =~ s/"$//g;
+            $_ =~ s/\|/ /g; # remove pipes which could produce problems (ex: with nagios performance data separator)
+            $_ =~ s/\n$//g; # remove ending return carriers
             push @$refaLines,$_;
         }
     close(UNIX);
-    $refhErrorOutput->{code} = $? >> 8; # calculate the exit code
-    logger(3, "Executed \"$Command\" and got exit code \"$refhErrorOutput->{code}\"");
+    my $ErrorCode = $? >> 8; # calculate the exit code
+    logger(3, "Executed \"$Command\" and got exit code \"$ErrorCode\"");
 
     # stop in case of error
-    if ($refhErrorOutput->{code}) {
-        $refhErrorOutput->{msg} = $refaLines->[0] if (defined $refaLines->[0]);
-        $refhErrorOutput->{msg} =~ s/\s+$//g;
-        return ($refaLines,$refhErrorOutput);
+    if ($ErrorCode) {
+        my $ErrorMessage =  join(', ',@$refaLines) if (defined $refaLines->[0]);
+        $ErrorMessage =~ s/\s+$//g;
+        throw_error_common(code=>$ErrorCode, message=>"SNMP error: $ErrorMessage");
     }
 
     # write a cache file if the cache timer > 0
     if ($refhStruct->{CacheTimer} > 0) {
         logger(3, "Write cache file $CacheFile, CacheTimer=$refhStruct->{CacheTimer}");
         umask "0000"; # change to rw-rw-rw maybe changed later because of security
-        store ($refaLines, "$CacheFile") or die "cannot store to $CacheFile: $!";
+        store ($refaLines, "$CacheFile") or throw_error_common(code=>3000, message=>"cannot store to $CacheFile: $!");
     }
-    return ($refaLines,$refhErrorOutput);
+    return ($refaLines);
 }
 
 sub StandardizeSNMPOutputBehaviour {

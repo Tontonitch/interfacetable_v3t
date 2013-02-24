@@ -289,7 +289,6 @@ my $grefhListOfChanges               = undef;        # List all the changes for 
 my $gExitCode                        = $ERRORS{"OK"};
 
 my $refhSNMPResult;                                 # Temp snmp structure result
-my $refhSNMPError;                                  # Temp snmp structure error
 
 # ========================================================================
 # FUNCTION DECLARATIONS
@@ -410,8 +409,11 @@ $grefAoHConfigTableData->[8]->[1]->{Value} = "";
 # get uptime of the host - no caching !
 
 logger(1, "Check that the target \"$ghOptions{hostquery}\" is reachable via snmp");
-($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0,0,1);
-ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+eval {
+    ($refhSNMPResult) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysUpTime{'oid'}" ],$ghOptions{'cachedir'},0,0,1);
+};
+ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+
 $grefhCurrent->{MD}->{Node}->{sysUpTime} = $refhSNMPResult->{$oid_sysUpTime{'oid'}};
 
 # ------------------------------------------------------------------------------
@@ -428,26 +430,34 @@ logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
 
 # get sysDescr, sysName and other info for the info table. caching the long parameter
 logger(1, "Retrieve target system information");
-($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
-ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+eval {
+    ($refhSNMPResult) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_sysDescr{'oid'}","$oid_sysName{'oid'}","$oid_sysContact{'oid'}","$oid_sysLocation{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+};
+ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
 $grefhCurrent->{MD}->{Node}->{sysDescr} = "$refhSNMPResult->{$oid_sysDescr{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysName}  = "$refhSNMPResult->{$oid_sysName{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysContact} = "$refhSNMPResult->{$oid_sysContact{'oid'}}";
 $grefhCurrent->{MD}->{Node}->{sysLocation}  = "$refhSNMPResult->{$oid_sysLocation{'oid'}}";
 if ($ghOptions{'nodetype'} eq "cisco") {
-    ($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     $grefhCurrent->{MD}->{Node}->{cisco_type}   = "$refhSNMPResult->{$oid_cisco_ChassisModel{'oid'}}";
     $grefhCurrent->{MD}->{Node}->{cisco_serial} = "$refhSNMPResult->{$oid_cisco_ChassisSrNumStr{'oid'}}";
 }
 if ($ghOptions{'nodetype'} eq "netapp") {
-    ($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_netapp_productModel{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_netapp_productModel{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     $grefhCurrent->{MD}->{Node}->{netapp_model} = "$refhSNMPResult->{$oid_netapp_productModel{'oid'}}";
 }
 if ($ghOptions{'nodetype'} eq "bigip") {
-    ($refhSNMPResult,$refhSNMPError) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_bigip_sysGeneralHwName{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,[ "$oid_bigip_sysGeneralHwName{'oid'}" ],$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     $grefhCurrent->{MD}->{Node}->{bigip_model} = "$refhSNMPResult->{$oid_bigip_sysGeneralHwName{'oid'}}";
 }
 
@@ -1015,7 +1025,6 @@ sub Get_InterfaceNames {
 
     my $refhSNMPResultIfDescr;
     my $refhSNMPResultIfPhysAddress;
-    my $refhSNMPError;
     my $refhIfDescriptionCounts = {};   # For duplicates counting
     my $refhIfPhysAddressCounts = {};   # For duplicates counting
     my $refhIfPhysAddressIndex  = {};   # To map the physical address to the index.
@@ -1027,13 +1036,17 @@ sub Get_InterfaceNames {
     #------------------------------------------
 
     # get all interface descriptions
-    ($refhSNMPResultIfDescr,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifDescr{'oid'}"],$ghOptions{'cachedir'},0,0,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval { 
+        ($refhSNMPResultIfDescr) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifDescr{'oid'}"],$ghOptions{'cachedir'},0,0,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     # get all interface mac addresses
-    ($refhSNMPResultIfPhysAddress,$refhSNMPError) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress{'oid'},$ghOptions{'cachedir'},0,1,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifPhysAddress{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResultIfPhysAddress) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$oid_ifPhysAddress{'oid'},$ghOptions{'cachedir'},0,1,0)
+            : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifPhysAddress{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     # Look for duplicate values
     #------------------------------------------
@@ -1159,11 +1172,12 @@ sub Get_InterfaceNames {
 sub Get_AdminStatus {
 
     my $refhSNMPResult;       # Lines returned from snmpwalk storing ifAdminStatus
-    my $refhSNMPError;
     
     # get all interface adminstatus - no caching !
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifAdminStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifAdminStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
 
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
@@ -1190,11 +1204,12 @@ sub Get_AdminStatus {
 sub Get_OperStatus {
 
     my $refhSNMPResult;       # Lines returned from snmpwalk storing ifOperStatus
-    my $refhSNMPError;
     
     # get all interface adminstatus - no caching !
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOperStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOperStatus{'oid'}"],$ghOptions{'cachedir'},0,1,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
 
     # Example of $refaOperStatusLines
     #    .1.3.6.1.2.1.2.2.1.8.1 up
@@ -1338,21 +1353,24 @@ sub Get_Speed {
 
     my $refhSNMPResultIfSpeed;       # Lines returned from snmpwalk storing ifSpeed
     my $refhSNMPResultIfHighSpeed;   # Lines returned from snmpwalk storing ifHighSpeed
-    my $refhSNMPError;
     
     my $refhOIDIfSpeed = shift;
     my $refhOIDIfHighSpeed = shift;
 
     # get ifSpeed table (units of bits per second)
     if (defined $refhOIDIfSpeed) {
-        ($refhSNMPResultIfSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultIfSpeed) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     }
     
     # get ifHighSpeed table (units of 1,000,000 bits per second)
     if (defined $refhOIDIfHighSpeed) {
-        ($refhSNMPResultIfHighSpeed,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfHighSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultIfHighSpeed) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfHighSpeed->{'oid'}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     }
 
     for my $ifName (keys %{$grefhCurrent->{If}}) {
@@ -1415,12 +1433,13 @@ sub Get_Alias {
     
     my $refhOIDIfAlias = shift;
     my $refhSNMPResult;  # Lines returned from snmpwalk storing interface aliases
-    my $refhSNMPError;
     
     # get ifAlias table - returned result can be empty
-    ($refhSNMPResult,$refhSNMPError) = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},0,0,0)
-        : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = ($ghOptions{'alias-matching'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},0,0,0)
+            : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDIfAlias->{'oid'}"],$ghOptions{'cachedir'},$gLongCacheTimer,1,0);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
@@ -1447,11 +1466,12 @@ sub Get_Duplex {
 
     my $refhOID = shift;
     my $refhSNMPResult;  # Lines returned from snmpwalk storing interface aliases
-    my $refhSNMPError;
     
     # get ifDuplexStatus table
-    ($refhSNMPResult,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOID->{oid}"],$ghOptions{'cachedir'},0,0,0);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResult) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOID->{oid}"],$ghOptions{'cachedir'},0,0,0);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
@@ -1477,11 +1497,12 @@ sub Get_Stp {
 
     my $refhSNMPResultStpIfIndexMap;  # Lines returned from snmpwalk storing stp port->ifindex map table
     my $refhSNMPResultStpPortState;   # Lines returned from snmpwalk storing stp port states
-    my $refhSNMPError;
     
     # get stp port->ifindex map table
-    ($refhSNMPResultStpIfIndexMap,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_dot1dBasePortIfIndex{oid}"],$ghOptions{'cachedir'},0,1,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResultStpIfIndexMap) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_dot1dBasePortIfIndex{oid}"],$ghOptions{'cachedir'},0,1,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     while ( my ($Idx1,$Idx2) = each(%$refhSNMPResultStpIfIndexMap) ) {
         $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$Idx1"} = $Idx2;
@@ -1490,8 +1511,10 @@ sub Get_Stp {
         $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToName}->{"$Idx1"} = "$grefhCurrent->{MD}->{Map}->{IndexToName}->{$Idx2}";
     }
         
-    ($refhSNMPResultStpPortState,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_dot1dStpPortState{oid"],$ghOptions{'cachedir'},0,1,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResultStpPortState) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["oid_dot1dStpPortState{oid"],$ghOptions{'cachedir'},0,1,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
@@ -1552,13 +1575,12 @@ sub Get_IpInfo {
     my $refhOIDnetmask = shift;
     my $refhSNMPResultIpAddr;    # Lines returned from snmpwalk storing ip addresses
     my $refhSNMPResultNetMask;   # Lines returned from snmpwalk storing physical addresses
-    my $refhSNMPError;
     
     # Get info from snmp/cache
     #------------------------------------------
 
     # get all interface ip info - resulting table can be empty
-    ($refhSNMPResultIpAddr,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDip,$ghOptions{'cachedir'},0,0,0);
+    ($refhSNMPResultIpAddr) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDip,$ghOptions{'cachedir'},0,0,0);
 
     # store all ip information in the hash to avoid reading the netmask
     # again in the next run
@@ -1571,9 +1593,9 @@ sub Get_IpInfo {
     # get the subnet masks with caching 0 only if the ip addresses
     # have changed - resulting table can be empty
     if (defined $grefhFile->{MD}->{CachedInfo}->{IpInfo} and $grefhCurrent->{MD}->{CachedInfo}->{IpInfo} eq $grefhFile->{MD}->{CachedInfo}->{IpInfo}) {
-        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
+        ($refhSNMPResultNetMask) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},$gLongCacheTimer,0,0);
     } else {
-        ($refhSNMPResultNetMask,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},0,0,0);
+        ($refhSNMPResultNetMask) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,$refhOIDnetmask,$ghOptions{'cachedir'},0,0,0);
     }
 
     # Get info from snmp/cache
@@ -1651,13 +1673,16 @@ sub Get_Traffic {
         my $refhOIDoctetsOut = shift;
         my $refhSNMPResultOctetIn;   # Lines returned from snmpwalk storing ifOctetsIn
         my $refhSNMPResultOctetOut;  # Lines returned from snmpwalk storing ifOctetsIn
-        my $refhSNMPError;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultOctetIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultOctetOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
         
         # traffic monitoring capacity advice
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit counters, with delta $ghOptions{'delta'}. " .
@@ -1673,13 +1698,16 @@ sub Get_Traffic {
         my $refhOIDoctetsOut = shift;
         my $refhSNMPResultOctetIn;   # Lines returned from snmpwalk storing ifXOctetsIn
         my $refhSNMPResultOctetOut;  # Lines returned from snmpwalk storing ifXOctetsIn
-        my $refhSNMPError;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultOctetIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultOctetOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultOctetIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsIn->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultOctetOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOut->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
         
         # traffic monitoring capacity advice
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
@@ -1699,16 +1727,27 @@ sub Get_Traffic {
         my $refhOIDoctetsOutLow = shift;
         my $refhSNMPResultOctetIn;
         my $refhSNMPResultOctetOut;
-        my $refhSNMPError;
+        my $refhSNMPResultOctetInHigh;
+        my $refhSNMPResultOctetInLow;
+        my $refhSNMPResultOctetOutHigh;
+        my $refhSNMPResultOctetOutLow;
         
-        (my $refhSNMPResultOctetInHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetInLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetOutHigh,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        (my $refhSNMPResultOctetOutLow,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            $refhSNMPResultOctetInHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            $refhSNMPResultOctetInLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsInLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            $refhSNMPResultOctetOutHigh = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutHigh->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            $refhSNMPResultOctetOutLow = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOIDoctetsOutLow->{oid}"],$ghOptions{'cachedir'},0,1,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
         
         # build a hashs gathering low+high in octet counters
         foreach my $key (keys %$refhSNMPResultOctetInLow) {
@@ -1758,20 +1797,27 @@ sub Get_Error_Discard {
     my $refhSNMPResultOutErrors;   # Lines returned from snmpwalk storing ifPktsOutErr
     my $refhSNMPResultInDiscards;  # Lines returned from snmpwalk storing ifPktsInDiscard
     my $refhSNMPResultOutDiscard;  # Lines returned from snmpwalk storing ifPktsOutDiscard
-    my $refhSNMPError;
     
     # Get info from snmp/cache
     #------------------------------------------
 
     # get all interface in/out packet error/discarded octet counters - no caching !
-    ($refhSNMPResultInErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultOutErrors,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultInDiscards,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-    ($refhSNMPResultOutDiscard,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
-    ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+    eval {
+        ($refhSNMPResultInErrors) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    eval {
+        ($refhSNMPResultOutErrors) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutErrors{oid}"],$ghOptions{'cachedir'},0,0,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    eval {
+        ($refhSNMPResultInDiscards) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifInDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    eval {
+        ($refhSNMPResultOutDiscard) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$oid_ifOutDiscards{oid}"],$ghOptions{'cachedir'},0,0,1);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     
     # post-processing interface octet counters
     #------------------------------------------
@@ -1803,7 +1849,6 @@ sub Get_Packets {
     my $refhSNMPResultUcastPktOut;    # Lines returned from snmpwalk storing Ucast Pkts Out
     my $refhSNMPResultNUcastPktIn;    # Lines returned from snmpwalk storing NUcast Pkts In
     my $refhSNMPResultNUcastPktOut;   # Lines returned from snmpwalk storing NUcast Pkts Out
-    my $refhSNMPError;
     
     if ("$counterType" eq "64") {
         my $refhOidUCastIn = shift;
@@ -1819,18 +1864,30 @@ sub Get_Packets {
         my $refhSNMPResultBroadcastPktOut;   # Lines returned from snmpwalk storing Broadcast Pkts Out
 
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultMulticastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultMulticastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultBroadcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultBroadcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultUcastPktIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultUcastPktOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultMulticastPktIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultMulticastPktOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidMulticastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultBroadcastPktIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultBroadcastPktOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidBroadcastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
         
         foreach my $key (keys %$refhSNMPResultMulticastPktIn) {
             $key =~ s/^\.*$refhOidMulticastIn->{'oid'}\.//g; # remove all but the index
@@ -1850,14 +1907,22 @@ sub Get_Packets {
         my $refhOidNUCastOut = shift;
         
         # get all interface in/out traffic octet counters - no caching !
-        ($refhSNMPResultUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultNUcastPktIn,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
-        ($refhSNMPResultNUcastPktOut,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
-        ExitPlugin($ERRORS{"UNKNOWN"}, $refhSNMPError->{msg}) if ($refhSNMPError->{code});
+        eval {
+            ($refhSNMPResultUcastPktIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultUcastPktOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultNUcastPktIn) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastIn->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+        eval {
+            ($refhSNMPResultNUcastPktOut) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,["$refhOidNUCastOut->{oid}"],$ghOptions{'cachedir'},0,0,1);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     }
 
     # post-processing interface pkts counters
@@ -2705,7 +2770,6 @@ sub Get_InterfaceNames_Bigip {
 
     my $refhSNMPResultIfDescr;
     my $refhSNMPResultIfPhysAddress;
-    my $refhSNMPError;
     my $refhIfDescriptionCounts = {};   # For duplicates counting
     my $refhIfPhysAddressCounts = {};   # For duplicates counting
     my $refhIfPhysAddressIndex  = {};   # To map the physical address to the index.
@@ -2717,11 +2781,11 @@ sub Get_InterfaceNames_Bigip {
     #------------------------------------------
 
     # get all interface descriptions
-    ($refhSNMPResultIfDescr,$refhSNMPError) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceName,$ghOptions{'cachedir'},0);
+    ($refhSNMPResultIfDescr) = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceName,$ghOptions{'cachedir'},0);
     # -TODO- check empty
     
     # get all interface mac addresses
-    ($refhSNMPResultIfPhysAddress,$refhSNMPError) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMacAddr,$ghOptions{'cachedir'},0)
+    ($refhSNMPResultIfPhysAddress) = ($ghOptions{'usemacaddr'}) ? GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMacAddr,$ghOptions{'cachedir'},0)
         : GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_bigip_sysInterfaceMacAddr,$ghOptions{'cachedir'},$gLongCacheTimer);
 
     # Look for duplicate values
@@ -4418,11 +4482,18 @@ sub ExitPlugin {
 
     my $code = shift;
     my $output = shift;
-    my $htmltablefile = $ghOptions{'htmltableurl'} . "/" . $gFile . ".html";
+    my $htmltablefile = $ghOptions{'htmltabledir'} . "/" . $gFile . ".html";
+    
+    # Append errorcode string prefix to text
+    if (defined $ERRORCODES{"$code"}) {
+        $output = "\[".$ERRORCODES{"$code"}."\] ".$output;
+    } else {
+        $output = "\[UNKNOWN\] ".$output;
+    }
     
     # Append html table link to text
     if (-e $htmltablefile) {
-        $output = $output.' <a href="'.$htmltablefile.'" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
+        $output = $output.' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
     }
     
     print $output;
