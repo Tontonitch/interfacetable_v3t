@@ -186,6 +186,8 @@ if test x$grapher_url = xnone; then
 		grapher_url="/nagios/cgi-bin"
 	elif test x$grapher = xnetwaysgrapherv2; then
 		grapher_url="/nagios/cgi-bin"
+	elif test x$grapher = xingraph; then
+		grapher_url="/ingraph"
 	fi
 fi
 AC_SUBST(grapher_url)
