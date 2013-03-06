@@ -1,6 +1,7 @@
 ScriptAlias @cgiurlrel@ "@cgidir@"
 
 <Directory "@cgidir@">
+    #SSLRequireSSL
     Options ExecCGI
     AllowOverride None
     Order allow,deny
@@ -14,6 +15,7 @@ ScriptAlias @cgiurlrel@ "@cgidir@"
 Alias @htmlurlrel@ "@sharedir@"
 
 <Directory "@sharedir@">
+    #SSLRequireSSL
     Options None
     AllowOverride None
     Order allow,deny
