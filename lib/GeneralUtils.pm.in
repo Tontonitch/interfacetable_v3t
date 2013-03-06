@@ -142,7 +142,7 @@ sub logger {
     }
 
     # printing the message depending on the debug level
-    if($loglevel <= $LOGLEVEL){
+    if($loglevel <= $LOGLEVEL and $LOGLEVEL > 0){
         my $space = "";
         if(length($level_labels{$loglevel}) == 4){$space=" "}
         # show the calling function, if loglevel is higher than 2
