@@ -253,74 +253,74 @@ sub GetDataWithSnmp {
     #  * return: value retrieved by snmp
     ################################
 
-    my $host            = shift;
-    my $refhSNMPOptions = shift;
-    my $refaOID         = shift;    # ref to array of OIDs
-    my $CacheDir        = shift;
-    my $CacheTimer      = shift;
-    my $OutputHashKeyIdx = shift;
-    my $CheckEmpty      = shift;
+    my $refhArgs = shift;
     
-    $CacheTimer       = 0 unless ($CacheTimer);
-    $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
-    $CheckEmpty       = 0 unless ($CheckEmpty);
+    my $CacheDir         = "/tmp/.ifCache";
+    my $CacheTimer       = 0;
+    my $OutputHashKeyIdx = 0;
+    my $CheckEmpty       = 0;
+    
+    $CacheDir = $refhArgs->{'cachedir'} if (exists $refhArgs->{'cachedir'});
+    $CacheDir = "$CacheDir/$refhArgs->{'host'}";
+    -d "$CacheDir" or MyMkdir ("$CacheDir");
+    $CacheTimer       = $refhArgs->{'cachetimer'} if (exists $refhArgs->{'cachetimer'});
+    $OutputHashKeyIdx = $refhArgs->{'outputhashkeyidx'} if (exists $refhArgs->{'outputhashkeyidx'});
+    $CheckEmpty       = $refhArgs->{'checkempty'} if (exists $refhArgs->{'checkempty'});
     my $stdSNMPOutBehavior  = 1;
     my $refhResult;
     my $refaCommandResult;
-    my $refhError;
-    $refhError->{code} = 0;
-    $refhError->{msg} = "";
     
-    if ( not $refhSNMPOptions->{'unixsnmp'} ) {
+    if ( not $refhArgs->{'unixsnmp'} ) {
         # gather data via perl's snmp
         my %refhSnmpQueryOptions = (
-            -hostname   => "$host",
-            -port       => "$refhSNMPOptions->{'port'}",
-            -version    => "$refhSNMPOptions->{'version'}",
-            -domain     => "$refhSNMPOptions->{'domain'}",
-            -timeout    => "$refhSNMPOptions->{'timeout'}",
-            -retries    => "$refhSNMPOptions->{'retries'}",
+            -hostname   => "$refhArgs->{'host'}",
+            -port       => "$refhArgs->{'port'}",
+            -version    => "$refhArgs->{'version'}",
+            -domain     => "$refhArgs->{'domain'}",
+            -timeout    => "$refhArgs->{'timeout'}",
+            -retries    => "$refhArgs->{'retries'}",
             -translate  => [ -timeticks => 0x0 ], # disable conversion get raw timeticks
-            OID         => $refaOID,
+            OID         => $refhArgs->{'oids'},
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching
             OutputHashKeyIdx => $OutputHashKeyIdx,
             CheckEmpty  => $CheckEmpty,
         );
-        if ( $refhSNMPOptions->{'version'} eq 3 ) {
-            $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
-            $refhSnmpQueryOptions{'-authpassword'} = "$refhSNMPOptions->{'passwd'}";
-            $refhSnmpQueryOptions{'-authprotocol'} = "$refhSNMPOptions->{'authproto'}";
-            if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
-                $refhSnmpQueryOptions{'-privpassword'} = "$refhSNMPOptions->{'privpass'}";
-                $refhSnmpQueryOptions{'-privprotocol'} = "$refhSNMPOptions->{'privproto'}";
+        if ( $refhArgs->{'version'} eq 3 ) {
+            $refhSnmpQueryOptions{'-username'}     = "$refhArgs->{'login'}";
+            $refhSnmpQueryOptions{'-authpassword'} = "$refhArgs->{'passwd'}";
+            $refhSnmpQueryOptions{'-authprotocol'} = "$refhArgs->{'authproto'}";
+            if (defined $refhArgs->{'privpass'} and $refhArgs->{'privpass'} ne "") {
+                $refhSnmpQueryOptions{'-privpassword'} = "$refhArgs->{'privpass'}";
+                $refhSnmpQueryOptions{'-privprotocol'} = "$refhArgs->{'privproto'}";
             }
-            defined $refhSNMPOptions->{'contextname'} and $refhSnmpQueryOptions{'-contextname'} = "$refhSNMPOptions->{'contextname'}";
+            defined $refhArgs->{'contextname'} and $refhSnmpQueryOptions{'-contextname'} = "$refhArgs->{'contextname'}";
         } else {
-            $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
+            $refhSnmpQueryOptions{'-community'} = "$refhArgs->{'community'}";
         }
         ($refhResult) = SnmpGet (\%refhSnmpQueryOptions);
     } else {
         # gather data via unix snmpget
         my $snmpQueryCommand = "snmpget";
-        my $snmpQueryOptions = "-Oqnet -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
-        $snmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
-        if ( $refhSNMPOptions->{'version'} eq 3 ) {
-            if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
-                $snmpQueryOptions .= "-u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} ";
+        my $snmpQueryOptions = "-Oqnet -t $refhArgs->{'timeout'} -r $refhArgs->{'retries'} ";
+        $snmpQueryOptions .= ($refhArgs->{'version'} == 2) ? "-v 2c " : "-v $refhArgs->{'version'} ";
+        if ( $refhArgs->{'version'} eq 3 ) {
+            if (defined $refhArgs->{'privpass'} and $refhArgs->{'privpass'} ne "") {
+                $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} -X $refhArgs->{'privpass'} -x $refhArgs->{'privproto'} ";
             } else {
-                $snmpQueryOptions .= "-u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} "
+                $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authNoPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} "
             }
-            defined $refhSNMPOptions->{'contextname'} and $snmpQueryOptions .= "-n$refhSNMPOptions->{'contextname'} ";
+            defined $refhArgs->{'contextname'} and $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
         } else {
-            $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
+            $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
         }
-        my $snmpQueryOID = join(' ',@$refaOID);
+        my $snmpQueryOID = join(' ',@{$refhArgs->{'oids'}});
         ($refaCommandResult) = ExecuteCommand ({
-            Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $snmpQueryOID",
-            Retry       => 2,
-            CacheDir    => $CacheDir,
-            CacheTimer  => int rand ($CacheTimer),
+            Command       => "$snmpQueryCommand $snmpQueryOptions $refhArgs->{'domain'}:$refhArgs->{'host'}:$refhArgs->{'port'} $snmpQueryOID",
+            Retry         => 2,
+            CacheDir      => $CacheDir,
+            CacheFilename => "${snmpQueryCommand}_".join('_',@{$refhArgs->{'oids'}}).".dat",
+            CacheTimer    => int rand ($CacheTimer),
         });
         
         # check result validity and push to final hash
@@ -494,6 +494,7 @@ sub SnmpGetTable {
                     
                     # check empty tree
                     if ($CheckEmpty and not %$refhSnmpResult) {
+                        $refoSession->close();
                         logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
                         throw_error_common(code=>1010, message=>"Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
                     }
@@ -506,9 +507,17 @@ sub SnmpGetTable {
                     }
                 } else {
                     $sessionError = $refoSession->error();
-                    $refoSession->close();
-                    logger(0, "SNMP error: $sessionError");
-                    throw_error_common(code=>1001, message=>"SNMP error: $sessionError");
+                    if ($sessionError eq "Requested table is empty or does not exist") {
+                        if ($CheckEmpty) {
+                            $refoSession->close();
+                            logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
+                            throw_error_common(code=>1010, message=>"Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
+                        }
+                    } else {
+                        $refoSession->close();
+                        logger(0, "SNMP error: $sessionError");
+                        throw_error_common(code=>1001, message=>"SNMP error: $sessionError");
+                    }
                 }
             }
             
@@ -560,83 +569,86 @@ sub GetTableDataWithSnmp {
     #  * return: hash of values retrieved by snmp
     ################################
 
-    my $host            = shift;
-    my $refhSNMPOptions = shift;
-    my $refaOID         = shift;    # ref to array of OIDs
-    my $CacheDir        = shift;
-    my $CacheTimer      = shift;
-    my $OutputHashKeyIdx = shift;
-    my $CheckEmpty      = shift;
+    my $refhArgs = shift;
     
-    $CacheTimer       = 0 unless ($CacheTimer);
-    $OutputHashKeyIdx = 0 unless ($OutputHashKeyIdx);
-    $CheckEmpty       = 0 unless ($CheckEmpty);
-    my $stdSNMPOutBehavior = 1;
+    my $CacheDir         = "/tmp/.ifCache";
+    my $CacheTimer       = 0;
+    my $OutputHashKeyIdx = 0;
+    my $CheckEmpty       = 0;
+    
+    $CacheDir = $refhArgs->{'cachedir'} if (exists $refhArgs->{'cachedir'});
+    $CacheDir = "$CacheDir/$refhArgs->{'host'}";
+    -d "$CacheDir" or MyMkdir ("$CacheDir");
+    $CacheTimer       = $refhArgs->{'cachetimer'} if (exists $refhArgs->{'cachetimer'});
+    $OutputHashKeyIdx = $refhArgs->{'outputhashkeyidx'} if (exists $refhArgs->{'outputhashkeyidx'});
+    $CheckEmpty       = $refhArgs->{'checkempty'} if (exists $refhArgs->{'checkempty'});
+    my $stdSNMPOutBehavior  = 1;
     my $refhResult;
     my $refaCommandResult;
     
-    if ( not $refhSNMPOptions->{'unixsnmp'} ) {
+    if ( not $refhArgs->{'unixsnmp'} ) {
         # gather data via perl's snmp
         my %refhSnmpQueryOptions = (
-            -hostname   => "$host",
-            -port       => "$refhSNMPOptions->{'port'}",
-            -version    => "$refhSNMPOptions->{'version'}",
-            -domain     => "$refhSNMPOptions->{'domain'}",
-            -timeout    => "$refhSNMPOptions->{'timeout'}",
-            -retries    => "$refhSNMPOptions->{'retries'}",
-            OID         => $refaOID,
+            -hostname   => "$refhArgs->{'host'}",
+            -port       => "$refhArgs->{'port'}",
+            -version    => "$refhArgs->{'version'}",
+            -domain     => "$refhArgs->{'domain'}",
+            -timeout    => "$refhArgs->{'timeout'}",
+            -retries    => "$refhArgs->{'retries'}",
+            OID         => $refhArgs->{'oids'},
             CacheDir    => "$CacheDir",
             CacheTimer  => int rand ($CacheTimer),  # random caching;
             OutputHashKeyIdx => $OutputHashKeyIdx,
             CheckEmpty  => $CheckEmpty,
         );
-        if ( $refhSNMPOptions->{'version'} eq 3 ) {
-            $refhSnmpQueryOptions{'-username'}     = "$refhSNMPOptions->{'login'}";
-            $refhSnmpQueryOptions{'-authpassword'} = "$refhSNMPOptions->{'passwd'}";
-            $refhSnmpQueryOptions{'-authprotocol'} = "$refhSNMPOptions->{'authproto'}";
-            if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
-                $refhSnmpQueryOptions{'-privpassword'} = "$refhSNMPOptions->{'privpass'}";
-                $refhSnmpQueryOptions{'-privprotocol'} = "$refhSNMPOptions->{'privproto'}";
+        if ( $refhArgs->{'version'} eq 3 ) {
+            $refhSnmpQueryOptions{'-username'}     = "$refhArgs->{'login'}";
+            $refhSnmpQueryOptions{'-authpassword'} = "$refhArgs->{'passwd'}";
+            $refhSnmpQueryOptions{'-authprotocol'} = "$refhArgs->{'authproto'}";
+            if (defined $refhArgs->{'privpass'} and $refhArgs->{'privpass'} ne "") {
+                $refhSnmpQueryOptions{'-privpassword'} = "$refhArgs->{'privpass'}";
+                $refhSnmpQueryOptions{'-privprotocol'} = "$refhArgs->{'privproto'}";
             }
-            defined $refhSNMPOptions->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhSNMPOptions->{'max-repetitions'}";
-            defined $refhSNMPOptions->{'contextname'} and $refhSnmpQueryOptions{'-contextname'} = "$refhSNMPOptions->{'contextname'}";
-        } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
-            $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
-            defined $refhSNMPOptions->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhSNMPOptions->{'max-repetitions'}";
+            defined $refhArgs->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhArgs->{'max-repetitions'}";
+            defined $refhArgs->{'contextname'} and $refhSnmpQueryOptions{'-contextname'} = "$refhArgs->{'contextname'}";
+        } elsif ( $refhArgs->{'version'} eq 2 ) {
+            $refhSnmpQueryOptions{'-community'} = "$refhArgs->{'community'}";
+            defined $refhArgs->{'max-repetitions'} and $refhSnmpQueryOptions{'-maxrepetitions'} = "$refhArgs->{'max-repetitions'}";
         } else {
-            $refhSnmpQueryOptions{'-community'} = "$refhSNMPOptions->{'community'}";
+            $refhSnmpQueryOptions{'-community'} = "$refhArgs->{'community'}";
         }
         ($refhResult) = SnmpGetTable (\%refhSnmpQueryOptions);
     } else {
         # gather data via unix snmpwalk/snmpbulkwalk
         my $snmpQueryCommand = "snmpbulkwalk";
-        my $snmpQueryOptions = "-Oqnet -t $refhSNMPOptions->{'timeout'} -r $refhSNMPOptions->{'retries'} ";
-        $snmpQueryOptions .= ($refhSNMPOptions->{'version'} == 2) ? "-v 2c " : "-v $refhSNMPOptions->{'version'} ";
-        if ( $refhSNMPOptions->{'version'} eq 3 ) {
-            if (defined $refhSNMPOptions->{'privpass'} and $refhSNMPOptions->{'privpass'} ne "") {
-                $snmpQueryOptions .= "-u $refhSNMPOptions->{'login'} -l authPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} -X $refhSNMPOptions->{'privpass'} -x $refhSNMPOptions->{'privproto'} ";
+        my $snmpQueryOptions = "-Oqnet -t $refhArgs->{'timeout'} -r $refhArgs->{'retries'} ";
+        $snmpQueryOptions .= ($refhArgs->{'version'} == 2) ? "-v 2c " : "-v $refhArgs->{'version'} ";
+        if ( $refhArgs->{'version'} eq 3 ) {
+            if (defined $refhArgs->{'privpass'} and $refhArgs->{'privpass'} ne "") {
+                $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} -X $refhArgs->{'privpass'} -x $refhArgs->{'privproto'} ";
             } else {
-                $snmpQueryOptions .= "-u $refhSNMPOptions->{'login'} -l authNoPriv -a $refhSNMPOptions->{'authproto'} -A $refhSNMPOptions->{'passwd'} "
+                $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authNoPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} "
             }
-            defined $refhSNMPOptions->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhSNMPOptions->{'max-repetitions'} ";
-            defined $refhSNMPOptions->{'contextname'} and $snmpQueryOptions .= "-n$refhSNMPOptions->{'contextname'} ";
-        } elsif ( $refhSNMPOptions->{'version'} eq 2 ) {
-            $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
-            defined $refhSNMPOptions->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhSNMPOptions->{'max-repetitions'} ";
+            defined $refhArgs->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhArgs->{'max-repetitions'} ";
+            defined $refhArgs->{'contextname'} and $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
+        } elsif ( $refhArgs->{'version'} eq 2 ) {
+            $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
+            defined $refhArgs->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhArgs->{'max-repetitions'} ";
         } else {
             $snmpQueryCommand = "snmpwalk";
-            $snmpQueryOptions .= "-c $refhSNMPOptions->{'community'} ";
+            $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
         }
-        foreach my $singleoid (@$refaOID) {
+        foreach my $singleoid (@{$refhArgs->{'oids'}}) {
             ($refaCommandResult) = ExecuteCommand ({
-                Command     => "$snmpQueryCommand $snmpQueryOptions $refhSNMPOptions->{'domain'}:${host}:$refhSNMPOptions->{'port'} $singleoid",
-                Retry       => 2,
-                CacheDir    => $CacheDir,
-                CacheTimer  => int rand ($CacheTimer),
+                Command       => "$snmpQueryCommand $snmpQueryOptions $refhArgs->{'domain'}:$refhArgs->{'host'}:$refhArgs->{'port'} $singleoid",
+                Retry         => 2,
+                CacheDir      => $CacheDir,
+                CacheFilename => "${snmpQueryCommand}_${singleoid}.dat",
+                CacheTimer    => int rand ($CacheTimer),
             });
             
             # check empty tree
-            if ($CheckEmpty and not @$refaCommandResult) {
+            if ($CheckEmpty and not $refaCommandResult) {
                 logger(0, "Not expected empty tree for base-oid \"$singleoid\"");
                 throw_error_common(code=>1010, message=>"Not expected empty tree for base-oid \"$singleoid\"");
             }
@@ -679,6 +691,7 @@ sub ExecuteCommand {
     my $refhStruct      = shift;
     my $Command         = $refhStruct->{Command};
     my $GlobalCacheDir  = $refhStruct->{CacheDir};
+    my $CacheFilename   = $refhStruct->{CacheFilename} if (defined $refhStruct->{CacheFilename});
 
     my $refaLines;      # Pointer to Array of strings (output)
     my $CacheFile;      # Filename storing cached data
@@ -692,7 +705,11 @@ sub ExecuteCommand {
 
     # If caching for this command is enabled
     if ($refhStruct->{CacheTimer} > 0) {
-        $CacheFile = $CacheDir . normalize ("$Command") . ".dat";
+        if (defined $CacheFilename) {
+            $CacheFile = $CacheDir . $CacheFilename;
+        } else {
+            $CacheFile = $CacheDir . normalize ("$Command") . ".dat";
+        }
         if (-r "$CacheFile") {
             logger(3, "Cached data file found: $CacheFile, cacheTimer=$refhStruct->{CacheTimer}s");
             my @FileProperties=stat($CacheFile);
