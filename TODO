@@ -78,12 +78,25 @@
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
 #         - code simplifications
 #             -> cachedir in snmp options
-#             -> merge of GetDataWithSnmp and GetMultipleDataWithSnmp
-#             -> snmp functions rewamp
-#         - all functions of SnmpUtils return 2 hashs, one for the results and one for the errors. No more arrays.
-#         - new cache storage methods to store hashs and arrays
+# DONE        -> merge of GetDataWithSnmp and GetMultipleDataWithSnmp
+# IN PROG     -> snmp functions rewamp
+# IN PROG - all functions of SnmpUtils return one hash for the results. No more arrays.
+# DONE    - new cache storage methods to store hashs and arrays
 #         - usage help update
 #         - website help & doc update
+#         - website doc : howto html output on nagiosxi
+#         - test of ncsp module in case it now support huge perfdata outputs
+#         - VLAN support for Nortel switches (Avaya)
+#         - Alias support for Brocade switches
+#         - review all script comments: function desc and syntax, examples, function list, 
+#         - function descriptions / syntax
+#         - review all examples
+#         - review function list
+#         - review all function specs and desc
+#         - split physical & virtual interfaces in separate tables
+#         - pnp templates per device
+#         - extend HP Procurve support
+#         - sudo config in separate file for sudoers.d dir
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
@@ -105,6 +118,9 @@
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1880&p=2281#p2281
 #         - Get values in perf data to use with Nagvis
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1695
+#         - Webfrontend based on Kohana
+#         - Webfrontend based on jQuery Themes
+#         - Javascript-functions using jQuery plugins
 #
 # ----------------------------------------------------------------------
 # Cancelled
