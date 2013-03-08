@@ -239,29 +239,28 @@ my %oid_bigip_sysInterfaceMediaActiveDuplex = ( name => "sysInterfaceMediaActive
 
 # Brocade specific OIDs (from XXXXXXXXXXXXXXXXXXX)
 # ------------------------------------------------------------------------
-my %oid_brocade_swFirmwareVersion = ( name => "swFirmwareVersion",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
-my %oid_brocade_swModel = ( name => "swModel",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.31" ); # Indicates whether the switch is 7500 or 7500E. Unfortunately not available on other models
-my %oid_brocade_1 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.2.0" ); # boot date
-my %oid_brocade_2 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
-my %oid_brocade_3 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.2.1.47.1.1.1.1.2.1" ); # model
-my %oid_brocade_4 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.2.1.47.1.1.1.1.11.1" ); # serial number
-my %oid_brocade_5 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.7.0", convertToReadable => {1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # current operational status of the switch
+my %oid_brocade_swFirmwareVersion = ( name => "swFirmwareVersion",    mib => "SW-MIB",     oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
+my %oid_brocade_model             = ( name => "entPhysicalDescr",     mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.1.1.1.2.1" );     # model
+my %oid_brocade_serial            = ( name => "entPhysicalSerialNum", mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.1.1.1.11.1" );    # serial number
+#my %oid_brocade_swModel = ( name => "swModel",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.31" ); # Indicates whether the switch is 7500 or 7500E. Unfortunately not available on other models
+my %oid_brocade_1 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.2.0" ); # boot date
+my %oid_brocade_5 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.7.0", convertToReadable => {1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # current operational status of the switch
     # The states are as follow:
     # 1 - online means the switch is accessible by an external Fibre Channel port
     # 2 - offline means the switch is not accessible
     # 3 - testing means the switch is in a built-in test mode and is not accessible
     #     by an external Fibre Channel port
     # 4- faulty means the switch is not operational.
-my %oid_brocade_6 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.4", convertToReadable => {0=> 'unknown', 1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # operational port status
+my %oid_brocade_6 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.4", convertToReadable => {0=> 'unknown', 1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # operational port status
     # result values from the switch:
     # 0: unknown,    1: online,   2: offline
     # 3: testing,    4: faulty
-my %oid_brocade_7 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.3", convertToReadable => {1=>'noCard', 2=>'noTransceiver', 3=>'LaserFault', 4=>'noLight', 5=>'noSync', 6=>'inSync', 7=>'portFault', 8=>'diagFault', 9=>'lockRef'} ); # physical port status
+my %oid_brocade_7 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.3", convertToReadable => {1=>'noCard', 2=>'noTransceiver', 3=>'LaserFault', 4=>'noLight', 5=>'noSync', 6=>'inSync', 7=>'portFault', 8=>'diagFault', 9=>'lockRef'} ); # physical port status
     # result values from the switch:
     # 1: noCard,      2: noTransceiver, 3: LaserFault
     # 4: noLight,     5: noSync,        6: inSync,
     # 7: portFault,   8: diagFault,     9: lockRef
-my %oid_brocade_8 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.6", convertToReadable => {1=>'enabled', 2=>'disabled', 3=>'loopback'} ); # link port state
+my %oid_brocade_8 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.6", convertToReadable => {1=>'enabled', 2=>'disabled', 3=>'loopback'} ); # link port state
     # result values from the switch:
     # 1: enabled   - port is allowed to participate in the FC-PH protocol with its
     #                attached port (or ports if it is in a FC-AL loop)
@@ -269,19 +268,19 @@ my %oid_brocade_8 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4
     #                with its attached port(s)
     # 3: loopback  - the port may transmit frames through an internal path to verify
     #                the health of the transmitter and receiver path
-my %oid_brocade_9 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.7.2.1.6" ); # the partner WWN
+my %oid_brocade_9 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.7.2.1.6" ); # the partner WWN
 
-my %oid_brocade_swFCPortTxWords     = ( name => "swFCPortTxWords",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.11" ); # stat_wtx
-my %oid_brocade_swFCPortRxWords     = ( name => "swFCPortRxWords",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.12" ); # stat_wrx
-my %oid_brocade_swFCPortTxFrames    = ( name => "swFCPortTxFrames",    mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.13" ); # stat_ftx
-my %oid_brocade_swFCPortRxFrames    = ( name => "swFCPortRxFrames",    mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.14" ); # stat_frx
-my %oid_brocade_swFCPortRxEncInFrs  = ( name => "swFCPortRxEncInFrs",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.21" ); # er_enc_in
-my %oid_brocade_swFCPortRxCrcs      = ( name => "swFCPortRxCrcs",      mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.22" ); # er_crc
-my %oid_brocade_swFCPortRxTruncs    = ( name => "swFCPortRxTruncs",    mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.23" ); # er_trunc
-my %oid_brocade_swFCPortRxTooLongs  = ( name => "swFCPortRxTooLongs",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.24" ); # er_toolong
-my %oid_brocade_swFCPortRxBadEofs   = ( name => "swFCPortRxBadEofs",   mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.25" ); # er_bad_eof
-my %oid_brocade_swFCPortRxEncOutFrs = ( name => "swFCPortRxEncOutFrs", mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.26" ); # er_enc_out
-my %oid_brocade_swFCPortC3Discards  = ( name => "swFCPortC3Discards",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.28" ); # er_c3_timeout
+my %oid_brocade_swFCPortTxWords     = ( name => "swFCPortTxWords",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.11" ); # stat_wtx
+my %oid_brocade_swFCPortRxWords     = ( name => "swFCPortRxWords",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.12" ); # stat_wrx
+my %oid_brocade_swFCPortTxFrames    = ( name => "swFCPortTxFrames",    mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.13" ); # stat_ftx
+my %oid_brocade_swFCPortRxFrames    = ( name => "swFCPortRxFrames",    mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.14" ); # stat_frx
+my %oid_brocade_swFCPortRxEncInFrs  = ( name => "swFCPortRxEncInFrs",  mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.21" ); # er_enc_in
+my %oid_brocade_swFCPortRxCrcs      = ( name => "swFCPortRxCrcs",      mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.22" ); # er_crc
+my %oid_brocade_swFCPortRxTruncs    = ( name => "swFCPortRxTruncs",    mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.23" ); # er_trunc
+my %oid_brocade_swFCPortRxTooLongs  = ( name => "swFCPortRxTooLongs",  mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.24" ); # er_toolong
+my %oid_brocade_swFCPortRxBadEofs   = ( name => "swFCPortRxBadEofs",   mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.25" ); # er_bad_eof
+my %oid_brocade_swFCPortRxEncOutFrs = ( name => "swFCPortRxEncOutFrs", mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.26" ); # er_enc_out
+my %oid_brocade_swFCPortC3Discards  = ( name => "swFCPortC3Discards",  mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.28" ); # er_c3_timeout
 
 
 
@@ -378,17 +377,17 @@ $ghOptions{'snapshot'} and $gInitialRun = 1;
 # ------------------------------------------------------------------------
 my $gInfoTableHTML;                                      # Generated HTML code of the Info table
 my $grefAoHInfoTableHeader = [                           # Header for the colomns of the Info table
-    { Title => 'Name',                           Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'Uptime',                         Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'System Information',             Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'Type',                           Nodetype => 'cisco',        Enabled => 1 },
-    { Title => 'Serial',                         Nodetype => 'cisco',        Enabled => 1 },
-    { Title => 'Model',                          Nodetype => 'netapp,bigip', Enabled => 1 },
-    { Title => 'Firmware',                       Nodetype => 'brocade',      Enabled => 1 },
-    { Title => 'Location',                       Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'Contact',                        Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'Ports',                          Nodetype => 'ALL',          Enabled => 1 },
-    { Title => 'Delta (bandwidth calculations)', Nodetype => 'ALL',          Enabled => 1 },
+    { Title => 'Name',                           Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Uptime',                         Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'System Information',             Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Type',                           Nodetype => 'cisco',                Enabled => 1 },
+    { Title => 'Serial',                         Nodetype => 'cisco,brocade',        Enabled => 1 },
+    { Title => 'Model',                          Nodetype => 'netapp,bigip,brocade', Enabled => 1 },
+    { Title => 'Firmware',                       Nodetype => 'brocade',              Enabled => 1 },
+    { Title => 'Location',                       Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Contact',                        Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Ports',                          Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Delta (bandwidth calculations)', Nodetype => 'ALL',                  Enabled => 1 },
 ];
 my $grefAoHInfoTableData;                                # Contents of the Info table (Uptime, SysDescr, ...)
 
@@ -516,11 +515,13 @@ if ($ghOptions{'nodetype'} eq "bigip") {
 }
 if ($ghOptions{'nodetype'} eq "brocade") {
     eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_brocade_swFirmwareVersion{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
+        my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_brocade_swFirmwareVersion{'oid'}","$oid_brocade_model{'oid'}","$oid_brocade_serial{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResult = GetDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     $grefhCurrent->{MD}->{Node}->{brocade_firmware} = "$refhSNMPResult->{$oid_brocade_swFirmwareVersion{'oid'}}";
+    $grefhCurrent->{MD}->{Node}->{brocade_model} = "$refhSNMPResult->{$oid_brocade_model{'oid'}}";
+    $grefhCurrent->{MD}->{Node}->{brocade_serial} = "$refhSNMPResult->{$oid_brocade_serial{'oid'}}";
 }
 
 # ------------------------------------------------------------------------------
@@ -810,11 +811,15 @@ $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent-
 if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_type}";
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
+} elsif ($ghOptions{'nodetype'} eq "brocade") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_serial}";
 }
 if ($ghOptions{'nodetype'} eq "netapp") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{netapp_model}";
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{bigip_model}";
+} elsif ($ghOptions{'nodetype'} eq "brocade") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_model}";
 }
 if ($ghOptions{'nodetype'} eq "brocade") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_firmware}";
