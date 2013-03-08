@@ -21,11 +21,11 @@
 # DONE    - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
 #           + extended 32-bit counters (low/high)
 #         - epn support back
-#         - add an option for debug output in a file
+# DONE    - add an option for debug output in a file
 #         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
 #           modem) where the download and upload speeds are different 
 #         - option for (re-)adding/remove some bw stats
-#         - in unixsnmp mode, switching any remaining use of net-snmp perl binding
+# DONE    - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 #             -> use of snmpget/snmpbulkget
 # DONE    - enhance code flexibility for easier device support extension
 # DONE    - infobulle pkt err/discard
@@ -71,16 +71,16 @@
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
 # DONE    - default sorting on Name(ifdescr)
 #             -> option
-#         - Link to table page when unreachable/down
+# DONE    - Link to table page when unreachable/down
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1849
 #             -> exemple: when host unreachable ([ERROR] Could not read sysUpTime information from host "x.x.x.x" with snmp)
 #         - bps perfdata: Warning, critical and max levels in graph
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
 #         - code simplifications
-#             -> cachedir in snmp options
+# DONE        -> cachedir in snmp options
 # DONE        -> merge of GetDataWithSnmp and GetMultipleDataWithSnmp
-# IN PROG     -> snmp functions rewamp
-# IN PROG - all functions of SnmpUtils return one hash for the results. No more arrays.
+# DONE        -> snmp functions rewamp
+# DONE    - all functions of SnmpUtils return one hash for the results. No more arrays.
 # DONE    - new cache storage methods to store hashs and arrays
 #         - usage help update
 #         - website help & doc update
@@ -97,6 +97,9 @@
 #         - pnp templates per device
 #         - extend HP Procurve support
 #         - sudo config in separate file for sudoers.d dir
+#         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
+#         - Support of the following vendor devices: netapp, brocade, nortel, bigip, bluecoat, ...
+#         - https / ssl support/guidelines
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
