@@ -358,8 +358,7 @@ check_options();
 logger(1, "Set global plugin timeout to ${TIMEOUT}s");
 alarm($TIMEOUT);
 $SIG{ALRM} = sub {
-  logger(0, "Plugin timed out (${TIMEOUT}s).\nYou may need to extend the plugin timeout by using the -t option.");
-  exit $ERRORS{"UNKNOWN"};
+  ExitPlugin($ERRORS{"UNKNOWN"}, "Plugin timed out (${TIMEOUT}s).\nYou may need to extend the plugin timeout by using the -t option.");
 };
 
 # ------------------------------------------------------------------------
@@ -395,28 +394,28 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
-    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'alias'} },
-    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                         Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
-    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1 },
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                       Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1 },
-    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                         Enabled => $ghOptions{'duplex'} },
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'stp'} },
-    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => $ghOptions{'vlan'} },
-    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
-    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
-    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                   Enabled => 1 },
-    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => $ghOptions{'ipinfo'} },
-    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                         Enabled => 1 },
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat', Enabled => 1,   Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
-    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                         Enabled => 1 },
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
+    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'alias'} },
+    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                 Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
+    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1 },
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
+    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'duplex'} },
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'stp'} },
+    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => $ghOptions{'vlan'} },
+    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
+    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
+    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
+    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'ipinfo'} },
+    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1,   Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
+    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                 Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -619,7 +618,32 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     ###Get_Vlan (); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
     
-} 
+}
+# +++++ Brocade +++++
+elsif ($ghOptions{'nodetype'} eq "brocade") {
+    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
+    Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
+    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets) 
+        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Error_Discard();
+    if ($ghOptions{'pkt'}) {
+        # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
+            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
+    ###Get_Vlan (); # Gather interface vlans
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+    
+}
 # +++++ Standard device +++++
 else {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -938,7 +962,8 @@ if ( $gInitialRun ) {
     }
     if ($gExitCode == $ERRORS{'OK'}) {
         # Build an ok message
-        $gText = "$gNumberOfFreeInterfaces free" if ($gNumberOfFreeInterfaces >= 0);
+        $gText = "$gNumberOfInterfacesWithoutTrunk port(s)";
+        $gText .= ", $gNumberOfFreeInterfaces free" if ($gNumberOfFreeInterfaces >= 0);
         $gText .= ", $gNumberOfFreeUpInterfaces AdminUp and free" if ($gNumberOfFreeUpInterfaces >= 0);
         $gText .= ", $gNumberOfPerfdataInterfaces graphed" if ($gNumberOfPerfdataInterfaces >= 0 and $ghOptions{'enableperfdata'});
     }
@@ -3699,8 +3724,7 @@ sub WriteConfigFileNew {
 
     # Write Config File
     if (-f "$ConfigFile" and not -w "$ConfigFile") {
-        logger(0, "Unable to write to file $ConfigFile $!\n");
-        exit $ERRORS{"UNKNOWN"};
+        ExitPlugin($ERRORS{"UNKNOWN"}, "Unable to write to file $ConfigFile $!\n");
     }
 
     umask "$UMASK";
@@ -4418,8 +4442,7 @@ sub Perfdataout {
         # write perfdata to a spoolfile in perfdatadir instead of in plugin output
         if($ghOptions{'perfdatadir'}) {
             if(!defined($ghOptions{perfdataservicedesc})) {
-                logger(0, "please specify --perfdataservicedesc when you want to use --perfdatadir to output perfdata.");
-                exit $ERRORS{"UNKNOWN"};
+                ExitPlugin($ERRORS{"UNKNOWN"}, "please specify --perfdataservicedesc when you want to use --perfdatadir to output perfdata.");
             }
             # PNP Data example: (without the linebreaks)
             # DATATYPE::SERVICEPERFDATA\t
@@ -4683,9 +4706,9 @@ sub ExitPlugin {
     
     # Append errorcode string prefix to text
     if (defined $ERRORCODES{"$code"}) {
-        $output = "\[".$ERRORCODES{"$code"}."\] ".$output;
+        $output = $ERRORCODES{"$code"}." - ".$output;
     } else {
-        $output = "\[UNKNOWN\] ".$output;
+        $output = "UNKNOWN - ".$output;
     }
     
     # Append html table link to text
@@ -4931,7 +4954,7 @@ sub print_usage () {
         Sets the directory where the interface states are stored.
     --nodetype (optional)
         Specify the node type, for specific information to be printed / specific oids to be used
-        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.
+        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.
     --(no)duplex (optional)
         Add the duplex mode property for each interface in the interface table.
     --(no)stp (optional)
@@ -5070,7 +5093,7 @@ sub check_options () {
         'vlan!',                                # Add vlan attribution info for each interface
         'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
-                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.
+                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
         'snapshot!',
@@ -5134,8 +5157,8 @@ sub check_options () {
     }
     # deprecated options
     if (exists $commandline{cisco}) {
-        logger(0, "Option \"--cisco\" is deprecated. Use \"--nodetype=cisco\" instead.");
-        exit $ERRORS{"UNKNOWN"};
+        print "Option \"--cisco\" is deprecated. Use \"--nodetype=cisco\" instead.\n";
+        exit $ERRORS{UNKNOWN};
     }
 
     #====== Configuration hashes ======#
@@ -5266,7 +5289,7 @@ sub check_options () {
         $ghOptions{'usemacaddr'} = "$commandline{usemacaddr}";
     }
     if (! exists $commandline{'hostquery'}) {
-        logger(0, "host to query not defined (-H)\n");
+        print "host to query not defined (-H)\n";
         print_help();
         exit $ERRORS{UNKNOWN};
     } else {
@@ -5297,7 +5320,7 @@ sub check_options () {
             if ($method =~ /^ssh$|^telnet$|^http$|^https$/) {
                 $tmphash{"$method"} = ($target) ? "$target" : "$method://$ghOptions{'hostquery'}";
             } else {
-                logger(0, "Specified accessmethod \"$method\" (in \"$_\") is not valid. Valid accessmethods are: ssh, telnet, http and https.");
+                print "Specified accessmethod \"$method\" (in \"$_\") is not valid. Valid accessmethods are: ssh, telnet, http and https.\n";
                 exit $ERRORS{"UNKNOWN"};
             }
         }
@@ -5354,7 +5377,7 @@ sub check_options () {
     } elsif ($ghOptions{'cache'} =~ /^\d+$ghOptions{'ifs'}\d+$/) {
         ($gShortCacheTimer,$gLongCacheTimer) = split (/$ghOptions{'ifs'}/,$ghOptions{'cache'});
     } else {
-        logger(0, "Wrong cache timer specified\n");
+        print "Wrong cache timer specified\n";
         exit $ERRORS{"UNKNOWN"};
     }
     logger(1, "Set ShortCacheTimer = $gShortCacheTimer and LongCacheTimer = $gLongCacheTimer");
@@ -5377,10 +5400,10 @@ sub check_options () {
         $ghOptions{'stp'} = $commandline{stp};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$/i) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
-            logger(0, "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat.");
+            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -5440,7 +5463,7 @@ sub check_options () {
     }
     my @tmparray2=split(/,/,$ghOptions{'warning-traffic'});
     if ($#tmparray2 != 2) {
-        logger(0, "3 warning levels needed! (i.e. --warning-traffic 101,0,0)");
+        print "3 warning levels needed! (i.e. --warning-traffic 101,0,0)\n";
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'warning-load'} = $tmparray2[0];
@@ -5452,7 +5475,7 @@ sub check_options () {
     }
     my @tmparray3=split(/,/,$ghOptions{'critical-traffic'});
     if ($#tmparray3 != 2) {
-        logger(0, "3 critical levels needed! (i.e. --critical-traffic 101,0,0)");
+        print "3 critical levels needed! (i.e. --critical-traffic 101,0,0)\n";
         exit $ERRORS{"UNKNOWN"};
     }
     $ghOptions{'critical-load'} = $tmparray3[0];
@@ -5470,7 +5493,7 @@ sub check_options () {
                 $ghOptions{'grapherurl'} = "/ingraph";
             }
         } else {
-            logger(0, "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph.");
+            print "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -5484,7 +5507,7 @@ sub check_options () {
         if ($commandline{portperfunit} =~ /^bit$|^octet$/i) {
             $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
         } else {
-            logger(0, "Specified performance data unit \"$commandline{portperfunit}\" is not valid. Valid units are: bit, octet.");
+            print "Specified performance data unit \"$commandline{portperfunit}\" is not valid. Valid units are: bit, octet.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -5492,7 +5515,7 @@ sub check_options () {
         if ($commandline{perfdataformat} =~ /^full$|^loadonly$|^generalonly$/i) {
             $ghOptions{'perfdataformat'} = "$commandline{perfdataformat}";
         } else {
-            logger(0, "Specified performance data format \"$commandline{perfdataformat}\" is not valid. Valid formats are: full, loadonly, generalonly.");
+            print "Specified performance data format \"$commandline{perfdataformat}\" is not valid. Valid formats are: full, loadonly, generalonly.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -5507,7 +5530,7 @@ sub check_options () {
         $ghOptions{'perfdataservicedesc'} = $ENV{'ICINGA_SERVICEDESC'};
     }
     if ($ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq "nagiosgrapher" and not defined $ghOptions{'perfdatadir'}) {
-        logger(0, "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir");
+        print "As you use nagiosgrapher as the grapher solution, you need to specify a perfdatadir\n";
         exit $ERRORS{"UNKNOWN"};
     }
 
@@ -5516,7 +5539,7 @@ sub check_options () {
         $ghOptions{'css'} = "$commandline{css}";
     }
     if (! -e "$ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css") {
-        logger(0, "Could not find the css file: $ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css");
+        print "Could not find the css file: $ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css\n";
         exit $ERRORS{"UNKNOWN"};
     }
     if (exists $commandline{ifdetails}) {
@@ -5532,14 +5555,14 @@ sub check_options () {
         if ($commandline{'default-table-sorting'} =~ /^index$|^name$/i) {
             $ghOptions{'default-table-sorting'} = "$commandline{'default-table-sorting'}";
         } else {
-            logger(0, "Specified sorting method \"$commandline{'default-table-sorting'}\" is not valid. Valid sorting method are: index, name.");
+            print "Specified sorting method \"$commandline{'default-table-sorting'}\" is not valid. Valid sorting method are: index, name.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
     
     #-------- SNMP related ----------#
     if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
-        logger(0, "Can't mix snmp v1,2c,3 protocols!\n");
+        print "Can't mix snmp v1,2c,3 protocols!\n";
         print_usage();
         exit $ERRORS{"UNKNOWN"};
     }
@@ -5566,7 +5589,7 @@ sub check_options () {
                 $ghSNMPOptions{'port'} = 1611;
             }
         } else {
-            logger(0, "Specified transport domain \"$commandline{domain}\" is not valid. Valid domains are: udp, tcp, udp6, tcp6.");
+            print "Specified transport domain \"$commandline{domain}\" is not valid. Valid domains are: udp, tcp, udp6, tcp6.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -5587,7 +5610,7 @@ sub check_options () {
     }
     if (exists $commandline{'protocols'}) {
         if (!exists $commandline{'login'}) {
-            logger(0, "Put snmp V3 login info with protocols!\n");
+            print "Put snmp V3 login info with protocols!\n";
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
@@ -5599,14 +5622,14 @@ sub check_options () {
             $ghSNMPOptions{'privproto'} = $v3proto[1];
         }
         if ((defined ($v3proto[1])) && (!exists $commandline{'privpass'})) {
-            logger(0, "Put snmp V3 priv login info with priv protocols!\n");
+            print "Put snmp V3 priv login info with priv protocols!\n";
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
     }
     if (exists $commandline{'contextname'}) {
         if (!exists $commandline{'login'}) {
-            logger(0, "Put snmp V3 login info with context name!\n");
+            print "Put snmp V3 login info with context name!\n";
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
@@ -5623,7 +5646,7 @@ sub check_options () {
     }
     # Check snmpv2c or v3 with 64-bit counters
     if ( $ghSNMPOptions{'64bits'} && $ghSNMPOptions{'version'} == 1) {
-        logger(0, "Can't get 64-bit counters with snmp version 1\n");
+        print "Can't get 64-bit counters with snmp version 1\n";
         print_usage();
         exit $ERRORS{"UNKNOWN"};
     }
@@ -5631,13 +5654,13 @@ sub check_options () {
         if (eval "require bigint") {
             use bigint;
         } else {
-            logger(0, "Need bigint module for 64-bit counters\n");
+            print "Need bigint module for 64-bit counters\n";
             print_usage();
             exit $ERRORS{"UNKNOWN"};
         }
     } else {
         if ($ghOptions{'nodetype'} eq 'bigip') {
-            logger(0, "No 32-bit counters for this nodetype. Please use the --64bits option\n");
+            print "No 32-bit counters for this nodetype. Please use the --64bits option\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
