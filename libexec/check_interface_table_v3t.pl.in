@@ -239,6 +239,7 @@ my %oid_bigip_sysInterfaceMediaActiveDuplex = ( name => "sysInterfaceMediaActive
 
 # Brocade specific OIDs (from XXXXXXXXXXXXXXXXXXX)
 # ------------------------------------------------------------------------
+my %oid_brocade_swFirmwareVersion  = ( name => "swFirmwareVersion",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
 my %oid_brocade_1 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.2.0" ); # boot date
 my %oid_brocade_2 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
 my %oid_brocade_3 = ( name => "xxxxxxx",     mib => "xxxxxxx", oid => "1.3.6.1.2.1.47.1.1.1.1.2.1" ); # model
@@ -382,6 +383,7 @@ my $grefAoHInfoTableHeader = [                           # Header for the colomn
     { Title => 'Type',                           Nodetype => 'cisco',        Enabled => 1 },
     { Title => 'Serial',                         Nodetype => 'cisco',        Enabled => 1 },
     { Title => 'Model',                          Nodetype => 'netapp,bigip', Enabled => 1 },
+    { Title => 'Firmware',                       Nodetype => 'brocade',      Enabled => 1 },
     { Title => 'Location',                       Nodetype => 'ALL',          Enabled => 1 },
     { Title => 'Contact',                        Nodetype => 'ALL',          Enabled => 1 },
     { Title => 'Ports',                          Nodetype => 'ALL',          Enabled => 1 },
@@ -511,7 +513,14 @@ if ($ghOptions{'nodetype'} eq "bigip") {
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
     $grefhCurrent->{MD}->{Node}->{bigip_model} = "$refhSNMPResult->{$oid_bigip_sysGeneralHwName{'oid'}}";
 }
-
+if ($ghOptions{'nodetype'} eq "brocade") {
+    eval {
+        my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_brocade_swFirmwareVersion{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
+        $refhSNMPResult = GetDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    $grefhCurrent->{MD}->{Node}->{brocade_firmware} = "$refhSNMPResult->{$oid_brocade_swFirmwareVersion{'oid'}}";
+}
 
 # ------------------------------------------------------------------------------
 # Read interface related data (from snmp/cache)
@@ -800,10 +809,14 @@ $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent-
 if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_type}";
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
-} elsif ($ghOptions{'nodetype'} eq "netapp") {
+}
+if ($ghOptions{'nodetype'} eq "netapp") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{netapp_model}";
 } elsif ($ghOptions{'nodetype'} eq "bigip") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{bigip_model}";
+} 
+if ($ghOptions{'nodetype'} eq "brocade") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_firmware}";
 }
 $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = hexToString($grefhCurrent->{MD}->{Node}->{sysLocation});
 $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{sysContact}";
