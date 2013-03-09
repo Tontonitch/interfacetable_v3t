@@ -3231,18 +3231,12 @@ sub Get_InterfaceStatus_Bigip {
 # Get_IpInfo_Netscreen
 # ------------------------------------------------------------------------
 sub Get_IpInfo_Netscreen {
-    my $refhNsIfNetmask = ();
-
     my $refhOIDIfName = shift;
     my $refhOIDIfIp = shift;
     my $refhOIDIfNetmask = shift;
     my $refhSNMPResultIfName;       # Lines returned from snmpwalk storing interface name and index from netscreen specific mib
     my $refhSNMPResultIfIp;         # Lines returned from snmpwalk storing ip addresses
     my $refhSNMPResultIfNetmask;    # Lines returned from snmpwalk storing physical addresses
-
-    my $refaNsIfNameLines;
-    my $refaNsIfIpLines;                # Lines returned from snmpwalk storing ip addresses
-    my $refaNsIfNetmaskLines;           # Lines returned from snmpwalk storing physical addresses
 
     # Get info from snmp/cache
     #------------------------------------------
@@ -3344,43 +3338,39 @@ sub Get_IpInfo_Netscreen {
 # Get_Specific_Netscreen
 # ------------------------------------------------------------------------
 sub Get_Specific_Netscreen {
-    my $refhNsZone = ();
-    my $refhNsVsys = ();
-    my $refhNsIfMng = ();
-
     my $refhSNMPResultNsIfName;
     my $refhSNMPResultNsZoneCfgName;
     my $refhSNMPResultNsIfZone;
     my $refhSNMPResultNsVsysCfgName;
     my $refhSNMPResultNsIfVsys;
-    my $refhSNMPResultNsIfMngTelnet;         # Permitted management: Telnet
-    my $refhSNMPResultNsIfMngSCS;            # Permitted management: SCS
-    my $refhSNMPResultNsIfMngWEB;            # Permitted management: WEB
-    my $refhSNMPResultNsIfMngSSL;            # Permitted management: SSL
-    my $refhSNMPResultNsIfMngSNMP;           # Permitted management: SNMP
-    my $refhSNMPResultNsIfMngGlobal;         # Permitted management: Global
-    my $refhSNMPResultNsIfMngGlobalPro;      # Permitted management: GlobalPro
-    my $refhSNMPResultNsIfMngPing;           # Permitted management: Ping
-    my $refhSNMPResultNsIfMngIdentReset;     # Permitted management: IdentReset
+    my $refhSNMPResultNsIfMng;
+#    my $refhSNMPResultNsIfMngTelnet;         # Permitted management: Telnet
+#    my $refhSNMPResultNsIfMngSCS;            # Permitted management: SCS
+#    my $refhSNMPResultNsIfMngWEB;            # Permitted management: WEB
+#    my $refhSNMPResultNsIfMngSSL;            # Permitted management: SSL
+#    my $refhSNMPResultNsIfMngSNMP;           # Permitted management: SNMP
+#    my $refhSNMPResultNsIfMngGlobal;         # Permitted management: Global
+#    my $refhSNMPResultNsIfMngGlobalPro;      # Permitted management: GlobalPro
+#    my $refhSNMPResultNsIfMngPing;           # Permitted management: Ping
+#    my $refhSNMPResultNsIfMngIdentReset;     # Permitted management: IdentReset
 
-    # get netscreen interface name and build a map table with the standard interface description
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfName{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 1));
-        $refhSNMPResultNsIfName = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    #for my $ifName (keys %{$grefhCurrent->{If}}) {
+    # Get info from snmp/cache
+    #------------------------------------------
 
+    # if not already done, get map table: get netscreen interface name and build a map table with the standard interface description
+    if (not defined $grefhCurrent->{MD}->{Map}->{Netscreen}) {
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfName{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultNsIfName = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
 
-    for (@$refhSNMPResultNsIfName) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
-        $Value = normalize ($Value);
-        if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"}) {
-            my $ifName = $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Value"};
-            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"} = $Index;
-            $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} = "$ifName";
+        while ( my ($Idx,$Name) = each(%$refhSNMPResultNsIfName) ) {
+            $Name = normalize ($Name);
+            if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Name"}) {
+                $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$Name"} = $Idx;
+                $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Idx} = "$Name";
+            }
         }
     }
 
@@ -3391,20 +3381,40 @@ sub Get_Specific_Netscreen {
         $refhSNMPResultNsZoneCfgName = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    # Example of content of $refhSNMPResultNsZoneCfgName:
+    #  '0' => 'Null',
+    #  '1' => 'Untrust',
+    #  '10' => 'Global',
+    #  '1000' => 'VPN_END_POINT',
+          
     ## get netscreen zone id for all interfaces
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfZone{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
         $refhSNMPResultNsIfZone = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    $refhSNMPResultNsIfZone = GetTableDataWithSnmp ($ghOptions{'hostquery'},\%ghSNMPOptions,\%oid_juniper_nsIfZone,$ghOptions{'cachedir'},0,1);
-    for (@$refhSNMPResultNsIfZone) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
-        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
-            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfZone} = "$refhSNMPResultNsZoneCfgName->{$Value}";
-            logger(2, "Index: $Index (" . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . "),\tnsIfZone: " . $refhSNMPResultNsZoneCfgName->{$Value});
+    # Example of content of $refhSNMPResultNsIfZone:
+    #  '0' => 2,
+    #  '1' => 1004,
+    #  '10' => 1006,
+    #  '11' => 1007,
+    #  '12' => 3,   
+    
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"}) {
+            my $NsIfIndex = $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"};
+            if (defined $refhSNMPResultNsZoneCfgName->{"$refhSNMPResultNsIfZone->{$NsIfIndex}"}) {
+                # add property to the interface
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = $refhSNMPResultNsZoneCfgName->{"$refhSNMPResultNsIfZone->{$NsIfIndex}"};
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", Zone=\"".$refhSNMPResultNsZoneCfgName->{"$refhSNMPResultNsIfZone->{$NsIfIndex}"}."\"");
+            } else {
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = '';
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", Zone not found for the interface");
+            }
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = '';
+            logger(2, "IfName=\"$ifName\", NsIfIndex not found for the interface");
         }
     }
 
@@ -3415,184 +3425,244 @@ sub Get_Specific_Netscreen {
         $refhSNMPResultNsVsysCfgName = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    ## get netscreen zone id for all interfaces
+    # Example of content of $refhSNMPResultNsVsysCfgName:
+    #  '0' => 'Root'
+
+    ## get netscreen vsys id for all interfaces
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfVsys{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
         $refhSNMPResultNsIfVsys = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    for (@$refhSNMPResultNsIfVsys) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;           # remove all but the index
-        $Value =~ s/\s+$//g;            # remove invisible chars from the end
-        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
-            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfVsys} = "$refhSNMPResultNsVsysCfgName->{$Value}";
-            logger(2, "Index: $Index (" . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . "),\tnsIfVsys: " . $refhSNMPResultNsVsysCfgName->{$Value});
+    # Example of content of $refhSNMPResultNsIfVsys:
+    #  '0' => 0,
+    #  '1' => 0,
+    #  '10' => 0,
+    #  '11' => 0,
+
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"}) {
+            my $NsIfIndex = $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"};
+            if (defined $refhSNMPResultNsVsysCfgName->{"$refhSNMPResultNsIfVsys->{$NsIfIndex}"}) {
+                # add property to the interface
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = $refhSNMPResultNsVsysCfgName->{"$refhSNMPResultNsIfVsys->{$NsIfIndex}"};
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", Vsys=\"".$refhSNMPResultNsVsysCfgName->{"$refhSNMPResultNsIfVsys->{$NsIfIndex}"}."\"");
+            } else {
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = '';
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", Vsys not found for the interface");
+            }
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{nsIfZone} = '';
+            logger(2, "IfName=\"$ifName\", NsIfIndex not found for the interface");
         }
     }
 
     # Management protocols
     # get permitted management protocols from : Telnet, SCS, WEB, SSL, SNMP, Global, GlobalPro, Ping, IdentReset
+    #=========== TEST ===========#
     eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngTelnet{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngTelnet = GetTableDataWithSnmp (\%hOptions);
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngTelnet{'oid'}","$oid_juniper_nsIfMngSCS{'oid'}","$oid_juniper_nsIfMngWEB{'oid'}",
+            "$oid_juniper_nsIfMngSSL{'oid'}","$oid_juniper_nsIfMngSNMP{'oid'}","$oid_juniper_nsIfMngGlobal{'oid'}","$oid_juniper_nsIfMngGlobalPro{'oid'}",
+            "$oid_juniper_nsIfMngPing{'oid'}","$oid_juniper_nsIfMngIdentReset{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+        $refhSNMPResultNsIfMng = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSCS{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngSCS = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngWEB{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngWEB = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSSL{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngSSL = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSNMP{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngSNMP = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngGlobal{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngGlobal = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngGlobalPro{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngGlobalPro = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngPing{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngPing = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
-    eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngIdentReset{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-        $refhSNMPResultNsIfMngIdentReset = GetTableDataWithSnmp (\%hOptions);
-    };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    # Example of content of $refhSNMPResultNsIfMng:
+    #  '0' => '1|1|1|1|1|0|1|1|0',
+    #  '1' => '0|0|0|0|0|0|0|1|0',
+    #  '10' => '0|0|0|0|0|0|0|1|0',
+    #  '11' => '0|0|0|0|0|0|0|1|0',
+    #  '12' => '0|0|0|0|0|0|0|1|0',
 
-    foreach (@$refhSNMPResultNsIfMngTelnet) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "Telnet";
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"}) {
+            my $NsIfIndex = $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"};
+            if (defined $refhSNMPResultNsIfMng->{"$NsIfIndex"}) {
+                my @MngProtoNumeric = split ('\|', $refhSNMPResultNsIfMng->{"$NsIfIndex"});
+                my @MngProtoString = ('Telnet', 'SCS', 'WEB', 'SSL', 'SNMP', 'Global', 'GlobalPro', 'Ping', 'IdentReset');
+                my $MngProtocols = '';
+                for my $i (0 .. $#MngProtoNumeric) {
+                    if ($MngProtoNumeric[$i]) {
+                        $MngProtocols .= ', ' if ($MngProtocols);
+                        $MngProtocols .= "$MngProtoString[$i]";
+                    }
+                }
+                # add property to the interface
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfMng} = $MngProtocols;
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", IfMng=\"$MngProtocols\"");
+            } else {
+                $grefhCurrent->{If}->{"$ifName"}->{nsIfMng} = '';
+                logger(2, "IfName=\"$ifName\", NsIfIndex=\"$NsIfIndex\", IfMng not found for the interface");
+            }
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{nsIfMng} = '';
+            logger(2, "IfName=\"$ifName\", NsIfIndex not found for the interface");
         }
     }
-    foreach (@$refhSNMPResultNsIfMngSCS) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "SCS";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngWEB) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "WEB";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngSSL) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "SSL";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngSNMP) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "SNMP";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngGlobal) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "Global";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngGlobalPro) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "GlobalPro";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngPing) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "Ping";
-        }
-    }
-    foreach (@$refhSNMPResultNsIfMngIdentReset) {
-        my ($Index,$Value) = split / /,$_,2;
-        $Index =~ s/^.*\.//g;    # remove all but the index
-        $Value =~ s/\s+$//g;    # remove invisible chars from the end
-        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
-
-        # Add the protocol if permitted
-        if ($Value) {
-            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
-            $refhNsIfMng->{"$Index"} .= "IdentReset";
-        }
-    }
-    for my $Index (keys %$refhNsIfMng) {
-        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
-            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfMng} = "$refhNsIfMng->{$Index}";
-            logger(2, "Index: $Index (" . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . "),\tnsIfMng: " . $refhNsIfMng->{$Index});
-        }
-    }
+    
+    #============================#
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngTelnet{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngTelnet = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSCS{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngSCS = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngWEB{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngWEB = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSSL{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngSSL = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngSNMP{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngSNMP = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngGlobal{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngGlobal = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngGlobalPro{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngGlobalPro = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngPing{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngPing = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#    eval {
+#        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfMngIdentReset{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+#        $refhSNMPResultNsIfMngIdentReset = GetTableDataWithSnmp (\%hOptions);
+#    };
+#    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+#
+#    foreach (@$refhSNMPResultNsIfMngTelnet) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "Telnet";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngSCS) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "SCS";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngWEB) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "WEB";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngSSL) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "SSL";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngSNMP) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "SNMP";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngGlobal) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "Global";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngGlobalPro) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "GlobalPro";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngPing) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "Ping";
+#        }
+#    }
+#    foreach (@$refhSNMPResultNsIfMngIdentReset) {
+#        my ($Index,$Value) = split / /,$_,2;
+#        $Index =~ s/^.*\.//g;    # remove all but the index
+#        $Value =~ s/\s+$//g;    # remove invisible chars from the end
+#        $refhNsIfMng->{"$Index"} = "" if not defined $refhNsIfMng->{"$Index"};
+#
+#        # Add the protocol if permitted
+#        if ($Value) {
+#            $refhNsIfMng->{"$Index"} .= ", " if $refhNsIfMng->{"$Index"} ne "";
+#            $refhNsIfMng->{"$Index"} .= "IdentReset";
+#        }
+#    }
+#    for my $Index (keys %$refhNsIfMng) {
+#        if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}) {
+#            $grefhCurrent->{If}->{"$grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index}"}->{nsIfMng} = "$refhNsIfMng->{$Index}";
+#            logger(2, "Index: $Index (" . $grefhCurrent->{MD}->{Map}->{Netscreen}->{NsIfIndexToName}->{$Index} . "),\tnsIfMng: " . $refhNsIfMng->{$Index});
+#        }
+#    }
     return 0;
 }
 
