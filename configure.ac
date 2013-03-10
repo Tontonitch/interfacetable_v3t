@@ -128,6 +128,15 @@ else
 	AC_MSG_WARN([not found - install Sort::Naturally module!])
 fi
 
+dnl Checking Exception::Class
+AC_MSG_CHECKING(for Exception::Class perl module)
+if ( $PERL -M"Exception::Class" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Exception::Class module!])
+fi
+
 ### Checks for header files.
 
 ### Checks for typedefs, structures, and compiler characteristics.
