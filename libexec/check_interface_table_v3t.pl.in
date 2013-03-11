@@ -237,38 +237,51 @@ my %oid_bigip_sysInterfaceMediaActiveDuplex = ( name => "sysInterfaceMediaActive
 #IP?
 
 
-# Brocade specific OIDs (from XXXXXXXXXXXXXXXXXXX)
+# Brocade specific OIDs (from SW-MIB mainly)
 # ------------------------------------------------------------------------
-my %oid_brocade_swFirmwareVersion = ( name => "swFirmwareVersion",    mib => "SW-MIB",     oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
+
 my %oid_brocade_model             = ( name => "entPhysicalDescr",     mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.1.1.1.2.1" );     # model
 my %oid_brocade_serial            = ( name => "entPhysicalSerialNum", mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.1.1.1.11.1" );    # serial number
-#my %oid_brocade_swModel = ( name => "swModel",  mib => "xxxxxxx", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.31" ); # Indicates whether the switch is 7500 or 7500E. Unfortunately not available on other models
-my %oid_brocade_1 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.2.0" ); # boot date
-my %oid_brocade_5 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.1.7.0", convertToReadable => {1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # current operational status of the switch
-    # The states are as follow:
-    # 1 - online means the switch is accessible by an external Fibre Channel port
-    # 2 - offline means the switch is not accessible
-    # 3 - testing means the switch is in a built-in test mode and is not accessible
-    #     by an external Fibre Channel port
-    # 4- faulty means the switch is not operational.
-my %oid_brocade_6 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.4", convertToReadable => {0=> 'unknown', 1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # operational port status
-    # result values from the switch:
-    # 0: unknown,    1: online,   2: offline
-    # 3: testing,    4: faulty
-my %oid_brocade_7 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.3", convertToReadable => {1=>'noCard', 2=>'noTransceiver', 3=>'LaserFault', 4=>'noLight', 5=>'noSync', 6=>'inSync', 7=>'portFault', 8=>'diagFault', 9=>'lockRef'} ); # physical port status
-    # result values from the switch:
-    # 1: noCard,      2: noTransceiver, 3: LaserFault
-    # 4: noLight,     5: noSync,        6: inSync,
-    # 7: portFault,   8: diagFault,     9: lockRef
-my %oid_brocade_8 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.6", convertToReadable => {1=>'enabled', 2=>'disabled', 3=>'loopback'} ); # link port state
-    # result values from the switch:
-    # 1: enabled   - port is allowed to participate in the FC-PH protocol with its
-    #                attached port (or ports if it is in a FC-AL loop)
-    # 2: disabled  - the port is not allowed to participate in the FC-PH protocol
-    #                with its attached port(s)
-    # 3: loopback  - the port may transmit frames through an internal path to verify
-    #                the health of the transmitter and receiver path
-my %oid_brocade_9 = ( name => "xxxxxxx",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.7.2.1.6" ); # the partner WWN
+my %oid_brocade_swFirmwareVersion = ( name => "swFirmwareVersion",    mib => "SW-MIB",     oid => "1.3.6.1.4.1.1588.2.1.1.1.1.6.0" ); # firmware version
+#my %oid_brocade_swModel           = ( name => "swModel",              mib => "xxxxxxx",    oid => "1.3.6.1.4.1.1588.2.1.1.1.1.31" );  # Indicates whether the switch is 7500 or 7500E. Unfortunately not available on other models
+my %oid_brocade_swBootDate        = ( name => "swBootDate",           mib => "SW-MIB",     oid => "1.3.6.1.4.1.1588.2.1.1.1.1.2.0" ); # boot date
+my %oid_brocade_swOperStatus      = ( name => "swOperStatus",         mib => "SW-MIB",     oid => "1.3.6.1.4.1.1588.2.1.1.1.1.7.0", convertToReadable => {1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # current operational status of the switch
+    # DESCRIPTION    "The current operational status of the switch.
+    #    The states are as follow:
+    #    o online(1) means the switch is accessible by an external Fibre Channel port;
+    #    o offline(2) means the switch is not accessible;
+    #    o testing(3) means the switch is in a built-in test mode and is not accessible by an external Fibre Channel port;
+    #    o faulty(4) means the switch is not operational."
+
+### swFCport oid sub-tree
+my %oid_brocade_swFCPortOpStatus   = ( name => "swFCPortOpStatus",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.4", convertToReadable => {0=> 'unknown', 1=>'online', 2=>'offline', 3=>'testing', 4=>'faulty'} ); # operational port status
+    # DESCRIPTION    "This object identifies the operational status of the port. The online(1) state indicates that user frames
+    #    can be passed. The unknown(0) state indicates that likely the port module is physically absent (see swFCPortPhyState)."
+my %oid_brocade_swFCPortPhyState   = ( name => "swFCPortPhyState",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.3", convertToReadable => {1=>'noCard', 2=>'noTransceiver', 3=>'LaserFault', 4=>'noLight', 5=>'noSync', 6=>'inSync', 7=>'portFault', 8=>'diagFault', 9=>'lockRef'} ); # physical port status
+    # DESCRIPTION    "This object identifies the physical state of the port:
+    #       noCard(1)           no card present in this switch slot;
+    #       noTransceiver(2)    no Transceiver module in this port. noGbic(2) was used previously. Transceiver is the generic name for GBIC, SFP etc.;
+    #       laserFault(3)       the module is signaling a laser fault (defective Transceiver);
+    #       noLight(4)          the module is not receiving light;
+    #       noSync(5)           the module is receiving light but is out of sync;
+    #       inSync(6)           the module is receiving light and is in sync;
+    #       portFault(7)        the port is marked faulty (defective Transceiver, cable or device);
+    #       diagFault(8)        the port failed diagnostics (defective G_Port or FL_Port card or motherboard);
+    #       lockRef(9)          the port is locking to the reference signal.
+    #       validating(10)      Validation is in progress
+    #       invalidModule(11)   Invalid SFP
+    #       unknown(255)        unknown."
+my %oid_brocade_swFCPortLinkState   = ( name => "swFCPortLinkState",   mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.6", convertToReadable => {1=>'enabled', 2=>'disabled', 3=>'loopback'} ); # link port state
+    # DESCRIPTION    "This object indicates the link state of the port.
+    #     The value may be:
+    #       enabled(1) - port is allowed to participate in the FC-PH protocol with its attached port (or ports if it is in a FC-AL loop);
+    #       disabled(2) - the port is not allowed to participate in the FC-PH protocol with its attached port(s);
+    #       loopback(3) - the port may transmit frames through an internal path to verify the health of the transmitter and receiver path.
+    #     Note that when the port's link state changes, its operational status (swFCPortOpStatus) will be affected."
+my %oid_brocade_swFCPortSpecifier   = ( name => "swFCPortSpecifier",   mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.37" );
+    # DESCRIPTION "This string indicates the physical port number of the addressed port.
+    #     The format of the string is: <slot>/port, where 'slot' being present only for bladed systems."
+my %oid_brocade_swFCPortName        = ( name => "swFCPortName",        mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.36" ); # port name
 
 my %oid_brocade_swFCPortTxWords     = ( name => "swFCPortTxWords",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.11" ); # stat_wtx
 my %oid_brocade_swFCPortRxWords     = ( name => "swFCPortRxWords",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.12" ); # stat_wrx
@@ -282,6 +295,13 @@ my %oid_brocade_swFCPortRxBadEofs   = ( name => "swFCPortRxBadEofs",   mib => "S
 my %oid_brocade_swFCPortRxEncOutFrs = ( name => "swFCPortRxEncOutFrs", mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.26" ); # er_enc_out
 my %oid_brocade_swFCPortC3Discards  = ( name => "swFCPortC3Discards",  mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.6.2.1.28" ); # er_c3_timeout
 
+### swNs oid sub-tree
+my %oid_brocade_swNsNodeName = ( name => "swNsNodeName",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.7.2.1.6" ); # the partner WWN
+    # DESCRIPTION "The object identifies the Fibre Channel World_wide Name of the associated node as defined in FC-GS-2."
+my %oid_brocade_swNsNodeSymb = ( name => "swNsNodeSymb",     mib => "SW-MIB", oid => "1.3.6.1.4.1.1588.2.1.1.1.7.2.1.7" ); # the partner WWN
+    # DESCRIPTION    "The object identifies the contents of a Symbolic Name of the the node associated with the entry. In FC-GS-2,
+    #     a Symbolic Name consists of a byte array of 1 through 255 bytes, and the first byte of the array specifies the length
+    #     of its 'contents'. This object variable corresponds to the 'contents' of the Symbolic Name, without the first byte (specifying the length)."
 
 
 # ------------------------------------------------------------------------
@@ -636,7 +656,7 @@ elsif ($ghOptions{'nodetype'} eq "brocade") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'alias'}) && Get_Alias_Brocade (); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
     ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
     ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
@@ -1062,6 +1082,7 @@ exit $ERRORS{"UNKNOWN"};
 # * Get_InterfaceStatus_Bigip
 # * Get_IpInfo_Netscreen
 # * Get_Specific_Netscreen
+# * Get_Alias_Brocade
 # --- General functions ---
 # * ReadInterfaceInformationFile
 # * ReadConfigFileNew
@@ -3491,6 +3512,69 @@ sub Get_Specific_Netscreen {
             logger(2, "IfName=\"$ifName\", NsIfIndex not found for the interface");
         }
     }
+    return 0;
+}
+
+
+# ------------------------------------------------------------------------
+# Get_Alias_Brocade
+# ------------------------------------------------------------------------
+# walk through each interface and read PortNames
+# ------------------------------------------------------------------------
+sub Get_Alias_Brocade {
+
+    #my $refhOIDFCPortSpecifier = shift; # %oid_brocade_swFCPortSpecifier
+    #my $refhOIDFCPortName      = shift; # %oid_brocade_swFCPortName
+    my $refhSNMPResultFCPortSpecifier;   # Lines returned from snmpwalk storing FC Port Specifier
+    my $refhSNMPResultFCPortName;        # Lines returned from snmpwalk storing FC Port Names
+
+    # Get info from snmp/cache
+    #------------------------------------------
+
+    # if not already done, get map table: get brocade port specifier and build a map table with the standard interface description and index
+    if (not defined $grefhCurrent->{MD}->{Map}->{Brocade}) {
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_brocade_swFCPortSpecifier{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultFCPortSpecifier = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+
+        while ( my ($Idx,$Port) = each(%$refhSNMPResultFCPortSpecifier) ) {
+            $Port = "0/" . $Port if (not $Port =~ m/[0-9]+\/[0-9]+/);
+            my $Name = normalize ("FC port " . $Port);
+            if (defined $grefhCurrent->{MD}->{Map}->{DescrToName}->{"$Name"}) {
+                $grefhCurrent->{MD}->{Map}->{Brocade}->{NameToFCPortIndex}->{"$Name"} = $Idx;
+                $grefhCurrent->{MD}->{Map}->{Brocade}->{FCPortIndexToName}->{$Idx} = "$Name";
+            }
+        }
+    }
+
+    # get FC PortName table (~ Alias)
+    eval {
+        my %hOptions = ($ghOptions{'alias-matching'}) ? ( %ghSNMPOptions, (oids => ["$oid_brocade_swFCPortName{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0))
+            : ( %ghSNMPOptions, (oids => ["$oid_brocade_swFCPortName{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 1, checkempty => 0));
+        $refhSNMPResultFCPortName = GetTableDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        if (defined $grefhCurrent->{MD}->{Map}->{Brocade}->{NameToFCPortIndex}->{"$ifName"}) {
+            my $FCPortIndex = $grefhCurrent->{MD}->{Map}->{Brocade}->{NameToFCPortIndex}->{"$ifName"};
+            if (defined $refhSNMPResultFCPortName->{$FCPortIndex}) {
+                # add property to the interface
+                $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = $refhSNMPResultFCPortName->{$FCPortIndex};
+                logger(2, "IfName=\"$ifName\", FCPortIndex=\"$FCPortIndex\", FCPortName(Alias)=\"".$refhSNMPResultFCPortName->{$FCPortIndex}."\"");
+            } else {
+                $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
+                logger(2, "IfName=\"$ifName\", FCPortIndex=\"$FCPortIndex\", FCPortName(Alias) not found for the interface");
+            }
+        } else {
+            $grefhCurrent->{If}->{"$ifName"}->{ifAlias} = '';
+            logger(2, "IfName=\"$ifName\", FCPortIndex not found for the interface");
+        }
+    }
+    
     return 0;
 }
 
