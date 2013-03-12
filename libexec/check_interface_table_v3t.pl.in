@@ -421,9 +421,12 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'alias'} },
     { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                 Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1 },
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1,   Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1, 
+        Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1,
+        Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR></TABLE>' },
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1, 
+        Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR><TR><TD>unknown</TD><TD>status can not be determined for some reason</TD></TR><TR><TD>dormant</TD><TD></TD></TR><TR><TD>notPresent</TD><TD>some component are missing</TD></TR><TR><TD>lowerLayerDown</TD><TD>down due to state of lower-layer interface(s)</TD></TR></TABLE>' },
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                 Enabled => 1 },
     { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'duplex'} },
     { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'stp'} },
@@ -436,7 +439,8 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'ipinfo'} },
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1,   Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1, 
+        Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                 Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
@@ -1531,8 +1535,24 @@ sub Get_Speed {
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
                 $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
                 denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
-                #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
-                #denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
+            }
+            # Store ifSpeed in a machine and human readable format
+            $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
+            if ($IfSpeed > 0) {
+                $grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = format_volume_decimal ($IfSpeed,"bit");
+                logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
+            } else {
+                logger(2, "Index=$Index ($ifName): Speed not applicable");
+            }
+        } elsif (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
+            # Get the speed from highperf speed counters
+            my $IfSpeed = $refhSNMPResultIfHighSpeed->{"$Index"} * 1000000;
+            logger(2, " $ifName($Index) -> no standard speed counter but high speed counter available");
+            # Recommendation in case Gigabit detected
+            if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
+                logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
+                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
+                denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
             }
             # Store ifSpeed in a machine and human readable format
             $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
@@ -1548,7 +1568,6 @@ sub Get_Speed {
             logger(2, "Index=$Index ($ifName): Speed not found");
         }
     }
-
 
     return 0;
 }
@@ -3719,8 +3738,11 @@ sub WriteConfigFileNew {
     );
 
     # Write Config File
-    if (-f "$ConfigFile" and not -w "$ConfigFile") {
-        ExitPlugin($ERRORS{"UNKNOWN"}, "Unable to write to file $ConfigFile $!\n");
+    if (not -w "$Directory") {
+        ExitPlugin($ERRORS{"UNKNOWN"}, "Unable to write to directory $Directory $!\n");
+    }
+    if (-e "$ConfigFile" and not -w "$ConfigFile") {
+        ExitPlugin($ERRORS{"UNKNOWN"}, "Unable to write to existing file $ConfigFile $!\n");
     }
 
     umask "$UMASK";
@@ -4699,7 +4721,8 @@ sub ExitPlugin {
     my $code = shift;
     my $output = shift;
     my $htmltablefile = $ghOptions{'htmltabledir'} . "/" . $gFile . ".html";
-
+    chomp($output);
+    
     # Append errorcode string prefix to text
     if (defined $ERRORCODES{"$code"}) {
         $output = $ERRORCODES{"$code"}." - ".$output;
