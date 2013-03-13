@@ -1484,7 +1484,7 @@ sub Get_Speed {
     # get ifSpeed table (units of bits per second)
     if (defined $refhOIDIfSpeed) {
         eval {
-            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDIfSpeed->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDIfSpeed->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0));
             $refhSNMPResultIfSpeed = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
@@ -1493,7 +1493,7 @@ sub Get_Speed {
     # get ifHighSpeed table (units of 1,000,000 bits per second)
     if (defined $refhOIDIfHighSpeed) {
         eval {
-            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDIfHighSpeed->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDIfHighSpeed->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0));
             $refhSNMPResultIfHighSpeed = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
@@ -3935,7 +3935,7 @@ sub GenerateInterfaceTableData {
                     and $ghOptions{'enableperfdata'}) {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#/%23/g;
+                        $servicename =~ s/#//g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
@@ -4350,7 +4350,7 @@ sub Perfdataout {
                         my $port = sprintf("%s", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#/%23/g;
+                        $servicename =~ s/#//g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
@@ -4403,7 +4403,7 @@ sub Perfdataout {
                         my $port = sprintf("%s", $InterfaceIndex);
                         #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#/%23/g;
+                        $servicename =~ s/#//g;
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
@@ -4529,7 +4529,7 @@ sub Perfdataout {
                     and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
 
                     my $servicename = "If_" . trim(denormalize($Name));
-                    $servicename =~ s/#/%23/g;
+                    $servicename =~ s/#//g;
                     $servicename =~ s/[: ]/_/g;
                     $servicename =~ s/[()'"]//g;
                     $servicename =~ s/,/./g;
