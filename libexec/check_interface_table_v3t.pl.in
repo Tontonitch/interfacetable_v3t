@@ -304,6 +304,13 @@ my %oid_brocade_swNsNodeSymb = ( name => "swNsNodeSymb",     mib => "SW-MIB", oi
     #     of its 'contents'. This object variable corresponds to the 'contents' of the Symbolic Name, without the first byte (specifying the length)."
 
 
+# Nortel specific OIDs
+# ------------------------------------------------------------------------
+my %oid_nortel_model             = ( name => "entPhysicalDescr",     mib => "ENTITY-MIB",     oid => "1.3.6.1.2.1.47.1.1.1.1.2.1" );     # model
+my %oid_nortel_serial            = ( name => "entPhysicalSerialNum", mib => "ENTITY-MIB",     oid => "1.3.6.1.2.1.47.1.1.1.1.11.1" );    # serial number
+my %oid_nortel_rcVlanPortVlanIds = ( name => "rcVlanPortVlanIds",    mib => "RAPID-CITY-MIB", oid => "1.3.6.1.4.1.2272.1.3.3.1.3" );     # List of VLANs this port is assigned to
+
+
 # ------------------------------------------------------------------------
 # Other global variables
 # ------------------------------------------------------------------------
@@ -322,6 +329,10 @@ my %quadmask2dec = (
     '255.255.255.224' => 27, '255.255.255.240' => 28, '255.255.255.248' => 29,
     '255.255.255.252' => 30, '255.255.255.254' => 31, '255.255.255.255' => 32,
 );
+my %convhex2dec = qw(	0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 
+				                        a 10 b 11 c 12 d 13 e 14 f 15 
+				                        A 10 B 11 C 12 D 13 E 14 F 15 );
+
 
 # ------------------------------------------------------------------------
 # Other global initializations
@@ -397,17 +408,17 @@ $ghOptions{'snapshot'} and $gInitialRun = 1;
 # ------------------------------------------------------------------------
 my $gInfoTableHTML;                                      # Generated HTML code of the Info table
 my $grefAoHInfoTableHeader = [                           # Header for the colomns of the Info table
-    { Title => 'Name',                           Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'Uptime',                         Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'System Information',             Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'Type',                           Nodetype => 'cisco',                Enabled => 1 },
-    { Title => 'Serial',                         Nodetype => 'cisco,brocade',        Enabled => 1 },
-    { Title => 'Model',                          Nodetype => 'netapp,bigip,brocade', Enabled => 1 },
-    { Title => 'Firmware',                       Nodetype => 'brocade',              Enabled => 1 },
-    { Title => 'Location',                       Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'Contact',                        Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'Ports',                          Nodetype => 'ALL',                  Enabled => 1 },
-    { Title => 'Delta (bandwidth calculations)', Nodetype => 'ALL',                  Enabled => 1 },
+    { Title => 'Name',                           Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'Uptime',                         Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'System Information',             Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'Type',                           Nodetype => 'cisco',                       Enabled => 1 },
+    { Title => 'Serial',                         Nodetype => 'cisco,brocade,nortel',        Enabled => 1 },
+    { Title => 'Model',                          Nodetype => 'netapp,bigip,brocade,nortel', Enabled => 1 },
+    { Title => 'Firmware',                       Nodetype => 'brocade',                     Enabled => 1 },
+    { Title => 'Location',                       Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'Contact',                        Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'Ports',                          Nodetype => 'ALL',                         Enabled => 1 },
+    { Title => 'Delta (bandwidth calculations)', Nodetype => 'ALL',                         Enabled => 1 },
 ];
 my $grefAoHInfoTableData;                                # Contents of the Info table (Uptime, SysDescr, ...)
 
@@ -416,32 +427,32 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1 },
-    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'alias'} },
-    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                 Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
-    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1 },
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                               Enabled => 1, 
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1 },
+    { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'alias'} },
+    { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                        Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
+    { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1 },
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1, 
         Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1,
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1,
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR></TABLE>' },
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1, 
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR><TR><TD>unknown</TD><TD>status can not be determined for some reason</TD></TR><TR><TD>dormant</TD><TD></TD></TR><TR><TD>notPresent</TD><TD>some component are missing</TD></TR><TR><TD>lowerLayerDown</TD><TD>down due to state of lower-layer interface(s)</TD></TR></TABLE>' },
-    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                 Enabled => $ghOptions{'duplex'} },
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'stp'} },
-    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => $ghOptions{'vlan'} },
-    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
-    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
-    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                           Enabled => 1 },
-    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => $ghOptions{'ipinfo'} },
-    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                 Enabled => 1 },
-    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade', Enabled => 1, 
+    { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'duplex'} },
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'stp'} },
+    { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => $ghOptions{'vlan'} },
+    { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
+    { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
+    { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
+    { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'ipinfo'} },
+    { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
+    { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
         Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
-    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                 Enabled => 1 },
+    { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                        Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
 
@@ -546,6 +557,15 @@ if ($ghOptions{'nodetype'} eq "brocade") {
     $grefhCurrent->{MD}->{Node}->{brocade_firmware} = "$refhSNMPResult->{$oid_brocade_swFirmwareVersion{'oid'}}";
     $grefhCurrent->{MD}->{Node}->{brocade_model} = "$refhSNMPResult->{$oid_brocade_model{'oid'}}";
     $grefhCurrent->{MD}->{Node}->{brocade_serial} = "$refhSNMPResult->{$oid_brocade_serial{'oid'}}";
+}
+if ($ghOptions{'nodetype'} eq "nortel") {
+    eval {
+        my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_nortel_model{'oid'}","$oid_nortel_serial{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
+        $refhSNMPResult = GetDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    $grefhCurrent->{MD}->{Node}->{nortel_model} = "$refhSNMPResult->{$oid_nortel_model{'oid'}}";
+    $grefhCurrent->{MD}->{Node}->{nortel_serial} = "$refhSNMPResult->{$oid_nortel_serial{'oid'}}";
 }
 
 # ------------------------------------------------------------------------------
@@ -676,6 +696,31 @@ elsif ($ghOptions{'nodetype'} eq "brocade") {
         }
     }
     ###Get_Vlan (); # Gather interface vlans
+    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+
+}
+# +++++ Nortel +++++
+elsif ($ghOptions{'nodetype'} eq "nortel") {
+    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
+    Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
+    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
+    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
+    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
+        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Error_Discard();
+    if ($ghOptions{'pkt'}) {
+        # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
+            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
+    ($ghOptions{'vlan'}) && Get_Vlan_Nortel (\%oid_nortel_rcVlanPortVlanIds); # Gather interface vlans
     ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
 
 }
@@ -837,6 +882,8 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{cisco_serial}";
 } elsif ($ghOptions{'nodetype'} eq "brocade") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_serial}";
+} elsif ($ghOptions{'nodetype'} eq "nortel") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{nortel_serial}";
 }
 if ($ghOptions{'nodetype'} eq "netapp") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{netapp_model}";
@@ -844,6 +891,8 @@ if ($ghOptions{'nodetype'} eq "netapp") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{bigip_model}";
 } elsif ($ghOptions{'nodetype'} eq "brocade") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_model}";
+} elsif ($ghOptions{'nodetype'} eq "nortel") {
+    $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{nortel_model}";
 }
 if ($ghOptions{'nodetype'} eq "brocade") {
     $grefAoHInfoTableData->[0]->[$counterInfoTableData++]->{Value} = "$grefhCurrent->{MD}->{Node}->{brocade_firmware}";
@@ -2935,6 +2984,52 @@ sub Get_Vlan_Hp {
     return 0;
 }
 
+# ------------------------------------------------------------------------
+# Get_Vlan_Nortel
+# ------------------------------------------------------------------------
+# Description: walk through each interface and read vlan info
+# ------------------------------------------------------------------------
+sub Get_Vlan_Nortel {
+
+    my $refhOID = shift;
+    my $refhSNMPResult;       # Lines returned from snmpwalk storing ifAdminStatus
+
+    # get all interface adminstatus - no caching !
+    eval {
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOID->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0));
+        $refhSNMPResult = GetTableDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    # Example (to verify)
+    #   1 => "00 01 00 04 00 05 00 06 00 0C",
+    #   2 => "00 01 00 0C",
+    #   3 => "00 01 00 02 00 05 00 06 00 07 00 08 00 0B 00 0C",
+    
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        if (defined $refhSNMPResult->{$Index}) {
+            my @VlanIdsArray = split(' ', $refhSNMPResult->{$Index});
+            # Convert HEX-String to number
+            my $VlanIdsString = "";
+            for my $i (0 .. $#VlanIdsArray) {
+                $VlanIdsString .= ', ' if ($VlanIdsString);
+                my $num = 0;
+                map { $num *= 16; $num += $convhex2dec{$_}; } split //, "${VlanIdsArray[$i]}${VlanIdsArray[++$i]}";
+                $VlanIdsString .= "$num";
+            }
+            # Store the vlan list
+            $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} = "$VlanIdsString";
+            logger(2, "Index=$Index ($ifName): VlanIds=\"$VlanIdsString\"");
+        } else {
+            #$grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} = undef;
+            logger(2, "Index=$Index ($ifName): VlanIds not found for the interface");
+        }
+    }
+    return 0;
+}
+
 # ------------------------------------------------------------------------------
 # Get_InterfaceNames_Bigip
 # ------------------------------------------------------------------------------
@@ -4973,7 +5068,7 @@ sub print_usage () {
         Sets the directory where the interface states are stored.
     --nodetype (optional)
         Specify the node type, for specific information to be printed / specific oids to be used
-        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.
+        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.
     --(no)duplex (optional)
         Add the duplex mode property for each interface in the interface table.
     --(no)stp (optional)
@@ -5112,7 +5207,7 @@ sub check_options () {
         'vlan!',                                # Add vlan attribution info for each interface
         'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
-                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.
+                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
         'snapshot!',
@@ -5419,14 +5514,14 @@ sub check_options () {
         $ghOptions{'stp'} = $commandline{stp};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$/i) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^nortel$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
-            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade.\n";
+            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
-    if (exists $commandline{vlan} and $ghOptions{'nodetype'} =~ /^cisco$|^hp$/i) {
+    if (exists $commandline{vlan} and $ghOptions{'nodetype'} =~ /^cisco$|^hp$|^nortel$/i) {
         $ghOptions{'vlan'} = $commandline{vlan};
     } else {
         $ghOptions{'vlan'} = 0;
