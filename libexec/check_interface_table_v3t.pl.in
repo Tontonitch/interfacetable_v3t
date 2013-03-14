@@ -528,7 +528,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
         my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResult = GetDataWithSnmp (\%hOptions);
     };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_cisco_ChassisModel, \%oid_cisco_ChassisSrNumStr ])) if ($@);
     $grefhCurrent->{MD}->{Node}->{cisco_type}   = "$refhSNMPResult->{$oid_cisco_ChassisModel{'oid'}}";
     $grefhCurrent->{MD}->{Node}->{cisco_serial} = "$refhSNMPResult->{$oid_cisco_ChassisSrNumStr{'oid'}}";
 }
@@ -1148,6 +1148,7 @@ exit $ERRORS{"UNKNOWN"};
 # * TimeDiff
 # * Colorcode
 # * ExitPlugin
+# * add_oid_details
 # --- Plugin common functions ---
 # * print_usage
 # * print_defaults
@@ -1700,7 +1701,7 @@ sub Get_Stp {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_dot1dBasePortIfIndex{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
         $refhSNMPResultStpIfIndexMap = GetTableDataWithSnmp (\%hOptions);
     };
-    ExitPlugin($ERRORS{"UNKNOWN"}, $@->message()) if ($@);
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_dot1dBasePortIfIndex ])) if ($@);
 
     while ( my ($Idx1,$Idx2) = each(%$refhSNMPResultStpIfIndexMap) ) {
         $grefhCurrent->{MD}->{Map}->{dot1dBridge}->{StpIndexToIndex}->{"$Idx1"} = $Idx2;
@@ -4837,6 +4838,21 @@ sub ExitPlugin {
     print "\n";
 
     exit $code;
+}
+
+# ------------------------------------------------------------------------------
+# add_oid_details
+# ------------------------------------------------------------------------------
+# Description: check a string and add the object name and the mib corresponding 
+# to an oid if this one is found
+# ------------------------------------------------------------------------------
+sub add_oid_details {
+    my $message = shift;
+    my $refaohOID = shift;
+    foreach my $refhOID (@{$refaohOID}) {
+        $message =~ s/(\"+$refhOID->{'oid'}\"+)/$1 ($refhOID->{'name'}, mib $refhOID->{'mib'})/g;
+    }
+    return $message;
 }
 
 
