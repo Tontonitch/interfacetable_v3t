@@ -685,7 +685,7 @@ elsif ($ghOptions{'nodetype'} eq "netapp") {
 elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
-    Get_OperStatus_Netscreen (\%oid_ifOperStatus, \%oid_juniper_nsrpVsdMemberStatus); # Gather interface operational status
+    Get_OperStatus_Netscreen (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
     ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
