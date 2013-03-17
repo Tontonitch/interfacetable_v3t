@@ -94,17 +94,10 @@
 #         - epn support back
 #         - better support of IP info for HP Procurve switches
 #         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
-# IN PROG - netscreen, nsrp_state_oid (nsrpVsdMemberStatus: 1.3.6.1.4.1.3224.6.2.2.1.3.1 in NETSCREEN-NSRP-MIB)
-#             -> Notes on nsrpVsdMemberStatus
-#                   undefined(0),
-#                   init(1),
-#                   master(2),
-#                   primary-backup(3),
-#                   backup(4),
-#                   ineligible(5),
-#                   inoperable(6)
+# DONE    - netscreen, NSRP status support
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
 # IN PROG - https / ssl support/guidelines
+# IN PROG - automatic nodetype detection
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
