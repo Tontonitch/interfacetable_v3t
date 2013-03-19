@@ -68,10 +68,9 @@
 # DONE    - new cache storage methods to store hashs and arrays
 #         - usage help update
 #         - website help & doc update
+#            -> tag new features and changes introduced in 0.05
 #         - website doc : howto html output on nagiosxi
 # IN PROG - test of ncsp module in case it now support huge perfdata outputs
-# DONE    - VLAN support for Nortel switches (Avaya)
-# DONE    - Alias support for Brocade switches
 #         - review all script comments: function desc and syntax, examples, function list, 
 #         - function descriptions / syntax
 #         - review all examples
@@ -89,6 +88,8 @@
 #             * bluecoat, 
 #             * hp (HP Procurve support)
 #             * ...
+# DONE    - VLAN support for Nortel switches (Avaya)
+# DONE    - Alias support for Brocade switches
 # DONE    - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
 #           + extended 32-bit counters (low/high)
 #         - epn support back
@@ -98,6 +99,8 @@
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
 # IN PROG - https / ssl support/guidelines
 # IN PROG - automatic nodetype detection
+#         - update snmpsim recorder
+#         - update bank of snmp device snapshots
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
