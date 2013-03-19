@@ -630,24 +630,24 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
     Get_Error_Discard();
-    if ($ghOptions{'pkt'}) {
-        # Gather interface packet traffic
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
         if ($ghSNMPOptions{'64bits'}) {
-            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
-            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
         } else {
             Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
         }
     }
-    ($ghOptions{'vlan'}) && Get_Vlan_Cisco (\%oid_cisco_vmVlan); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
+    Get_Vlan_Cisco (\%oid_cisco_vmVlan) if ($ghOptions{'vlan'}); # Gather interface vlans
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 # +++++ HP +++++
 elsif ($ghOptions{'nodetype'} eq "hp") {
@@ -655,15 +655,17 @@ elsif ($ghOptions{'nodetype'} eq "hp") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
     Get_Error_Discard();
-    ($ghOptions{'vlan'}) && Get_Vlan_Hp (); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
+    Get_Vlan_Hp () if ($ghOptions{'vlan'}); # Gather interface vlans
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 # +++++ Netapp +++++
 elsif ($ghOptions{'nodetype'} eq "netapp") {
@@ -671,15 +673,16 @@ elsif ($ghOptions{'nodetype'} eq "netapp") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_netapp_if64InOctets, \%oid_netapp_if64OutOctets)
-        || Get_Traffic ('HighLow', \%oid_netapp_ifHighInOctets, \%oid_netapp_ifLowInOctets, \%oid_netapp_ifHighOutOctets,
-            \%oid_netapp_ifLowOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {
+        Get_Traffic ('64', \%oid_netapp_if64InOctets, \%oid_netapp_if64OutOctets);
+    } else {
+        Get_Traffic ('HighLow', \%oid_netapp_ifHighInOctets, \%oid_netapp_ifLowInOctets, \%oid_netapp_ifHighOutOctets, \%oid_netapp_ifLowOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    }
     Get_Error_Discard();
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 # +++++ Netscreen +++++
 elsif ($ghOptions{'nodetype'} eq "netscreen") {
@@ -687,16 +690,18 @@ elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus_Netscreen (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo_Netscreen (\%oid_juniper_nsIfName, \%oid_juniper_nsIfIp, \%oid_juniper_nsIfNetmask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo_Netscreen (\%oid_juniper_nsIfName, \%oid_juniper_nsIfIp, \%oid_juniper_nsIfNetmask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
+    }
     Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
     Get_Specific_Netscreen (); # Gather Juniper Netscreen specific info
-
 }
 # +++++ F5 BigIp +++++
 elsif ($ghOptions{'nodetype'} eq "bigip") {
@@ -704,11 +709,10 @@ elsif ($ghOptions{'nodetype'} eq "bigip") {
     Get_InterfaceEnabled_Bigip (\%oid_bigip_sysInterfaceEnabled); # Gather interface administration status
     Get_InterfaceStatus_Bigip (\%oid_bigip_sysInterfaceStatus); # Gather interface operational status
     Get_Speed (undef, \%oid_bigip_sysIfxStatHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_bigip_sysIfxStatAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_bigip_sysInterfaceMediaActiveDuplex); # Gather interface duplex state
+    Get_Alias (\%oid_bigip_sysIfxStatAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_bigip_sysInterfaceMediaActiveDuplex) if ($ghOptions{'duplex'}); # Gather interface duplex state
     Get_Traffic ('64', \%oid_bigip_sysIfxStatHcInOctets, \%oid_bigip_sysIfxStatHcOutOctets); # Gather interface traffics (in/out and packet errors/discards)
 #    Get_Error_Drop_Collision_Bigip ();
-
 }
 # +++++ BlueCoat +++++
 elsif ($ghOptions{'nodetype'} eq "bluecoat") {
@@ -716,15 +720,17 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAddressIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAddressIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
+    }
     Get_Error_Discard();
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 # +++++ Brocade +++++
 elsif ($ghOptions{'nodetype'} eq "brocade") {
@@ -732,23 +738,24 @@ elsif ($ghOptions{'nodetype'} eq "brocade") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias_Brocade (); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias_Brocade () if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
     Get_Error_Discard();
-    if ($ghOptions{'pkt'}) {
-        # Gather interface packet traffic
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
         if ($ghSNMPOptions{'64bits'}) {
-            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
-            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
         } else {
             Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
         }
     }
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 
 }
 # +++++ Nortel +++++
@@ -757,23 +764,24 @@ elsif ($ghOptions{'nodetype'} eq "nortel") {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
     Get_Error_Discard();
-    if ($ghOptions{'pkt'}) {
-        # Gather interface packet traffic
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
         if ($ghSNMPOptions{'64bits'}) {
-            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
-            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
         } else {
             Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
         }
     }
-    ($ghOptions{'vlan'}) && Get_Vlan_Nortel (\%oid_nortel_rcVlanPortVlanIds); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
+    Get_Vlan_Nortel (\%oid_nortel_rcVlanPortVlanIds) if ($ghOptions{'vlan'}); # Gather interface vlans
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 
 }
 # +++++ Standard device +++++
@@ -782,24 +790,24 @@ else {
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
-    ($ghOptions{'alias'}) && Get_Alias (\%oid_ifAlias); # Gather interface alias
-    ($ghOptions{'duplex'}) && Get_Duplex (\%oid_ifDuplexStatus); # Gather interface duplex state
-    ($ghOptions{'ipinfo'}) && Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask); # Gather interface ip addresses and masks
-    ($ghSNMPOptions{'64bits'}) && Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets)
-        || Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); # Gather interface traffics (in/out and packet errors/discards)
+    Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
     Get_Error_Discard();
-    if ($ghOptions{'pkt'}) {
-        # Gather interface packet traffic
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
         if ($ghSNMPOptions{'64bits'}) {
-            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts,
-            \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
         } else {
             Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
         }
     }
     ###Get_Vlan (); # Gather interface vlans
-    ($ghOptions{'stp'}) && Get_Stp (); # Gather Spanning Tree specific info
-
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 
 logger(5, "Get interface info -> generated hash\ngrefhCurrent:".Dumper($grefhCurrent));
@@ -2960,30 +2968,35 @@ sub Get_Vlan_Cisco {
     my $refhOID = shift;
     my $refhSNMPResult;
 
-    # get ifDuplexStatus table
+    # get if vlan table
     eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOID->{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 0));
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOID->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0));
         $refhSNMPResult = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOID ])) if ($@);
 
-    if (defined $refhSNMPResult and @$refhSNMPResult > 0) {
-        foreach my $tmp ( @$refhSNMPResult ) {
-            my ($oid, $vlan) = split(/ /, $tmp);
-            chomp($vlan);
-            my @oid = split(/\./, $oid);
-            my $port = $oid[-1];
-            my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$port};
+    # Get info from snmp/cache
+    #------------------------------------------
 
-            # store ifVlanNames
-            if((defined $ifName) and ($ifName ne '')) {
-                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} = '' unless (defined $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
-                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $vlan. " ";
-                logger(2, "  Vlan=" . $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
-            }
-        }
+    # Example of refhSNMPResult info:
+    #  172.31.99.76 15
+    #  193.83.153.254 29
+    while ( my ($Index,$Vlan) = each(%$refhSNMPResult) ) {
+
+        #Check that the index match a known interface. skip if not
+        next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
+
+        # get the interface ifName stored before from the index table
+        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
+        logger(2, "IfName=\"$ifName\", Vlan=\"$Vlan\"");
+        
+        # separate multiple IP Adresses with a blank
+        # blank is good because the WEB browser can break lines
+        $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= ", " if ($grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
+
+        # add the vlan as property of the interface
+        $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $Vlan;
     }
-
     return 0;
 }
 
@@ -2999,7 +3012,6 @@ sub Get_Vlan_Hp {
     my $refhSNMPResultVlanName;
     my $refhSNMPResultHPVlanPort;
 
-    # store Vlan names in a hash
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDVlanName->{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResultVlanName = GetTableDataWithSnmp (\%hOptions);
@@ -3014,7 +3026,6 @@ sub Get_Vlan_Hp {
         $vlanname{$oid} =~ tr/"<>/'../; #"
     }
 
-    # store Vlan names in a hash
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDPVlanPort->{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResultHPVlanPort = GetTableDataWithSnmp (\%hOptions);
