@@ -15,6 +15,13 @@ body {
     font-style: italic;
 }
 
+a.title {
+    font-family: "Arial Black";
+    font-style: small-caps;
+    font-size: 11pt;
+    color: grey;
+}
+
 /* Styles prefixed by icon */
 .information {
     background-image: url('../img/information.png');
