@@ -88,6 +88,75 @@ my %oid_sysName         = ( name => "sysName",      mib => "RFC1213-MIB", oid =>
 my %oid_sysLocation     = ( name => "sysLocation",  mib => "RFC1213-MIB", oid => "1.3.6.1.2.1.1.6.0" );
 
 my %oid_ifDescr         = ( name => "ifDescr",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.2" );     # + ".<index>"
+my %oid_ifType          = ( name => "ifType",        mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.3", convertToReadable => {
+   1=>'other',                        2=>'regular1822',                     3=>'hdh1822',                     4=>'ddnX25',
+   5=>'rfc877x25',                    6=>'ethernetCsmacd',                  7=>'iso88023Csmacd',              8=>'iso88024TokenBus',
+   9=>'iso88025TokenRing',           10=>'iso88026Man',                    11=>'starLan',                    12=>'proteon10Mbit',
+  13=>'proteon80Mbit',               14=>'hyperchannel',                   15=>'fddi',                       16=>'lapb', 
+  17=>'sdlc',                        18=>'ds1',                            19=>'e1',                         20=>'basicISDN',
+  21=>'primaryISDN',                 22=>'propPointToPointSerial',         23=>'ppp',                        24=>'softwareLoopback',
+  25=>'eon',                         26=>'ethernet3Mbit',                  27=>'nsip',                       28=>'slip',
+  29=>'ultra',                       30=>'ds3',                            31=>'sip',                        32=>'frameRelay',
+  33=>'rs232',                       34=>'para',                           35=>'arcnet',                     36=>'arcnetPlus',
+  37=>'atm',                         38=>'miox25',                         39=>'sonet',                      40=>'x25ple',
+  41=>'iso88022llc',                 42=>'localTalk',                      43=>'smdsDxi',                    44=>'frameRelayService',
+  45=>'v35',                         46=>'hssi',                           47=>'hippi',                      48=>'modem',
+  49=>'aal5',                        50=>'sonetPath',                      51=>'sonetVT',                    52=>'smdsIcip',
+  53=>'propVirtual',                 54=>'propMultiplexor',                55=>'ieee80212',                  56=>'fibreChannel',
+  57=>'hippiInterface',              58=>'frameRelayInterconnect',         59=>'aflane8023',                 60=>'aflane8025',
+  61=>'cctEmul',                     62=>'fastEther',                      63=>'isdn',                       64=>'v11',
+  65=>'v36',                         66=>'g703at64k',                      67=>'g703at2mb',                  68=>'qllc',
+  69=>'fastEtherFX',                 70=>'channel',                        71=>'ieee80211',                  72=>'ibm370parChan',
+  73=>'escon',                       74=>'dlsw',                           75=>'isdns',                      76=>'isdnu',
+  77=>'lapd',                        78=>'ipSwitch',                       79=>'rsrb',                       80=>'atmLogical',
+  81=>'ds0',                         82=>'ds0Bundle',                      83=>'bsc',                        84=>'async',
+  85=>'cnr',                         86=>'iso88025Dtr',                    87=>'eplrs',                      88=>'arap',
+  89=>'propCnls',                    90=>'hostPad',                        91=>'termPad',                    92=>'frameRelayMPI',
+  93=>'x213',                        94=>'adsl',                           95=>'radsl',                      96=>'sdsl',
+  97=>'vdsl',                        98=>'iso88025CRFPInt',                99=>'myrinet',                   100=>'voiceEM',
+ 101=>'voiceFXO',                   102=>'voiceFXS',                      103=>'voiceEncap',                104=>'voiceOverIp',
+ 105=>'atmDxi',                     106=>'atmFuni',                       107=>'atmIma',                    108=>'pppMultilinkBundle',
+ 109=>'ipOverCdlc',                 110=>'ipOverClaw',                    111=>'stackToStack',              112=>'virtualIpAddress',
+ 113=>'mpc',                        114=>'ipOverAtm',                     115=>'iso88025Fiber',             116=>'tdlc',
+ 117=>'gigabitEthernet',            118=>'hdlc',                          119=>'lapf',                      120=>'v37',
+ 121=>'x25mlp',                     122=>'x25huntGroup',                  123=>'transpHdlc',                124=>'interleave',
+ 125=>'fast',                       126=>'ip',                            127=>'docsCableMaclayer',         128=>'docsCableDownstream',
+ 129=>'docsCableUpstream',          130=>'a12MppSwitch',                  131=>'tunnel',                    132=>'coffee',
+ 133=>'ces',                        134=>'atmSubInterface',               135=>'l2vlan',                    136=>'l3ipvlan',
+ 137=>'l3ipxvlan',                  138=>'digitalPowerline',              139=>'mediaMailOverIp',           140=>'dtm',
+ 141=>'dcn',                        142=>'ipForward',                     143=>'msdsl',                     144=>'ieee1394',
+ 145=>'if-gsn',                     146=>'dvbRccMacLayer',                147=>'dvbRccDownstream',          148=>'dvbRccUpstream',
+ 149=>'atmVirtual',                 150=>'mplsTunnel',                    151=>'srp',                       152=>'voiceOverAtm',
+ 153=>'voiceOverFrameRelay',        154=>'idsl',                          155=>'compositeLink',             156=>'ss7SigLink',
+ 157=>'propWirelessP2P',            158=>'frForward',                     159=>'rfc1483',                   160=>'usb',
+ 161=>'ieee8023adLag',              162=>'bgppolicyaccounting',           163=>'frf16MfrBundle',            164=>'h323Gatekeeper',
+ 165=>'h323Proxy',                  166=>'mpls',                          167=>'mfSigLink',                 168=>'hdsl2',
+ 169=>'shdsl',                      170=>'ds1FDL',                        171=>'pos',                       172=>'dvbAsiIn',
+ 173=>'dvbAsiOut',                  174=>'plc',                           175=>'nfas',                      176=>'tr008',
+ 177=>'gr303RDT',                   178=>'gr303IDT',                      179=>'isup',                      180=>'propDocsWirelessMaclayer',
+ 181=>'propDocsWirelessDownstream', 182=>'propDocsWirelessUpstream',      183=>'hiperlan2',                 184=>'propBWAp2Mp',
+ 185=>'sonetOverheadChannel',       186=>'digitalWrapperOverheadChannel', 187=>'aal2',                      188=>'radioMAC',
+ 189=>'atmRadio',                   190=>'imt',                           191=>'mvl',                       192=>'reachDSL',
+ 193=>'frDlciEndPt',                194=>'atmVciEndPt',                   195=>'opticalChannel',            196=>'opticalTransport',
+ 197=>'propAtm',                    198=>'voiceOverCable',                199=>'infiniband',                200=>'teLink',
+ 201=>'q2931',                      202=>'virtualTg',                     203=>'sipTg',                     204=>'sipSig',
+ 205=>'docsCableUpstreamChannel',   206=>'econet',                        207=>'pon155',                    208=>'pon622',
+ 209=>'bridge',                     210=>'linegroup',                     211=>'voiceEMFGD',                212=>'voiceFGDEANA',
+ 213=>'voiceDID',                   214=>'mpegTransport',                 215=>'sixToFour',                 216=>'gtp',
+ 217=>'pdnEtherLoop1',              218=>'pdnEtherLoop2',                 219=>'opticalChannelGroup',       220=>'homepna',
+ 221=>'gfp',                        222=>'ciscoISLvlan',                  223=>'actelisMetaLOOP',           224=>'fcipLink',
+ 225=>'rpr',                        226=>'qam',                           227=>'lmp',                       228=>'cblVectaStar',
+ 229=>'docsCableMCmtsDownstream',   230=>'adsl2',                         231=>'macSecControlledIF',        232=>'macSecUncontrolledIF',
+ 233=>'aviciOpticalEther',          234=>'atmbond',                       235=>'voiceFGDOS',                236=>'mocaVersion1',
+ 237=>'ieee80216WMAN',              238=>'adsl2plus',                     239=>'dvbRcsMacLayer',            240=>'dvbTdm',
+ 241=>'dvbRcsTdma',                 242=>'x86Laps',                       243=>'wwanPP',                    244=>'wwanPP2',
+ 245=>'voiceEBS',                   246=>'ifPwType',                      247=>'ilan',                      248=>'pip',
+ 249=>'aluELP',                     250=>'gpon',                          251=>'vdsl2',                     252=>'capwapDot11Profile',
+ 253=>'capwapDot11Bss',             254=>'capwapWtpVirtualRadio',         255=>'bits',                      256=>'docsCableUpstreamRfPort',
+ 257=>'cableDownstreamRfPort',      258=>'vmwareVirtualNic',              259=>'ieee802154',                260=>'otnOdu',
+ 261=>'otnOtu',                     262=>'ifVfiType',                     263=>'g9981',                     264=>'g9982',
+ 265=>'g9983',                      266=>'aluEpon',                       267=>'aluEponOnu',                268=>'aluEponPhysicalUni',
+ 269=>'aluEponLogicalLink',         270=>'aluGponOnu',                    271=>'aluGponPhysicalUni',        272=>'vmwareNicTeam'} );     # + ".<index>"
 my %oid_ifAlias         = ( name => "ifAlias",       mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.18" ); # + ".<index>"
 my %oid_ifSpeed         = ( name => "ifSpeed",       mib => "IF-MIB", oid => "1.3.6.1.2.1.2.2.1.5" );     # + ".<index>"
 my %oid_ifHighSpeed     = ( name => "ifHighSpeed",   mib => "IF-MIB", oid => "1.3.6.1.2.1.31.1.1.1.15" ); # + ".<index>"
@@ -345,7 +414,144 @@ my %quadmask2dec = (
 my %convhex2dec = qw(	0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 
 				                        a 10 b 11 c 12 d 13 e 14 f 15 
 				                        A 10 B 11 C 12 D 13 E 14 F 15 );
-
+my %ifTypeDescriptions = (
+    1=>'Other types (other)',                                       137=>'Layer 3 Virtual LAN using IPX (l3ipxvlan)',
+    2=>'regular1822 (regular1822)',                                 138=>'IP over Power Lines (digitalPowerline)',
+    3=>'hdh1822 (hdh1822)',                                         139=>'Multimedia Mail over IP (mediaMailOverIp)',
+    4=>'ddnX25 (ddnX25)',                                           140=>'Dynamic syncronous Transfer Mode (dtm)',
+    5=>'Rfc877x25 (rfc877x25)',                                     141=>'Data Communications Network (dcn)',
+    6=>'Ethernet-like interfaces (ethernetCsmacd)',                 142=>'IP Forwarding Interface (ipForward)',
+    7=>'Ethernet-like interfaces (iso88023Csmacd)',                 143=>'Multi-rate Symmetric DSL (msdsl)',
+    8=>'Iso88024TokenBus (iso88024TokenBus)',                       144=>'IEEE1394 High Performance Serial Bus (ieee1394)',
+    9=>'Iso88025TokenRing (iso88025TokenRing)',                     145=>'HIPPI-6400 (if-gsn)',
+    10=>'Iso88026Man (iso88026Man)',                                146=>'DVB-RCC MAC Layer (dvbRccMacLayer)',
+    11=>'Ethernet-like interfaces (starLan)',                       147=>'DVB-RCC Downstream Channel (dvbRccDownstream)',
+    12=>'Proteon10Mbit (proteon10Mbit)',                            148=>'DVB-RCC Upstream Channel (dvbRccUpstream)',
+    13=>'Proteon80Mbit (proteon80Mbit)',                            149=>'ATM Virtual Interface (atmVirtual)',
+    14=>'Hyperchannel (hyperchannel)',                              150=>'MPLS Tunnel Virtual Interface (mplsTunnel)',
+    15=>'Fddi (fddi)',                                              151=>'Spatial Reuse Protocol (srp)',
+    16=>'Lapb (lapb)',                                              152=>'Voice Over ATM (voiceOverAtm)',
+    17=>'Sdlc (sdlc)',                                              153=>'Voice Over Frame Relay (voiceOverFrameRelay)',
+    18=>'DS1-MIB (ds1)',                                            154=>'Digital Subscriber Loop over ISDN (idsl)',
+    19=>'DS1-MIB (e1)',                                             155=>'Avici Composite Link Interface (compositeLink)',
+    20=>'BasicISDN (basicISDN)',                                    156=>'SS7 Signaling Link (ss7SigLink)',
+    21=>'PrimaryISDN (primaryISDN)',                                157=>'Prop. P2P wireless interface (propWirelessP2P)',
+    22=>'Proprietary serial (propPointToPointSerial)',              158=>'Frame Forward Interface (frForward)',
+    23=>'ppp (ppp)',                                                159=>'Multiprotocol over ATM AAL5 (rfc1483)',
+    24=>'Software Loopback (softwareLoopback)',                     160=>'USB Interface (usb)',
+    25=>'CLNP over IP (eon)',                                       161=>'IEEE 802.3ad Link Aggregate (ieee8023adLag)',
+    26=>'Ethernet 3Mbit (ethernet3Mbit)',                           162=>'BGP Policy Accounting (bgppolicyaccounting)',
+    27=>'XNS over IP (nsip)',                                       163=>'FRF .16 Multilink Frame Relay  (frf16MfrBundle)',
+    28=>'Generic SLIP (slip)',                                      164=>'H323 Gatekeeper (h323Gatekeeper)',
+    29=>'ULTRA technologies (ultra)',                               165=>'H323 Voice and Video Proxy (h323Proxy)',
+    30=>'DS3-MIB (ds3)',                                            166=>'MPLS (mpls)',
+    31=>'SMDS, coffee (sip)',                                       167=>'Multi-frequency signaling link (mfSigLink)',
+    32=>'DTE only.  (frameRelay)',                                  168=>'High Bit-Rate DSL - 2nd generation (hdsl2)',
+    33=>'rs232 (rs232)',                                            169=>'Multirate HDSL2 (shdsl)',
+    34=>'Parallel-port (para)',                                     170=>'Facility Data Link 4Kbps on a DS1 (ds1FDL)',
+    35=>'Arcnet (arcnet)',                                          171=>'Packet over SONET/SDH Interface (pos)',
+    36=>'Arcnet plus (arcnetPlus)',                                 172=>'DVB-ASI Input (dvbAsiIn)',
+    37=>'ATM cells (atm)',                                          173=>'DVB-ASI Output (dvbAsiOut)',
+    38=>'miox25 (miox25)',                                          174=>'Power Line Communtications (plc)',
+    39=>'SONET or SDH  (sonet)',                                    175=>'Non Facility Associated Signaling (nfas)',
+    40=>'x25ple (x25ple)',                                          176=>'TR008 (tr008)',
+    41=>'iso88022llc (iso88022llc)',                                177=>'Remote Digital Terminal (gr303RDT)',
+    42=>'localTalk (localTalk)',                                    178=>'Integrated Digital Terminal (gr303IDT)',
+    43=>'smdsDxi (smdsDxi)',                                        179=>'ISUP (isup)',
+    44=>'FRNETSERV-MIB (frameRelayService)',                        180=>'Cisco proprietary Maclayer (propDocsWirelessMaclayer)',
+    45=>'v35 (v35)',                                                181=>'Cisco proprietary Downstream (propDocsWirelessDownstream)',
+    46=>'hssi (hssi)',                                              182=>'Cisco proprietary Upstream (propDocsWirelessUpstream)',
+    47=>'hippi (hippi)',                                            183=>'HIPERLAN Type 2 Radio Interface (hiperlan2)',
+    48=>'Generic modem (modem)',                                    184=>'IEEE 802.16 WMAN interface (propBWAp2Mp)',
+    49=>'AAL5 over ATM (aal5)',                                     185=>'SONET Overhead Channel (sonetOverheadChannel)',
+    50=>'sonetPath (sonetPath)',                                    186=>'Digital Wrapper (digitalWrapperOverheadChannel)',
+    51=>'sonetVT (sonetVT)',                                        187=>'ATM adaptation layer 2 (aal2)',
+    52=>'SMDS InterCarrier Interface (smdsIcip)',                   188=>'MAC layer over radio links (radioMAC)',
+    53=>'proprietary virtual/internal (propVirtual)',               189=>'ATM over radio links (atmRadio)',
+    54=>'proprietary multiplexing (propMultiplexor)',               190=>'Inter Machine Trunks (imt)',
+    55=>'100BaseVG (ieee80212)',                                    191=>'Multiple Virtual Lines DSL (mvl)',
+    56=>'Fibre Channel (fibreChannel)',                             192=>'Long Reach DSL (reachDSL)',
+    57=>'HIPPI interfaces (hippiInterface)',                        193=>'Frame Relay DLCI End Point (frDlciEndPt)',
+    58=>'Frame Relay (frameRelayInterconnect)',                     194=>'ATM VCI End Point (atmVciEndPt)',
+    59=>'ATM Emulated LAN for 802.3 (aflane8023)',                  195=>'Optical Channel (opticalChannel)',
+    60=>'ATM Emulated LAN for 802.5 (aflane8025)',                  196=>'Optical Transport (opticalTransport)',
+    61=>'ATM Emulated circuit (cctEmul)',                           197=>'Proprietary ATM (propAtm)',
+    62=>'Ethernet-like interfaces (fastEther)',                     198=>'Voice Over Cable Interface (voiceOverCable)',
+    63=>'ISDN and X.25 (isdn)',                                     199=>'Infiniband (infiniband)',
+    64=>'CCITT V.11/X.21 (v11)',                                    200=>'TE Link (teLink)',
+    65=>'CCITT V.36 (v36)',                                         201=>'Q.2931 (q2931)',
+    66=>'CCITT G703 at 64Kbps (g703at64k)',                         202=>'Virtual Trunk Group (virtualTg)',
+    67=>'DS1-MIB (g703at2mb)',                                      203=>'SIP Trunk Group (sipTg)',
+    68=>'SNA QLLC (qllc)',                                          204=>'SIP Signaling (sipSig)',
+    69=>'Ethernet-like interfaces (fastEtherFX)',                   205=>'CATV Upstream Channel (docsCableUpstreamChannel)',
+    70=>'channel (channel)',                                        206=>'Acorn Econet (econet)',
+    71=>'radio spread spectrum (ieee80211)',                        207=>'FSAN 155Mb Symetrical PON interface (pon155)',
+    72=>'IBM System 360/370 OEMI Channel (ibm370parChan)',          208=>'FSAN622Mb Symetrical PON interface (pon622)',
+    73=>'IBM Enterprise Systems Connection (escon)',                209=>'Transparent bridge interface (bridge)',
+    74=>'Data Link Switching (dlsw)',                               210=>'Interface common to multiple lines    (linegroup)',
+    75=>'ISDN S/T interface (isdns)',                               211=>'voice E&M Feature Group D (voiceEMFGD)',
+    76=>'ISDN U interface (isdnu)',                                 212=>'voice FGD Exchange Access North American (voiceFGDEANA)',
+    77=>'Link Access Protocol D (lapd)',                            213=>'voice Direct Inward Dialing (voiceDID)',
+    78=>'IP Switching Objects (ipSwitch)',                          214=>'MPEG transport interface (mpegTransport)',
+    79=>'Remote Source Route Bridging (rsrb)',                      215=>'6to4 interface (sixToFour)',
+    80=>'ATM Logical Port (atmLogical)',                            216=>'GTP (GPRS Tunneling Protocol) (gtp)',
+    81=>'Digital Signal Level 0 (ds0)',                             217=>'Paradyne EtherLoop 1 (pdnEtherLoop1)',
+    82=>'group of ds0s on the same ds1 (ds0Bundle)',                218=>'Paradyne EtherLoop 2 (pdnEtherLoop2)',
+    83=>'Bisynchronous Protocol (bsc)',                             219=>'Optical Channel Group (opticalChannelGroup)',
+    84=>'Asynchronous Protocol (async)',                            220=>'HomePNA ITU-T G.989 (homepna)',
+    85=>'Combat Net Radio (cnr)',                                   221=>'Generic Framing Procedure (GFP) (gfp)',
+    86=>'ISO 802.5r DTR (iso88025Dtr)',                             222=>'Layer 2 Virtual LAN using Cisco ISL (ciscoISLvlan)',
+    87=>'Ext Pos Loc Report Sys (eplrs)',                           223=>'Acteleis proprietary MetaLOOP High Speed Link  (actelisMetaLOOP)',
+    88=>'Appletalk Remote Access Protocol (arap)',                  224=>'FCIP Link  (fcipLink)',
+    89=>'Proprietary Connectionless Protocol (propCnls)',           225=>'Resilient Packet Ring Interface Type (rpr)',
+    90=>'CCITT-ITU X.29 PAD Protocol (hostPad)',                    226=>'RF Qam Interface (qam)',
+    91=>'CCITT-ITU X.3 PAD Facility (termPad)',                     227=>'Link Management Protocol (lmp)',
+    92=>'Multiproto Interconnect over FR (frameRelayMPI)',          228=>'Cambridge Broadband Networks Limited VectaStar (cblVectaStar)',
+    93=>'CCITT-ITU X213 (x213)',                                    229=>'CATV Modular CMTS Downstream Interface (docsCableMCmtsDownstream)',
+    94=>'Asymmetric Digital Subscriber Loop (adsl)',                230=>'Asymmetric Digital Subscriber Loop Version 2 (adsl2)',
+    95=>'Rate-Adapt. Digital Subscriber Loop (radsl)',              231=>'MACSecControlled  (macSecControlledIF)',
+    96=>'Symmetric Digital Subscriber Loop (sdsl)',                 232=>'MACSecUncontrolled (macSecUncontrolledIF)',
+    97=>'Very H-Speed Digital Subscrib. Loop (vdsl)',               233=>'Avici Optical Ethernet Aggregate (aviciOpticalEther)',
+    98=>'ISO 802.5 CRFP (iso88025CRFPInt)',                         234=>'atmbond (atmbond)',
+    99=>'Myricom Myrinet (myrinet)',                                235=>'voice FGD Operator Services (voiceFGDOS)',
+    100=>'voice recEive and transMit (voiceEM)',                    236=>'MultiMedia over Coax Alliance (MoCA) Interface (mocaVersion1)',
+    101=>'voice Foreign Exchange Office (voiceFXO)',                237=>'IEEE 802.16 WMAN interface (ieee80216WMAN)',
+    102=>'voice Foreign Exchange Station (voiceFXS)',               238=>'Asymmetric Digital Subscriber Loop Version 2, Version 2 Plus and all variants (adsl2plus)',
+    103=>'voice encapsulation (voiceEncap)',                        239=>'DVB-RCS MAC Layer (dvbRcsMacLayer)',
+    104=>'voice over IP encapsulation (voiceOverIp)',               240=>'DVB Satellite TDM (dvbTdm)',
+    105=>'ATM DXI (atmDxi)',                                        241=>'DVB-RCS TDMA (dvbRcsTdma)',
+    106=>'ATM FUNI (atmFuni)',                                      242=>'LAPS based on ITU-T X.86/Y.1323 (x86Laps)',
+    107=>'ATM IMA (atmIma)',                                        243=>'3GPP WWAN (wwanPP)',
+    108=>'PPP Multilink Bundle (pppMultilinkBundle)',               244=>'3GPP2 WWAN (wwanPP2)',
+    109=>'IBM ipOverCdlc (ipOverCdlc)',                             245=>'voice P-phone EBS physical interface (voiceEBS)',
+    110=>'IBM Common Link Access to Workstn (ipOverClaw)',          246=>'Pseudowire interface type (ifPwType)',
+    111=>'IBM stackToStack (stackToStack)',                         247=>'Internal LAN on a bridge per IEEE 802.1ap (ilan)',
+    112=>'IBM VIPA (virtualIpAddress)',                             248=>'Provider Instance Port on a bridge per IEEE 802.1ah PBB (pip)',
+    113=>'IBM multi-protocol channel support (mpc)',                249=>'Alcatel-Lucent Ethernet Link Protection (aluELP)',
+    114=>'IBM ipOverAtm (ipOverAtm)',                               250=>'Gigabit-capable passive optical networks (G-PON) (gpon)',
+    115=>'ISO 802.5j Fiber Token Ring (iso88025Fiber)',             251=>'Very high speed digital subscriber line Version 2 (vdsl2)',
+    116=>'IBM twinaxial data link control (tdlc)',                  252=>'WLAN Profile Interface (capwapDot11Profile)',
+    117=>'Ethernet-like interfaces (gigabitEthernet)',              253=>'WLAN BSS Interface (capwapDot11Bss)',
+    118=>'HDLC (hdlc)',                                             254=>'WTP Virtual Radio Interface (capwapWtpVirtualRadio)',
+    119=>'LAP F (lapf)',                                            255=>'bitsport (bits)',
+    120=>'V.37 (v37)',                                              256=>'DOCSIS CATV Upstream RF Port (docsCableUpstreamRfPort)',
+    121=>'Multi-Link Protocol (x25mlp)',                            257=>'CATV downstream RF port (cableDownstreamRfPort)',
+    122=>'X25 Hunt Group (x25huntGroup)',                           258=>'VMware Virtual Network Interface (vmwareVirtualNic)',
+    123=>'Transp HDLC (transpHdlc)',                                259=>'IEEE 802.15.4 WPAN interface (ieee802154)',
+    124=>'Interleave channel (interleave)',                         260=>'OTN Optical Data Unit (otnOdu)',
+    125=>'Fast channel (fast)',                                     261=>'OTN Optical channel Transport Unit (otnOtu)',
+    126=>'IP (for APPN HPR in IP networks) (ip)',                   262=>'VPLS Forwarding Instance Interface Type (ifVfiType)',
+    127=>'CATV Mac Layer (docsCableMaclayer)',                      263=>'G.998.1 bonded interface (g9981)',
+    128=>'CATV Downstream interface (docsCableDownstream)',         264=>'G.998.2 bonded interface (g9982)',
+    129=>'CATV Upstream interface (docsCableUpstream)',             265=>'G.998.3 bonded interface (g9983)',
+    130=>'Avalon Parallel Processor (a12MppSwitch)',                266=>'Ethernet Passive Optical Networks (E-PON) (aluEpon)',
+    131=>'Encapsulation interface (tunnel)',                        267=>'EPON Optical Network Unit (aluEponOnu)',
+    132=>'coffee pot (coffee)',                                     268=>'EPON physical User to Network interface (aluEponPhysicalUni)',
+    133=>'Circuit Emulation Service (ces)',                         269=>'The emulation of a point-to-point link over the EPON layer (aluEponLogicalLink)',
+    134=>'ATM Sub Interface (atmSubInterface)',                     270=>'GPON Optical Network Unit (aluGponOnu)',
+    135=>'Layer 2 Virtual LAN using 802.1Q (l2vlan)',               271=>'GPON physical User to Network interface (aluGponPhysicalUni)',
+    136=>'Layer 3 Virtual LAN using IP (l3ipvlan)',                 272=>'VMware NIC Team (vmwareNicTeam)'
+);
 
 # ------------------------------------------------------------------------
 # Other global initializations
@@ -452,6 +658,8 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR></TABLE>' },
     { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR><TR><TD>unknown</TD><TD>status can not be determined for some reason</TD></TR><TR><TD>dormant</TD><TD></TD></TR><TR><TD>notPresent</TD><TD>some component are missing</TD></TR><TR><TD>lowerLayerDown</TD><TD>down due to state of lower-layer interface(s)</TD></TR></TABLE>' },
+    { Title => 'Type',                 Dataname => 'ifType',          Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'type'},
+        Tooltip => 'The type of interface. <br>Values for ifType are assigned by the Internet Assigned Numbers Authority (IANA), <br>and available in the IANAifType textual convention.' },
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'duplex'} },
     { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'stp'} },
@@ -627,6 +835,7 @@ if ($ghOptions{'nodetype'} eq "netscreen") {
 # +++++ Cisco +++++
 if ($ghOptions{'nodetype'} eq "cisco") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -652,6 +861,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 # +++++ HP +++++
 elsif ($ghOptions{'nodetype'} eq "hp") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -670,6 +880,7 @@ elsif ($ghOptions{'nodetype'} eq "hp") {
 # +++++ Netapp +++++
 elsif ($ghOptions{'nodetype'} eq "netapp") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -687,6 +898,7 @@ elsif ($ghOptions{'nodetype'} eq "netapp") {
 # +++++ Netscreen +++++
 elsif ($ghOptions{'nodetype'} eq "netscreen") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus_Netscreen (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -706,6 +918,7 @@ elsif ($ghOptions{'nodetype'} eq "netscreen") {
 # +++++ F5 BigIp +++++
 elsif ($ghOptions{'nodetype'} eq "bigip") {
     Get_InterfaceNames_Bigip (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+#    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_InterfaceEnabled_Bigip (\%oid_bigip_sysInterfaceEnabled); # Gather interface administration status
     Get_InterfaceStatus_Bigip (\%oid_bigip_sysInterfaceStatus); # Gather interface operational status
     Get_Speed (undef, \%oid_bigip_sysIfxStatHighSpeed); # Gather interface speed
@@ -717,6 +930,7 @@ elsif ($ghOptions{'nodetype'} eq "bigip") {
 # +++++ BlueCoat +++++
 elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -735,6 +949,7 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
 # +++++ Brocade +++++
 elsif ($ghOptions{'nodetype'} eq "brocade") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -761,6 +976,7 @@ elsif ($ghOptions{'nodetype'} eq "brocade") {
 # +++++ Nortel +++++
 elsif ($ghOptions{'nodetype'} eq "nortel") {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -787,6 +1003,7 @@ elsif ($ghOptions{'nodetype'} eq "nortel") {
 # +++++ Standard device +++++
 else {
     Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
@@ -1017,7 +1234,36 @@ $grefAoHConfigTableData->[8]->[1]->{Value} .= $ConfigTableOtherMsgInfo . $Config
 # do not compare ifName and ifIndex because they can change during reboot
 # Field list: index,ifName,ifAlias,ifAdminStatus,ifOperStatus,ifSpeedReadable,ifDuplexStatus,ifVlanNames,ifLoadIn,ifLoadOut,ifIpInfo,bpsIn,bpsOut,ifLastTraffic
 #
-$grefAoHInterfaceTableData = GenerateInterfaceTableData ($grefAoHInterfaceTableHeader,$ghOptions{'track-property'});
+
+if ($ghOptions{'table-split'}) {
+
+    logger(2, "Interface table data generation: a table per interface type");
+    my $InterfaceTypes;
+    for my $InterfaceIndex (@$grefaAllIndizes) {
+        
+        # Get normalized interface name (key for If data structure)
+        my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
+        # Skip the interface if config table enabled and interface excluded
+        if ($ghOptions{configtable} and $grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "true") {
+            next;
+        } else {
+            if ($grefhCurrent->{If}->{"$Name"}->{ifType}) {
+                my $TypeDescription = $ifTypeDescriptions{$grefhCurrent->{If}->{"$Name"}->{ifTypeNumber}};
+                push @{$InterfaceTypes->{"$TypeDescription"}}, $InterfaceIndex;
+            }
+        }
+    }
+    
+    while ( my ($Type, $Indexes) = each(%{$InterfaceTypes}) ) {
+        logger(3, "   * type: \"$Type\", interface indexes: ". join(", ", @{$Indexes}));
+        $grefAoHInterfaceTableData->{"$Type"} = GenerateInterfaceTableData ($Indexes, $grefAoHInterfaceTableHeader, $ghOptions{'track-property'});
+    }
+
+
+} else {
+    logger(2, "Interface table data generation: a unique table for all interfaces");
+    $grefAoHInterfaceTableData->{"Interface information"} = GenerateInterfaceTableData ($grefaAllIndizes, $grefAoHInterfaceTableHeader, $ghOptions{'track-property'});
+}
 
 # ------------------------------------------------------------------------------
 # Create HTML tables
@@ -1026,8 +1272,10 @@ $grefAoHInterfaceTableData = GenerateInterfaceTableData ($grefAoHInterfaceTableH
 # Create "small" information table
 $gInfoTableHTML = Convert2HtmlTable (1,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
 
-# Create "big" interface table
-$gInterfaceTableHTML   = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData,"interfacetable","#81BEF7");
+# Create "big" interface table(s)
+for my $Type (keys %{$grefAoHInterfaceTableData}) {
+    $gInterfaceTableHTML->{"$Type"} = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData->{"$Type"},"interfacetable","#81BEF7");
+}
 
 # Create configuration table
 logger(5, "Config table:".Dumper($grefAoHConfigTableData));
@@ -1175,6 +1423,7 @@ exit $ERRORS{"UNKNOWN"};
 # List:
 # --- Generic node functions ---
 # * Get_InterfaceNames
+# * Get_InterfaceType
 # * Get_AdminStatus
 # * Get_OperStatus
 # * Get_Speed
@@ -1394,6 +1643,40 @@ sub Get_InterfaceNames {
         $grefhCurrent->{If}->{$Name}->{ifDescr} = "$Desc";
         $grefhCurrent->{If}->{$Name}->{ifMacAddr} = "$MacAddr";
 
+    }
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# get ifType
+# ------------------------------------------------------------------------
+sub Get_InterfaceType {
+
+    my $refhOID = shift;
+    my $refhSNMPResult;       # Lines returned from snmpwalk storing ifType
+
+    # get all interface types - caching
+    eval {
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOID->{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 1, checkempty => 1));
+        $refhSNMPResult = GetTableDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOID ])) if ($@);
+
+    # loop through all found interfaces
+    for my $ifName (keys %{$grefhCurrent->{If}}) {
+        # Extract the index out of the MetaData
+        my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+        if (defined $refhSNMPResult->{$Index}) {
+            my $Type = $refhSNMPResult->{$Index};
+            $grefhCurrent->{If}->{"$ifName"}->{ifTypeNumber} = "$Type";
+            $grefhCurrent->{If}->{"$ifName"}->{ifType} = (defined $refhOID->{'convertToReadable'}->{"$Type"})
+                ? $refhOID->{'convertToReadable'}->{"$Type"} : $Type;
+            logger(2, "Index=$Index ($ifName): Type=".$grefhCurrent->{If}->{"$ifName"}->{ifType});
+        } else {
+            #$grefhCurrent->{If}->{"$ifName"}->{ifTypeNumber} = undef;
+            #$grefhCurrent->{If}->{"$ifName"}->{ifType} = undef;
+            logger(2, "Index=$Index ($ifName): Type not found for the interface");
+        }
     }
     return 0;
 }
@@ -4125,6 +4408,7 @@ sub CleanAndSelectHistoricalDataset {
 # ------------------------------------------------------------------------
 sub GenerateInterfaceTableData {
 
+    my $refaIndizes                 = shift;
     my $refAoHInterfaceTableHeader  = shift;
     my $refaToCompare               = shift;            # Array of fields which should be included from change tracking
     my $iLineCounter                = 0;                # Fluss Variable (ah geh ;-) )
@@ -4144,8 +4428,8 @@ sub GenerateInterfaceTableData {
     logger(5, "Available fields:".Dumper($refAoHInterfaceTableHeader));
     logger(5, "Tracked fields:".Dumper($refaToCompare));
 
-    # $grefaAllIndizes is a indexed and sorted list of all interfaces
-    for my $InterfaceIndex (@$grefaAllIndizes) {
+    # $refaIndizes is a indexed and sorted list of interfaces
+    for my $InterfaceIndex (@$refaIndizes) {
 
         # Current field ID
         my $iFieldCounter = 0;
@@ -4593,21 +4877,25 @@ sub WriteHtmlFile {
 
         # -- Tables --
         print OUT '    <div id="info">
-        <a name="topinfotable">Node information</a>' .
+        <a name="topinfotable" class="title">Node information</a>' .
         $refhStruct->{InfoTable} . '
     </div>
-    <br>
-    <div id="interface">
-        <a name=topinterfacetable>Interface information</a>' .
-        $refhStruct->{InterfaceTable} . '
-        <div id="toplink">
-            <a href="#topinterfacetable">Back to top</a>
-        </div>
-    </div>
+    <br>';
+        print OUT '    <div id="interface">';
+        my $i = 0;
+        for my $InterfaceTableTitle ( keys %{$refhStruct->{InterfaceTable}} ) {
+            print OUT '        <a name="topinterfacetable'.$i.'" class="title">'.$InterfaceTableTitle.'</a>' .
+            $refhStruct->{InterfaceTable}->{"$InterfaceTableTitle"} .
+        '<div id="toplink">
+            <a href="#topinterfacetable'.$i.'">Back to top</a>
+        </div>';
+            $i++;
+        }
+        print OUT '    </div>
     <br>';
         if ( $ghOptions{configtable} ) {
         print OUT '    <div id="config">
-        <a name=topconfigtable>Configuration information</a>' .
+        <a name="topconfigtable" class="title">Configuration information</a>' .
         $refhStruct->{ConfigTable} . '
     </div>
     <br>';
@@ -5453,6 +5741,7 @@ sub check_options () {
         'duplex!',                              # Add Duplex mode info for each interface
         'stp!',                                 # Add Spanning Tree Protocol info for each interface
         'vlan!',                                # Add vlan attribution info for each interface
+        'type!',                                # Add interface type for each interface
         'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
                                                 #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.
@@ -5508,6 +5797,7 @@ sub check_options () {
         'configtable!',                         # Enable or not the configuration table
         'tips!',                                # Enable or not the tips
         'default-table-sorting=s',              # Default table sorting, can be index (default) or name
+        'table-split!',                         # Generate multiple interface tables, one per interface type (~ifType)
         #------- deprecated options ---------#
         'cisco',                                # replaced by --nodetype=cisco
         );
@@ -5552,6 +5842,7 @@ sub check_options () {
         'duplex'                    => 0,
         'stp'                       => 0,
         'vlan'                      => 0,
+        'type'                      => 0,
         'pkt'                       => 0,
         'nodetype'                  => "standard",
         'ifloadgradient'            => 1,
@@ -5586,6 +5877,7 @@ sub check_options () {
         'configtable'               => 1,
         'tips'                      => 1,
         'default-table-sorting'     => "index",              # Default table sorting, can be index (default) or name
+        'table-split'               => 0,
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -5774,6 +6066,9 @@ sub check_options () {
     } else {
         $ghOptions{'vlan'} = 0;
     }
+    if (exists $commandline{'type'}) {
+        $ghOptions{'type'} = $commandline{'type'};
+    }
     if (exists $commandline{pkt}) {
         $ghOptions{'pkt'} = $commandline{pkt};
     }
@@ -5920,6 +6215,9 @@ sub check_options () {
             print "Specified sorting method \"$commandline{'default-table-sorting'}\" is not valid. Valid sorting method are: index, name.\n";
             exit $ERRORS{"UNKNOWN"};
         }
+    }
+    if (exists $commandline{'table-split'}) {
+        $ghOptions{'table-split'} = $commandline{'table-split'};
     }
 
     #-------- SNMP related ----------#
