@@ -11,8 +11,6 @@
 #           use stpxInconsistentState?
 #         - add a feature to anonymize the info in debug reports (script or option?)
 #         - review normalization for a more standard one available in perl and php
-#         - add a 4th table in the html page, giving some specific device info,
-#           depending on the nodetype option
 #         - evaluate a system where properties changing from empty to a value are not
 #           reported as a problem
 # DONE    - add an option for debug output in a file
@@ -70,17 +68,19 @@
 #         - website help & doc update
 #            -> tag new features and changes introduced in 0.05
 #         - website doc : howto html output on nagiosxi
-# IN PROG - test of ncsp module in case it now support huge perfdata outputs
+# DONE    - test of ncsp module in case it now support huge perfdata outputs 
+#            -> ok now
 #         - review all script comments: function desc and syntax, examples, function list, 
 #         - function descriptions / syntax
 #         - review all examples
 #         - review function list
 #         - review all function specs and desc
-#         - split physical & virtual interfaces in separate tables
+# DONE    - split physical & virtual interfaces in separate tables
+#             -> split by ifType
 #         - pnp templates per device
 #         - sudo config in separate file for sudoers.d dir
 #         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
-#         - Full/specific support of the following vendor devices: 
+#         - full/specific support of the following vendor devices: 
 # IN PROG     * netapp, 
 # DONE        * brocade, 
 # IN PROG     * nortel, 
@@ -101,6 +101,8 @@
 # IN PROG - automatic nodetype detection
 #         - update snmpsim recorder
 #         - update bank of snmp device snapshots
+# DONE    - ingraph graphing solution support
+# DONE    - option to show a column with the interface type 
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
@@ -125,6 +127,8 @@
 #         - Webfrontend based on Kohana
 #         - Webfrontend based on jQuery Themes
 #         - Javascript-functions using jQuery plugins
+#         - add a 4th table in the html page, giving some specific device info,
+#           depending on the nodetype option
 #
 # ----------------------------------------------------------------------
 # Cancelled
