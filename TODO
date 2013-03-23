@@ -43,7 +43,6 @@
 # DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
 # DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
 #         - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
-# DONE    - nodetype bluecoat
 # DONE    - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
 # DONE    - fix for double-quoted string from unixsnmp method
 # DONE    - fix for double-quotes in servicenames (perfdata)
@@ -85,7 +84,7 @@
 # DONE        * brocade, 
 # IN PROG     * nortel, 
 # IN PROG     * bigip (BIG-IP Local Traffic Manager), 
-#             * bluecoat, 
+# IN PROG     * bluecoat, 
 #             * hp (HP Procurve support)
 #             * ...
 # DONE    - VLAN support for Nortel switches (Avaya)
@@ -97,12 +96,21 @@
 #         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
 # DONE    - netscreen, NSRP status support
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
+# IN PROG - support bluecoat
+#             -> ip address in other mib (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1845)
 # IN PROG - https / ssl support/guidelines
 # IN PROG - automatic nodetype detection
 #         - update snmpsim recorder
 #         - update bank of snmp device snapshots
 # DONE    - ingraph graphing solution support
 # DONE    - option to show a column with the interface type 
+#
+# ----------------------------------------------------------------------
+# Todo for 0.06
+# ----------------------------------------------------------------------
+#         - think on a method for adding interfaces from vendor's mib to standard interfaces
+#         - stats for Netscreen tunnels
+#              -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=2246
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
