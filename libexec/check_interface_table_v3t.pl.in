@@ -55,7 +55,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.05-alpha';
+$REVISION       = '0.05-alpha4';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -874,7 +874,7 @@ elsif ($ghOptions{'nodetype'} eq "hp") {
         Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
     }
     Get_Error_Discard();
-    Get_Vlan_Hp () if ($ghOptions{'vlan'}); # Gather interface vlans
+    Get_Vlan_Hp (\%oid_ifVlanName, \%oid_hp_ifVlanPort) if ($ghOptions{'vlan'}); # Gather interface vlans
     Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 # +++++ Netapp +++++
@@ -3299,17 +3299,14 @@ sub Get_Vlan_Hp {
     my $refhSNMPResultHPVlanPort;
 
     eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDVlanName->{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 0));
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDVlanName->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0));
         $refhSNMPResultVlanName = GetTableDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDVlanName ])) if ($@);
 
-    my %vlanname;
-    foreach my $tmp ( @$refhSNMPResultVlanName ) {
-        my ($oid, @name) = split(/ /, $tmp);
-        chomp(@name);
-        $vlanname{$oid} = "@name";
-        $vlanname{$oid} =~ tr/"<>/'../; #"
+    foreach my $idx ( keys %$refhSNMPResultVlanName ) {
+        chomp($refhSNMPResultVlanName->{$idx});
+        $refhSNMPResultVlanName->{$idx} =~ tr/"<>/'../; #"
     }
 
     eval {
@@ -3318,19 +3315,19 @@ sub Get_Vlan_Hp {
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDPVlanPort ])) if ($@);
 
-    if (defined $refhSNMPResultHPVlanPort and @$refhSNMPResultHPVlanPort > 0) {
-        foreach my $tmp ( @$refhSNMPResultHPVlanPort ) {
-            my ($oid, $port) = split(/ /, $tmp);
-            chomp($port);
-            my @oid = split(/\./, $oid);
-            my $vlan = $oid[-2];
-            my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$port};
-
+    if (defined $refhSNMPResultHPVlanPort and %$refhSNMPResultHPVlanPort) {
+        foreach my $oid ( keys %$refhSNMPResultHPVlanPort ) {
+            chomp($refhSNMPResultHPVlanPort->{$oid});
+            my @oids = split('\.', $oid);
+            my $vlan = $oids[-2];
+            
             # store ifVlanNames
-            if((defined $ifName) and ($ifName ne '')) {
+            if((defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}})
+              and ( $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}} ne '')) {
+                my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}};
                 $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} = '' unless (defined $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
-                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $vlanname{"$refhOIDVlanName->{'oid'}.$vlan"}. " ";
-                logger(2, "  Vlan=" . $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
+                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $refhSNMPResultVlanName->{"$refhOIDVlanName->{'oid'}.$vlan"}. " ";
+                logger(2, "IfName=\"$ifName\", Vlan=\"".$grefhCurrent->{If}->{"$ifName"}->{ifVlanNames}."\"");
             }
         }
     }
@@ -5663,7 +5660,7 @@ sub print_usage () {
         global timeout is taken (default is 15s)
     --css (optional)
         Define the css stylesheet used by the generated html files.
-        Can be: classical, icinga, icinga-alternate1 or nagiosxi
+        Can be: classic, icinga, icinga-alternate1 or nagiosxi
     --config (optional)
         Specify a config file to load.
     --(no)configtable
@@ -5883,7 +5880,7 @@ sub check_options () {
         'grapherurl'                => "@grapher_url@",
         #------- other features ---------#
         'config'                    => '',
-        'css'                       => "icinga",             # Used css stylesheet. Can be classical, icinga or nagiosxi.
+        'css'                       => "icinga",             # Used css stylesheet. Can be classic, icinga or nagiosxi.
         'ifdetails'                 => 0,
         'configtable'               => 1,
         'tips'                      => 1,

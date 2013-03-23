@@ -64,7 +64,7 @@ grapherurl = "@grapher_url@"
 # ------------------------- other features -------------------------------
 
 # css stylesheet used by the generated html tables 
-# Used css stylesheet. Can be classical, icinga or nagiosxi.
+# Used css stylesheet. Can be classic, icinga or nagiosxi.
 css = "icinga"
         
 # ============= Below are unfinished stuffs, don't use it ================

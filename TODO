@@ -85,7 +85,7 @@
 # IN PROG     * nortel, 
 # IN PROG     * bigip (BIG-IP Local Traffic Manager), 
 # IN PROG     * bluecoat, 
-#             * hp (HP Procurve support)
+# IN PROG     * hp (HP Procurve support)
 #             * ...
 # DONE    - VLAN support for Nortel switches (Avaya)
 # DONE    - Alias support for Brocade switches
