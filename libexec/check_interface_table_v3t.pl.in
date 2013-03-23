@@ -55,7 +55,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME       = $0;
-$REVISION       = '0.05-workspace';
+$REVISION       = '0.05-alpha';
 $CONTACT        = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS      = ('HighLight' => '#81BEF7');
@@ -2165,9 +2165,12 @@ sub Get_IpInfo {
     #  193.83.153.254 29
     while ( my ($IpAddress,$Index) = each(%$refhSNMPResultIpAddr) ) {
 
-        #Check that the index match a known interface. skip if not
+        # Check that the index match a known interface. skip if not
         next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-
+        
+        # Be sure that it's only an ip (ipv4)
+        $IpAddress =~ s/^.*\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)$/$1/;
+        
         # Example of refhSNMPResultNetMask info:
         #  10.1.1.4 255.255.0.0
         #  10.2.1.4 255.255.0.0
@@ -5415,7 +5418,7 @@ sub print_usage () {
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
         [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort]
         [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
-        [--(no)configtable] [--(no)unixsnmp]
+        [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
 
     * other usages:
       $PROGNAME [--help | -?]
@@ -5431,6 +5434,8 @@ sub print_usage () {
         Verbose mode. Can be specified multiple times to increase the verbosity (max 3 times).
     -D, --showdefaults
         Print the option default values
+    --debugfile=/path/to/file.debug
+        Print the debug (verbosity) to a debug file. The standard output is still used for the plugin output.
 
   Plugin common options:
     -H, --hostquery (required)
@@ -5468,7 +5473,10 @@ sub print_usage () {
         * By default, all the interfaces are included.
         * There are some cases where you need to include an interface which is part
           of a group of previously excluded interfaces.
-
+    --alias-matching (optional)
+        Allow you to specify alias in addition to interface names as inclusion/exclusion 
+        arguments (for global, traffic and property inclusion/exclusion).
+        
   Traffic checks (load & packet errors/discards)
     --et, --exclude-traffic (optional)
         * Comma separated list of interfaces excluded from traffic checks
@@ -5498,6 +5506,7 @@ sub print_usage () {
         List of tracked properties. Values can be:
           Standard:
             * 'ifAlias'            : the interface alias
+            * 'ifType'             : the type of the interface (as specified by the IANA)
             * 'ifAdminStatus'      : the administrative status of the interface
             * 'ifOperStatus'       : the operational status of the interface
             * 'ifSpeedReadable'    : the speed of the interface
@@ -5551,7 +5560,8 @@ sub print_usage () {
     -P, --port=PORT
         SNMP port (Default 161)
     --64bits
-        Use SNMP 64-bits counters
+        Use SNMP 64-bits counters. Use it when your target device support it, to be able to 
+        monitor high (>=1Gbps) bandwidth usage.
     --max-repetitions=integer
         Available only for snmp v2c/v3. Increasing this value may enhance snmp query performances
         by gathering more results at one time. Setting it to 1 would disable the use of get-bulk.
@@ -5663,6 +5673,10 @@ sub print_usage () {
         Enabled by default.
     --(no)tips
         Enable/disable the tips in the generated html tables
+    --default-table-sorting (optional)
+        Default table sorting, can be index (default) or name.
+    --table-split (optional)
+        Generate multiple interface tables, one per interface type.
 
   Notes:
     - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property,
@@ -5670,9 +5684,6 @@ sub print_usage () {
        * These options can be used multiple times, the lists of interfaces/properties
          will be concatenated.
        * The separator can be changed using the --ifs option.
-    - The manual is included in this plugin in pod format. To read it, use the perldoc
-      program (if not installed, just intall the perl-doc package):
-      perldoc ./check_interface_table_v3t.pl
 
 EOUS
 
