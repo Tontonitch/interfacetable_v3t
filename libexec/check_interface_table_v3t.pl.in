@@ -1539,7 +1539,7 @@ sub Get_InterfaceNames {
     }
 
     # Find physical address duplicates
-    for my $value ( values %$refhSNMPResultIfDescr ) {
+    for my $value ( values %$refhSNMPResultIfPhysAddress ) {
         $refhIfPhysAddressCounts->{"$value"} = 0 unless(defined $refhIfPhysAddressCounts->{"$value"});
         $refhIfPhysAddressCounts->{"$value"}++;
     }
@@ -3427,8 +3427,8 @@ sub Get_InterfaceNames_Bigip {
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_bigip_sysInterfaceName ])) if ($@);
 
     # get all interface mac addresses
-    my %hOptions = ($ghOptions{'usemacaddr'}) ? ( %ghSNMPOptions, (oids => ["$oid_bigip_sysInterfaceMacAddr{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 0))
-        : ( %ghSNMPOptions, (oids => ["$oid_bigip_sysInterfaceMacAddr{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
+    my %hOptions = ($ghOptions{'usemacaddr'}) ? ( %ghSNMPOptions, (oids => ["$oid_bigip_sysInterfaceMacAddr{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 0))
+        : ( %ghSNMPOptions, (oids => ["$oid_bigip_sysInterfaceMacAddr{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 1, checkempty => 0));
     $refhSNMPResultIfPhysAddress = GetTableDataWithSnmp (\%hOptions);
 
     # Look for duplicate values
@@ -3441,7 +3441,7 @@ sub Get_InterfaceNames_Bigip {
     }
 
     # Find physical address duplicates
-    for my $value ( values %$refhSNMPResultIfDescr ) {
+    for my $value ( values %$refhSNMPResultIfPhysAddress ) {
         $refhIfPhysAddressCounts->{"$value"} = 0 unless(defined $refhIfPhysAddressCounts->{"$value"});
         $refhIfPhysAddressCounts->{"$value"}++;
     }
@@ -3454,7 +3454,7 @@ sub Get_InterfaceNames_Bigip {
     while ( my ($Index,$Desc) = each(%$refhSNMPResultIfDescr) ) {
         $Index =~ s/^\.*$oid_bigip_sysInterfaceName{'oid'}\.//g; # remove all but the index
         logger(2, "Index=$Index Descr=\"$Desc\" (long cache: $gLongCacheTimer)");
-        my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$oid_bigip_sysInterfaceMacAddr{'oid'}.'.'.$Index}) ? "$refhSNMPResultIfPhysAddress->{$oid_bigip_sysInterfaceMacAddr{'oid'}.$Index}" : "";
+        my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$Index}) ? "$refhSNMPResultIfPhysAddress->{$Index}" : "";
 
         # Interface name formatting
         # -----------------------------------------------------------
