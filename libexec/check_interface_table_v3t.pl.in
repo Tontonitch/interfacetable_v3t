@@ -912,7 +912,6 @@ elsif ($ghOptions{'nodetype'} eq "netscreen") {
         Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
     }
     Get_Error_Discard();
-    ###Get_Vlan (); # Gather interface vlans
     Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
     Get_Specific_Netscreen (); # Gather Juniper Netscreen specific info
 }
@@ -1024,7 +1023,6 @@ else {
             Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
         }
     }
-    ###Get_Vlan (); # Gather interface vlans
     Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
 }
 
@@ -6053,6 +6051,14 @@ sub check_options () {
     if (exists $commandline{human}) {
         $ghOptions{'human'} = $commandline{human};
     }
+    if (exists $commandline{nodetype}) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^nortel$/i) {
+            $ghOptions{'nodetype'} = $commandline{nodetype};
+        } else {
+            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.\n";
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
     if (exists $commandline{ipinfo}) {
         $ghOptions{'ipinfo'} = $commandline{ipinfo};
     }
@@ -6062,21 +6068,21 @@ sub check_options () {
     if (exists $commandline{stp}) {
         $ghOptions{'stp'} = $commandline{stp};
     }
-    if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^nortel$/i) {
-            $ghOptions{'nodetype'} = $commandline{nodetype};
+    if (exists $commandline{vlan}) {
+        if ($ghOptions{nodetype} =~ /^cisco$|^hp$|^nortel$/i) {
+            $ghOptions{'vlan'} = $commandline{vlan};
         } else {
-            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.\n";
+            print "Option \"--vlan\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
-    if (exists $commandline{vlan} and $ghOptions{'nodetype'} =~ /^cisco$|^hp$|^nortel$/i) {
-        $ghOptions{'vlan'} = $commandline{vlan};
-    } else {
-        $ghOptions{'vlan'} = 0;
-    }
     if (exists $commandline{'type'}) {
-        $ghOptions{'type'} = $commandline{'type'};
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^nortel$/i) {
+            $ghOptions{'type'} = $commandline{'type'};
+        } else {
+            print "Option \"--type\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
+            exit $ERRORS{"UNKNOWN"};
+        }
     }
     if (exists $commandline{pkt}) {
         $ghOptions{'pkt'} = $commandline{pkt};
@@ -6226,7 +6232,12 @@ sub check_options () {
         }
     }
     if (exists $commandline{'table-split'}) {
-        $ghOptions{'table-split'} = $commandline{'table-split'};
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^nortel$/i) {
+            $ghOptions{'table-split'} = $commandline{'table-split'};
+        } else {
+            print "Option \"--table-split\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
+            exit $ERRORS{"UNKNOWN"};
+        }
     }
 
     #-------- SNMP related ----------#
