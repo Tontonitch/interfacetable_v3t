@@ -170,6 +170,7 @@ my %oid_ifDuplexStatus  = ( name => "dot3StatsDuplexStatus", mib => "EtherLike-M
 my %oid_ipAdEntIfIndex   = ( name => "ipAdEntIfIndex",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.2" ); # + ".<IP address>"
 my %oid_ipAdEntNetMask   = ( name => "ipAdEntNetMask",   mib => "IP-MIB", oid => "1.3.6.1.2.1.4.20.1.3" ); # + ".<index>"
 my %oid_ipAddressIfIndex = ( name => "ipAddressIfIndex", mib => "IP-MIB", oid => "1.3.6.1.2.1.4.34.1.3" ); # + ".<IP address>"
+my %oid_ipAddressIfIndex_ipv4 = ( name => "ipAddressIfIndex", mib => "IP-MIB", oid => "1.3.6.1.2.1.4.34.1.3.1.4" ); # + ".<IP address>"
 
 my %oid_ifVlanName      = ( name => "entLogicalDescr", mib => "ENTITY-MIB", oid => "1.3.6.1.2.1.47.1.2.1.1.2" ); # + ".<index>"
 
@@ -936,7 +937,7 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
     Get_Alias (\%oid_ifAlias) if ($ghOptions{'alias'}); # Gather interface alias
     Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
-    Get_IpInfo (\%oid_ipAddressIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    Get_IpInfo (\%oid_ipAddressIfIndex_ipv4, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
