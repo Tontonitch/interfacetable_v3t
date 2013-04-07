@@ -559,6 +559,7 @@ my %ifTypeDescriptions = (
 # ------------------------------------------------------------------------
 
 my $grefaAllIndizes;                                 # Sorted array which holds all interface indexes
+my $gBasetime;
 my $gUsedDelta                       = 0;            # time delta for bandwidth calculations (really used)
 
 my $gInitialRun                      = 0;            # Flag that will be set if there exists no interface information file
@@ -759,6 +760,10 @@ if ($ghOptions{'nodetype-auto'}) {
 # read all interfaces and their properties into the hash
 $grefhFile = ReadInterfaceInformationFile ("$gInterfaceInformationFile");
 logger(5, "Data from files -> grefhFile:".Dumper($grefhFile));
+
+# clean and select a valid historical dataset
+$gBasetime = CleanAndSelectHistoricalDataset();
+$gNoHistory = 1 unless (defined $gBasetime);
 
 # ------------------------------------------------------------------------------
 # Read node related data (from snmp/cache)
@@ -1090,13 +1095,11 @@ if ($ghOptions{'default-table-sorting'} eq "name") {
 }
 logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:".Dumper($grefaAllIndizes));
 
-my $basetime = CleanAndSelectHistoricalDataset();
-if (defined $basetime) {
-    Calculate_Bps($basetime);
-    Calculate_Pkts($basetime);
-} else {
-    $gNoHistory = 1;
-}
+#$gNoHistory = 1 unless (defined $gBasetime);
+if (defined $gBasetime) {
+    Calculate_Bps($gBasetime);
+    Calculate_Pkts($gBasetime);
+} 
 
 # ------------------------------------------------------------------------------
 # write interface information file
@@ -2224,18 +2227,18 @@ sub Get_Traffic {
     if ("$counterType" eq "32") {
         my $refhOIDoctetsIn = shift;
         my $refhOIDoctetsOut = shift;
-        my $refhSNMPResultOctetIn;   # Lines returned from snmpwalk storing ifOctetsIn
-        my $refhSNMPResultOctetOut;  # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsIn;   # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsOut;  # Lines returned from snmpwalk storing ifOctetsIn
 
         # get all interface in/out traffic octet counters - no caching !
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetIn = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsIn = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetOut = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsOut = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut ])) if ($@);
 
@@ -2245,24 +2248,24 @@ sub Get_Traffic {
             "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
 
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
 
     } elsif ("$counterType" eq "64") {
         my $refhOIDoctetsIn = shift;
         my $refhOIDoctetsOut = shift;
-        my $refhSNMPResultOctetIn;   # Lines returned from snmpwalk storing ifXOctetsIn
-        my $refhSNMPResultOctetOut;  # Lines returned from snmpwalk storing ifXOctetsIn
+        my $refhSNMPResultOctetsIn;   # Lines returned from snmpwalk storing ifXOctetsIn
+        my $refhSNMPResultOctetsOut;  # Lines returned from snmpwalk storing ifXOctetsIn
 
         # get all interface in/out traffic octet counters - no caching !
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetIn = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsIn = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetOut = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsOut = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut ])) if ($@);
 
@@ -2272,8 +2275,8 @@ sub Get_Traffic {
             "If not enough, consider decreasing delta";
 
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
 
     } elsif ("$counterType" eq "HighLow") {
         # 64-bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
@@ -2282,49 +2285,49 @@ sub Get_Traffic {
         my $refhOIDoctetsInLow = shift;
         my $refhOIDoctetsOutHigh = shift;
         my $refhOIDoctetsOutLow = shift;
-        my $refhSNMPResultOctetIn;
-        my $refhSNMPResultOctetOut;
-        my $refhSNMPResultOctetInHigh;
-        my $refhSNMPResultOctetInLow;
-        my $refhSNMPResultOctetOutHigh;
-        my $refhSNMPResultOctetOutLow;
+        my $refhSNMPResultOctetsIn;
+        my $refhSNMPResultOctetsOut;
+        my $refhSNMPResultOctetsInHigh;
+        my $refhSNMPResultOctetsInLow;
+        my $refhSNMPResultOctetsOutHigh;
+        my $refhSNMPResultOctetsOutLow;
 
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsInHigh->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetInHigh = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsInHigh = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsInHigh ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsInLow->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetInLow = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsInLow = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsInLow ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOutHigh->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetOutHigh = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsOutHigh = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOutHigh ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOutLow->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetOutLow = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultOctetsOutLow = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOutLow ])) if ($@);
 
         # build a hashs gathering low+high in octet counters
-        foreach my $key (keys %$refhSNMPResultOctetInLow) {
+        foreach my $key (keys %$refhSNMPResultOctetsInLow) {
             $key =~ s/^\.*$refhOIDoctetsInLow->{'oid'}\.//g; # remove all but the index
-            $refhSNMPResultOctetIn->{"$key"} = $refhSNMPResultOctetInLow->{"$refhOIDoctetsInLow->{'oid'}.$key"};
-            if (defined $refhSNMPResultOctetInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"} and $refhSNMPResultOctetInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"} > 0) {
-                $refhSNMPResultOctetIn->{"$key"} += $refhSNMPResultOctetInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"}<<32;
+            $refhSNMPResultOctetsIn->{"$key"} = $refhSNMPResultOctetsInLow->{"$refhOIDoctetsInLow->{'oid'}.$key"};
+            if (defined $refhSNMPResultOctetsInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"} and $refhSNMPResultOctetsInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"} > 0) {
+                $refhSNMPResultOctetsIn->{"$key"} += $refhSNMPResultOctetsInHigh->{"$refhOIDoctetsInHigh->{'oid'}.$key"}<<32;
             }
         }
 
         # build a hashs gathering low+high out octet counters
-        foreach my $key (keys %$refhSNMPResultOctetOutLow) {
+        foreach my $key (keys %$refhSNMPResultOctetsOutLow) {
             $key =~ s/^\.*$refhOIDoctetsOutLow->{'oid'}\.//g; # remove all but the index
-            $refhSNMPResultOctetOut->{"$key"} = $refhSNMPResultOctetOutLow->{"$refhOIDoctetsOutLow->{'oid'}.$key"};
-            if (defined $refhSNMPResultOctetOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"} and $refhSNMPResultOctetOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"} > 0) {
-                $refhSNMPResultOctetOut->{"$key"} += $refhSNMPResultOctetOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"}<<32;
+            $refhSNMPResultOctetsOut->{"$key"} = $refhSNMPResultOctetsOutLow->{"$refhOIDoctetsOutLow->{'oid'}.$key"};
+            if (defined $refhSNMPResultOctetsOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"} and $refhSNMPResultOctetsOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"} > 0) {
+                $refhSNMPResultOctetsOut->{"$key"} += $refhSNMPResultOctetsOutHigh->{"$refhOIDoctetsOutLow->{'oid'}.$key"}<<32;
             }
         }
 
@@ -2334,8 +2337,8 @@ sub Get_Traffic {
             "If not enough, consider decreasing delta";
 
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
     }
 
     return 0;
@@ -2528,6 +2531,10 @@ sub Process_IfCounter {
 
     my $refhCounter = shift;
     my $WhatCounter = shift;
+    
+    # check if the counter is back to 0 after 2^32 / 2^64.
+    # First set the modulus depending on highperf counters or not
+    my $overfl_mod = ($ghSNMPOptions{'64bits'}) ? 18446744073709551616 : 4294967296;
 
     # Example of $refhCounter
     #    .1.3.6.1.2.1.2.2.1.10.2 2510821601
@@ -2540,6 +2547,14 @@ sub Process_IfCounter {
             $grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = $refhCounter->{$Index};
             $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = $refhCounter->{$Index};
             logger(2, "Index=$Index ($ifName): $WhatCounter counter is \"$refhCounter->{$Index}\"");
+            if ($gBasetime and defined $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"}){
+                my $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} >=
+                    $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} ) ? 0 : $overfl_mod;
+                $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"$WhatCounter"} = sprintf("%0.2f",
+                    ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} -
+                    $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} + $overfl) / $gUsedDelta);
+                logger(2, " Valid historical data found, $WhatCounter per second statistic is \"".$grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"$WhatCounter"}."\"");
+            }
         } else {
             #$grefhCurrent->{MD}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} = undef;
             logger(2, "Index=$Index ($ifName): $WhatCounter not found for the interface");
@@ -2846,10 +2861,6 @@ sub Evaluate_Interfaces {
 # Description: calculate rate / bandwidth usage within a specified period
 # ------------------------------------------------------------------------
 sub Calculate_Bps {
-    my $firsttime = shift;
-    # check if the counter is back to 0 after 2^32 / 2^64.
-    # First set the modulus depending on highperf counters or not
-    my $overfl_mod = ($ghSNMPOptions{'64bits'}) ? 18446744073709551616 : 4294967296;
 
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     logger(2, "x"x50);
@@ -2867,37 +2878,16 @@ sub Calculate_Bps {
         }
 
         # Skip interface if no load stats
-        if (not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn}
-            or not defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut}) {
-            logger(2, "  -> not load statistics, skipping");
-            next;
+        if (not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{OctetsIn}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{OctetsOut}) {
+                logger(2, "  -> no load statistics, skipping");
+                next;
         }
 
         # ---------- Bandwidth calculation -----------
 
-        my $overfl      = 0;
-        my $bpsIn       = 0;
-        my $bpsOut      = 0;
-
-        # be sure that history exist
-        # then check if the counter is back to 0 after 2^32 / 2^64.
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsIn}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsIn} ) ? 0 : $overfl_mod;
-                $bpsIn = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsIn} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsIn} + $overfl) / $gUsedDelta * 8;
-        }
-
-        # be sure that history exist
-        # then check if the counter is back to 0 after 2^32 / 2^64.
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsOut}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsOut} ) ? 0 : $overfl_mod;
-                $bpsOut = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{OctetsOut} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{OctetsOut} + $overfl) / $gUsedDelta * 8;
-        }
+        my $bpsIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{OctetsIn} * 8;
+        my $bpsOut = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{OctetsOut} * 8;
 
         # bandwidth usage in percent of (configured/negotiated) interface speed
         $grefhCurrent->{If}->{$ifName}->{ifLoadExceedIfSpeed} = "false";
@@ -3058,57 +3048,37 @@ sub Calculate_Bps {
 # Description: evaluate packets within a specified period
 # ------------------------------------------------------------------------
 sub Calculate_Pkts {
-    my $firsttime = shift;
-    # check if the counter is back to 0 after 2^32 / 2^64.
-    # First set the modulus depending on highperf counters or not
-    #my $overfl_mod = defined ($o_highperf) ? 18446744073709551616 : 4294967296;
-    my $overfl_mod = 4294967296;
-
+    
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
+    logger(2, "x"x50);
+    logger(2, "Pkts calculations");
     for my $Index (@$grefaAllIndizes) {
 
         # Get normalized interface name (key for If data structure)
         my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$Index};
+        logger(2, " ifName: $ifName (index: $Index)");
+
+        # Skip interface if excluded
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+            logger(2, "  -> excluded interface, skipping");
             next;
         }
 
-        my $overfl              = 0;
-        my $ppsErrIn            = 0;
-        my $ppsErrOut           = 0;
-        my $ppsDiscardIn        = 0;
-        my $ppsDiscardOut       = 0;
-
-        # be sure that history exist
-        # then check if the counter is back to 0 after 2^32 / 2^64.
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInErr}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInErr}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInErr} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInErr} ) ? 0 : $overfl_mod;
-                $ppsErrIn = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInErr} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInErr} + $overfl) / $gUsedDelta;
+        # Skip interface if no pkts stats
+        if (not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInErr}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutErr}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInDiscard}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutDiscard}) {
+                logger(2, "  -> no pkts statistics, skipping");
+                next;
         }
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutErr}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutErr}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutErr} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutErr} ) ? 0 : $overfl_mod;
-                $ppsErrOut = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutErr} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutErr} + $overfl) / $gUsedDelta;
-        }
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInDiscard}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInDiscard}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInDiscard} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInDiscard} ) ? 0 : $overfl_mod;
-                $ppsDiscardIn = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsInDiscard} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsInDiscard} + $overfl) / $gUsedDelta;
-        }
-        if (defined $grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutDiscard}
-            and defined $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutDiscard}){
-                $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutDiscard} >=
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutDiscard} ) ? 0 : $overfl_mod;
-                $ppsDiscardOut = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{PktsOutDiscard} -
-                    $grefhFile->{History}->{$firsttime}->{IfCounters}->{"$ifName"}->{PktsOutDiscard} + $overfl) / $gUsedDelta;
-        }
+        
+        # ---------- Bandwidth calculation -----------
+        
+        my $ppsErrIn      = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInErr};
+        my $ppsErrOut     = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutErr};
+        my $ppsDiscardIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInDiscard};
+        my $ppsDiscardOut = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutDiscard};
 
         # compare against thresholds
         my $pwarn = 0;
@@ -3169,6 +3139,7 @@ sub Calculate_Pkts {
             $grefhCurrent->{If}->{$ifName}->{pktErrDiscardOutOfRange} = 'yellow';
         }
     }
+    logger(2, "x"x50);
 
     return 0;
 }
@@ -4370,10 +4341,7 @@ sub WriteConfigFileNew {
 # for bandwitdh calculation
 # ------------------------------------------------------------------------
 sub CleanAndSelectHistoricalDataset {
-
-    #logger(5, "perfdata dirty:\n".Dumper($grefhFile));
-
-    my $firsttime = $STARTTIME;
+    my $firsttime = undef;
 
     # loop through all historical perfdata
     logger(1, "Clean/select historical datasets");
@@ -4383,19 +4351,21 @@ sub CleanAndSelectHistoricalDataset {
             # so we keep a sliding window following us
             delete $grefhFile->{History}->{$time};
             logger(1, " outdated perfdata cleanup: $time");
-        } elsif ($time < $firsttime) {
+        } elsif ($time < $STARTTIME) {
             # chose the oldest dataset to compare with
             $firsttime = $time;
             $gUsedDelta = $STARTTIME - $firsttime;
             logger(1, " now ($STARTTIME) - comparetimestamp ($time) = used delta ($gUsedDelta)");
             last;
-        } else {
-            # no dataset (left) to compare with
-            # no further calculations if we run for the first time.
-            $firsttime = undef;
-            logger(1, " no dataset (left) to compare with, bandwitdh calculations will not be done");
         }
     }
+    
+    if (not defined $firsttime) {
+        # no dataset (left) to compare with
+        # no further calculations if we run for the first time.
+        logger(1, " no dataset (left) to compare with, bandwitdh calculations will not be done");
+    }
+    
     return $firsttime;
 }
 
@@ -4957,13 +4927,13 @@ sub Perfdataout {
             for my $InterfaceIndex (@$grefaAllIndizes) {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
-
-                if ($ghOptions{'portperfunit'} eq "bit" or $ghOptions{'portperfunit'} eq "octet") {
+                
+                # using portperfunit "bit" : bit counters
+                if ($ghOptions{'portperfunit'} eq "bit") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
-                        and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
-                        and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                      and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $port = sprintf("%s", $InterfaceIndex);
-                        #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#//g;
                         $servicename =~ s/[: ]/_/g;
@@ -4972,29 +4942,15 @@ sub Perfdataout {
                         my $perfdata = "";
                         #Add interface status if available
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
-                            if ($ghOptions{'portperfunit'} eq "octet") {
-                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                            } else {
-                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                    "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
-                                    "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
-                            }
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
+                                "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
+                                "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
-                            if ($ghOptions{'portperfunit'} eq "octet") {
-                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                            } else {
-                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                    "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
-                                    "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
-                            }
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
+                                "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
+                                "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
                                 (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
@@ -5011,12 +4967,13 @@ sub Perfdataout {
                         logger(2, "collected perfdata: $Name\t$perfdata");
                         $gPerfdata .= "$perfdata";
                     }
+                # using portperfunit "bps" : calculated bit per second
                 } elsif ($ghOptions{'portperfunit'} eq "bps") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
-                        and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn}
-                        and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $port = sprintf("%s", $InterfaceIndex);
-                        #my $servicename = "Port$port";
                         my $servicename = "If_" . trim(denormalize($Name));
                         $servicename =~ s/#//g;
                         $servicename =~ s/[: ]/_/g;
@@ -5025,44 +4982,25 @@ sub Perfdataout {
                         my $perfdata = "";
                         #Add interface status if available
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
-                            if ($ghOptions{'portperfunit'} eq "octet") {
-                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                            } else {
-                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                    "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
-                                    "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
-                            }
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn} * 8 .";;;0; ";
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut} * 8 .";;;0; ";
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
-                            if ($ghOptions{'portperfunit'} eq "bps") {
-                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                    "in=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsIn};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} " .
-                                    "out=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{bpsOut};;;0;$grefhCurrent->{MD}->{IfCounters}->{$Name}->{ifSpeed} ";
-                            } elsif ($ghOptions{'portperfunit'} eq "octet") {
-                                $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                    "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                    "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                            } else {
-                                $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
-                                    "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                    "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
-                                    "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
-                            }
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn} * 8 .";;;0;$grefhCurrent->{MD}->{IfStats}->{$Name}->{ifSpeed} " .
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut} * 8 .";;;0;$grefhCurrent->{MD}->{IfStats}->{$Name}->{ifSpeed} ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
-                                    and $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; ";
-                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr})
-                                    and $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; ";
-                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard})
-                                    and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
-                                (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
-                                    and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
+                                $perfdata .= "PktsInErr=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}.";;;0; " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
+                                $perfdata .= "PktsOutErr=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}.";;;0; " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
+                                $perfdata .= "PktsInDiscard=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}.";;;0; " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
+                                $perfdata .= "PktsOutDiscard=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}.";;;0; " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
                             }
                         }
 
@@ -5138,65 +5076,102 @@ sub Perfdataout {
             for my $InterfaceIndex (@$grefaAllIndizes) {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
-
-                if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
-                    and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
-                    and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
-
-                    my $servicename = "If_" . trim(denormalize($Name));
-                    $servicename =~ s/#//g;
-                    $servicename =~ s/[: ]/_/g;
-                    $servicename =~ s/[()'"]//g;
-                    $servicename =~ s/,/./g;
-                    my $perfdata = "";
-                    #Add interface status if available
-                    if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
-                        if ($ghOptions{'portperfunit'} eq "octet") {
-                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                        } else {
-                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                    
+                if ($ghOptions{'portperfunit'} eq "bit") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                      and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+                      and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/#//g;
+                        $servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/[()'"]//g;
+                        $servicename =~ s/,/./g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
                                 "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
                                 "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
-                        }
-                    } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
-                        if ($ghOptions{'portperfunit'} eq "octet") {
-                            $perfdata .= "${servicename}::check_interface_table_port_octet::" . # servicename::plugin
-                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                "OctetsIn=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}c;;;0; " .
-                                "OctetsOut=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}c;;;0; ";
-                        } else {
-                            $perfdata .= "${servicename}::check_interface_table_port_bit::" . # servicename::plugin
+                            
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                 "BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 ."c;;;0; " .
                                 "BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 ."c;;;0; ";
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr});
+                                $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr});
+                                $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard});
+                                $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard});
+                            }
                         }
-                        #Add pkt errors/discards if available and wanted
-                        unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr})
-                                and $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}c;;;0; ";
-                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr})
-                                and $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}c;;;0; ";
-                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard})
-                                and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
-                            (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
-                                and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
-                        }
-                    }
 
-                    # Print into perfdata output file
-                    logger(2, "collected perfdata: $Name\t$perfdata");
-                    print OUT "$grefhCurrent->{MD}->{Node}->{sysName}\t";  # hostname
-                    print OUT "$servicename";                      # servicename
-                    print OUT "\t\t";                              # pluginoutput
-                    if ($ghOptions{'alias'} and $grefhFile->{If}->{$Name}->{ifAlias} ne '') {
-                        print OUT ' ' . trim(denormalize($grefhFile->{If}->{$Name}->{ifAlias}));
+                        # Print into perfdata output file
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        print OUT "$grefhCurrent->{MD}->{Node}->{sysName}\t";  # hostname
+                        print OUT "$servicename";                      # servicename
+                        print OUT "\t\t";                              # pluginoutput
+                        if ($ghOptions{'alias'} and $grefhFile->{If}->{$Name}->{ifAlias} ne '') {
+                            print OUT ' ' . trim(denormalize($grefhFile->{If}->{$Name}->{ifAlias}));
+                        }
+                        print OUT "$perfdata";                         # performancedata
+                        print OUT "\t$STARTTIME\n";                    # unix timestamp
                     }
-                    print OUT "$perfdata";                         # performancedata
-                    print OUT "\t$STARTTIME\n";                    # unix timestamp
+                    
+                } elsif ($ghOptions{'portperfunit'} eq "bps") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/#//g;
+                        $servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/[()'"]//g;
+                        $servicename =~ s/,/./g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
+                                "BitsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
+                                "BitsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
+                            
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
+                                "BitsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
+                                "BitsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr};;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
+                                $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr};;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
+                                $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard};;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
+                                $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard};;;0; "
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
+                            }
+                        }
+
+                        # Print into perfdata output file
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        print OUT "$grefhCurrent->{MD}->{Node}->{sysName}\t";  # hostname
+                        print OUT "$servicename";                      # servicename
+                        print OUT "\t\t";                              # pluginoutput
+                        if ($ghOptions{'alias'} and $grefhFile->{If}->{$Name}->{ifAlias} ne '') {
+                            print OUT ' ' . trim(denormalize($grefhFile->{If}->{$Name}->{ifAlias}));
+                        }
+                        print OUT "$perfdata";                         # performancedata
+                        print OUT "\t$STARTTIME\n";                    # unix timestamp
+                    }
                 }
             } # for $InterfaceIndex
         }
@@ -5353,7 +5328,7 @@ sub ExitPlugin {
     print $output;
 
     # Append performance data
-    print " | $gPerfdata" if ($ghOptions{'enableperfdata'} and $basetime and $gPerfdata);
+    print " | $gPerfdata" if ($ghOptions{'enableperfdata'} and $gBasetime and $gPerfdata);
     print "\n";
 
     exit $code;
@@ -5600,8 +5575,13 @@ sub print_usage () {
         Graphing system url. Default values are:
         Ex: /pnp4nagios
     --portperfunit (optional)
-        In/out traffic in perfdata could be reported in octets or in bits.
-        Possible values: bit or octet
+        In/out traffic in perfdata could be reported in bits (counters) or in bps (calculated value).
+        Using bps avoid abnormal load values to be plotted on the graphs.
+        !!! WARNING !!!
+        switching from one mode to the other require the change of the Data Source Type (DST) in the rrd 
+        files already generated by pnp4nagios (or similar action for the other graphing solutions)
+        !!! WARNING !!!
+        Possible values: bit or bps
 
   Other options:
     --cachedir (optional)
@@ -5774,7 +5754,7 @@ sub check_options () {
         'critical-property|cp=i',
         #------- performance data -------#
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
-        'portperfunit=s',                       # bit|octet|bps: in/out traffic in perfdata could be reported in octets, in bits or in bps
+        'portperfunit=s',                       # bit|bps: in/out traffic in perfdata could be reported in bits or in bps
         'perfdataformat=s',                     # define which performance data will be generated.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
@@ -6176,10 +6156,10 @@ sub check_options () {
         $ghOptions{'enableperfdata'} = 1;
     }
     if (exists $commandline{portperfunit}) {
-        if ($commandline{portperfunit} =~ /^bit$|^octet$/i) {
+        if ($commandline{portperfunit} =~ /^bit$|^bps$/i) {
             $ghOptions{'portperfunit'} = "$commandline{portperfunit}";
         } else {
-            print "Specified performance data unit \"$commandline{portperfunit}\" is not valid. Valid units are: bit, octet.\n";
+            print "Specified performance data unit \"$commandline{portperfunit}\" is not valid. Valid units are: bit, bps.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }

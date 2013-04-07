@@ -103,7 +103,8 @@
 #         - update snmpsim recorder
 #         - update bank of snmp device snapshots
 # DONE    - ingraph graphing solution support
-# DONE    - option to show a column with the interface type 
+# DONE    - option to show a column with the interface type
+#         - IpInfo ipv6 support
 #
 # ----------------------------------------------------------------------
 # Todo for 0.06
