@@ -4984,22 +4984,23 @@ sub Perfdataout {
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn} * 8 .";;;0; ";
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut} * 8 .";;;0; ";
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; ";
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $grefhCurrent->{If}->{$Name}->{ifSpeed} = "" if ($grefhCurrent->{If}->{$Name}->{ifSpeed});
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn} * 8 .";;;0;$grefhCurrent->{MD}->{IfStats}->{$Name}->{ifSpeed} " .
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut} * 8 .";;;0;$grefhCurrent->{MD}->{IfStats}->{$Name}->{ifSpeed} ";
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} " .
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                $perfdata .= "PktsInErr=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}.";;;0; " 
+                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";;;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PktsOutErr=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}.";;;0; " 
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";;;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PktsInDiscard=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}.";;;0; " 
+                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";;;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
-                                $perfdata .= "PktsOutDiscard=".$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}.";;;0; " 
+                                $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";;;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
                             }
                         }
@@ -5140,23 +5141,23 @@ sub Perfdataout {
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                "BitsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
-                                "BitsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
                             
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                "BitsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
-                                "BitsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
+                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} " .
+                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                $perfdata .= "PktsInErr=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr};;;0; "
+                                $perfdata .= "PktsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PktsOutErr=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr};;;0; "
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard};;;0; "
+                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
-                                $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard};;;0; "
+                                $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
                             }
                         }
