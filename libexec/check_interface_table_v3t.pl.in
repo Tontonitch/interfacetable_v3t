@@ -676,6 +676,8 @@ my $grefAoHInterfaceTableHeader = [                      # Header for the cols o
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Pkt errors',           Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
         Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
+    { Title => 'Pkt load',             Dataname => 'pktUcastNUcast',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'pkt'}, 
+        Tooltip => 'Number of unicast/non-unicast packets per sec.<br>Format:<br>Ucast in / Ucast out / NUcast in / NUcast out' },
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                        Enabled => 1 },
 ];
 my $grefAoHInterfaceTableData;                           # Contents of the interface table (Uptime, OperStatus, ...)
@@ -917,6 +919,13 @@ elsif ($ghOptions{'nodetype'} eq "netscreen") {
         Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
     }
     Get_Error_Discard();
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
     Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
     Get_Specific_Netscreen (); # Gather Juniper Netscreen specific info
 }
@@ -1097,8 +1106,9 @@ logger(5, "Interface information table data -> generated array\ngrefaAllIndizes:
 
 #$gNoHistory = 1 unless (defined $gBasetime);
 if (defined $gBasetime) {
-    Calculate_Bps($gBasetime);
-    Calculate_Pkts($gBasetime);
+    Calculate_Bps();
+    Calculate_Error_Discard();
+    Calculate_Packets() if ($ghOptions{'pkt'});
 } 
 
 # ------------------------------------------------------------------------------
@@ -1439,7 +1449,7 @@ exit $ERRORS{"UNKNOWN"};
 # * Process_IfCounter
 # * Evaluate_Interfaces
 # * Calculate_Bps
-# * Calculate_Pkts
+# * Calculate_Error_Discard
 # * Calculate_LastTraffic
 # --- Nodetype specific functions ---
 # * Get_Vlan_Cisco
@@ -2413,10 +2423,10 @@ sub Get_Error_Discard {
 sub Get_Packets {
     my $counterType = shift;
 
-    my $refhSNMPResultUcastPktIn;     # Lines returned from snmpwalk storing Ucast Pkts In
-    my $refhSNMPResultUcastPktOut;    # Lines returned from snmpwalk storing Ucast Pkts Out
-    my $refhSNMPResultNUcastPktIn;    # Lines returned from snmpwalk storing NUcast Pkts In
-    my $refhSNMPResultNUcastPktOut;   # Lines returned from snmpwalk storing NUcast Pkts Out
+    my $refhSNMPResultPktsInUcast;     # Lines returned from snmpwalk storing Ucast Pkts In
+    my $refhSNMPResultPktsOutUcast;    # Lines returned from snmpwalk storing Ucast Pkts Out
+    my $refhSNMPResultPktsInNUcast;    # Lines returned from snmpwalk storing NUcast Pkts In
+    my $refhSNMPResultPktsOutNUcast;   # Lines returned from snmpwalk storing NUcast Pkts Out
 
     if ("$counterType" eq "64") {
         my $refhOidUCastIn = shift;
@@ -2434,12 +2444,12 @@ sub Get_Packets {
         # get all interface in/out traffic octet counters - no caching !
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidUCastIn->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultUcastPktIn = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsInUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidUCastIn ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidUCastOut->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultUcastPktOut = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsOutUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidUCastOut ])) if ($@);
         eval {
@@ -2465,13 +2475,13 @@ sub Get_Packets {
 
         foreach my $key (keys %$refhSNMPResultMulticastPktIn) {
             $key =~ s/^\.*$refhOidMulticastIn->{'oid'}\.//g; # remove all but the index
-            $refhSNMPResultNUcastPktIn->{"$key"} = $refhSNMPResultMulticastPktIn->{"$refhOidMulticastIn->{'oid'}.$key"};
-            $refhSNMPResultNUcastPktIn->{"$key"} += $refhSNMPResultBroadcastPktIn->{"$refhOidBroadcastIn->{'oid'}.$key"} if (defined $refhSNMPResultBroadcastPktIn->{"$refhOidBroadcastIn->{'oid'}.$key"});
+            $refhSNMPResultPktsInNUcast->{"$key"} = $refhSNMPResultMulticastPktIn->{"$key"};
+            $refhSNMPResultPktsInNUcast->{"$key"} += $refhSNMPResultBroadcastPktIn->{"$key"} if (defined $refhSNMPResultBroadcastPktIn->{"$key"});
         }
         foreach my $key (keys %$refhSNMPResultMulticastPktOut) {
             $key =~ s/^\.*$refhOidMulticastOut->{'oid'}\.//g; # remove all but the index
-            $refhSNMPResultNUcastPktOut->{"$key"} = $refhSNMPResultMulticastPktOut->{"$refhOidMulticastOut->{'oid'}.$key"};
-            $refhSNMPResultNUcastPktOut->{"$key"} += $refhSNMPResultBroadcastPktOut->{"$refhOidBroadcastOut->{'oid'}.$key"} if (defined $refhSNMPResultBroadcastPktOut->{"$refhOidBroadcastOut->{'oid'}.$key"});
+            $refhSNMPResultPktsOutNUcast->{"$key"} = $refhSNMPResultMulticastPktOut->{"$key"};
+            $refhSNMPResultPktsOutNUcast->{"$key"} += $refhSNMPResultBroadcastPktOut->{"$key"} if (defined $refhSNMPResultBroadcastPktOut->{"$key"});
         }
 
     } elsif ("$counterType" eq "32") {
@@ -2483,22 +2493,22 @@ sub Get_Packets {
         # get all interface in/out traffic octet counters - no caching !
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidUCastIn->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultUcastPktIn = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsInUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidUCastIn ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidUCastOut->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultUcastPktOut = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsOutUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidUCastOut ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidNUCastIn->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultNUcastPktIn = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsInNUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidNUCastIn ])) if ($@);
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOidNUCastOut->{oid}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultNUcastPktOut = GetTableDataWithSnmp (\%hOptions);
+            $refhSNMPResultPktsOutNUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidNUCastOut ])) if ($@);
     }
@@ -2506,10 +2516,10 @@ sub Get_Packets {
     # post-processing interface pkts counters
     #------------------------------------------
 
-    Process_IfCounter ($refhSNMPResultUcastPktIn, "UcastPktsIn");
-    Process_IfCounter ($refhSNMPResultUcastPktOut, "UcastPktsOut");
-    Process_IfCounter ($refhSNMPResultNUcastPktIn, "NUcastPktsIn");
-    Process_IfCounter ($refhSNMPResultNUcastPktOut, "NUcastPktsOut");
+    Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast");
+    Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast");
+    Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast");
+    Process_IfCounter ($refhSNMPResultPktsOutNUcast, "PktsOutNUcast");
 
     return 0;
 }
@@ -3043,15 +3053,15 @@ sub Calculate_Bps {
 }
 
 # ------------------------------------------------------------------------
-# Calculate_Pkts
+# Calculate_Error_Discard
 # ------------------------------------------------------------------------
-# Description: evaluate packets within a specified period
+# Description: evaluate packet errors and discards within a specified period
 # ------------------------------------------------------------------------
-sub Calculate_Pkts {
+sub Calculate_Error_Discard {
     
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     logger(2, "x"x50);
-    logger(2, "Pkts calculations");
+    logger(2, "Packet errors and discards calculations");
     for my $Index (@$grefaAllIndizes) {
 
         # Get normalized interface name (key for If data structure)
@@ -3083,8 +3093,6 @@ sub Calculate_Pkts {
         # compare against thresholds
         my $pwarn = 0;
         my $pcrit = 0;
-        $grefhCurrent->{If}->{$ifName}->{ppsErrIn}  = sprintf("%.2f", $ppsErrIn);
-        $grefhCurrent->{If}->{$ifName}->{ppsErrOut} = sprintf("%.2f", $ppsErrOut);
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "false" and ($ppsErrIn > 0 or $ppsErrOut > 0)) {
             # just traffic light color codes for the lame
             if ($ghOptions{'critical-pkterr'} >= 0 and ($ppsErrIn > $ghOptions{'critical-pkterr'} or $ppsErrOut > $ghOptions{'critical-pkterr'})) {
@@ -3104,11 +3112,7 @@ sub Calculate_Pkts {
                 $gPktErrWarnCounter++;
                 $pwarn++;
             }
-            $grefhCurrent->{If}->{$ifName}->{ppsErrInOutOfRange} = Colorcode($ppsErrIn, $ghOptions{'warning-pkterr'}, $ghOptions{'critical-pkterr'});
-            $grefhCurrent->{If}->{$ifName}->{ppsErrOutOutOfRange} = Colorcode($ppsErrOut, $ghOptions{'warning-pkterr'}, $ghOptions{'critical-pkterr'});
         }
-        $grefhCurrent->{If}->{$ifName}->{ppsDiscardIn}  = sprintf("%.2f", $ppsDiscardIn);
-        $grefhCurrent->{If}->{$ifName}->{ppsDiscardOut} = sprintf("%.2f", $ppsDiscardOut);
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "false" and ($ppsDiscardIn > 0 or $ppsDiscardOut > 0)) {
             # just traffic light color codes for the lame
             if ($ghOptions{'critical-pktdiscard'} >= 0 and ($ppsDiscardIn > $ghOptions{'critical-pktdiscard'} or $ppsDiscardOut > $ghOptions{'critical-pktdiscard'})) {
@@ -3128,8 +3132,6 @@ sub Calculate_Pkts {
                 $gPktDiscardWarnCounter++;
                 $pwarn++;
             }
-            $grefhCurrent->{If}->{$ifName}->{ppsDiscardInOutOfRange} = Colorcode($ppsDiscardIn, $ghOptions{'warning-pktdiscard'}, $ghOptions{'critical-pktdiscard'});
-            $grefhCurrent->{If}->{$ifName}->{ppsDiscardOutOutOfRange} = Colorcode($ppsDiscardOut, $ghOptions{'warning-pktdiscard'}, $ghOptions{'critical-pktdiscard'});
         }
         # totals field
         $grefhCurrent->{If}->{$ifName}->{pktErrDiscard} = sprintf("%.1f/%.1f/%.1f/%.1f", $ppsErrIn, $ppsErrOut, $ppsDiscardIn, $ppsDiscardOut);
@@ -3138,6 +3140,53 @@ sub Calculate_Pkts {
         } elsif ($pwarn > 0) {
             $grefhCurrent->{If}->{$ifName}->{pktErrDiscardOutOfRange} = 'yellow';
         }
+    }
+    logger(2, "x"x50);
+
+    return 0;
+}
+
+# ------------------------------------------------------------------------
+# Calculate_Packets
+# ------------------------------------------------------------------------
+# Description: evaluate packet load within a specified period
+# ------------------------------------------------------------------------
+sub Calculate_Packets {
+    
+    # $grefaAllIndizes is a indexed and sorted list of all interfaces
+    logger(2, "x"x50);
+    logger(2, "Packet load calculations");
+    for my $Index (@$grefaAllIndizes) {
+
+        # Get normalized interface name (key for If data structure)
+        my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$Index};
+        logger(2, " ifName: $ifName (index: $Index)");
+
+        # Skip interface if excluded
+        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+            logger(2, "  -> excluded interface, skipping");
+            next;
+        }
+
+        # Skip interface if no pkts stats
+        if (not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInUcast}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutUcast}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInNUcast}
+            or not defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutNUcast}) {
+                logger(2, "  -> no pkts statistics, skipping");
+                next;
+        }
+        
+        # ---------- Bandwidth calculation -----------
+        
+        my $ppsUcastIn   = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInUcast};
+        my $ppsUcastOut  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutUcast};
+        my $ppsNUcastIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInNUcast};
+        my $ppsNUcastOut = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutNUcast};
+
+        # totals field
+        $grefhCurrent->{If}->{$ifName}->{pktUcastNUcast} = sprintf("%.0f/%.0f/%.0f/%.0f", $ppsUcastIn, $ppsUcastOut, $ppsNUcastIn, $ppsNUcastOut);
+
     }
     logger(2, "x"x50);
 
@@ -4961,6 +5010,16 @@ sub Perfdataout {
                                     and $perfdata .= "PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}c;;;0; ";
                                 (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard})
                                     and $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; ";
+                                if ($ghOptions{'pkt'}) {
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast})
+                                        and $perfdata .= "PktsInUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast})
+                                        and $perfdata .= "PktsOutUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast})
+                                        and $perfdata .= "PktsInNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast})
+                                        and $perfdata .= "PktsOutNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast}c;;;0; ";
+                                }
                             }
                         }
 
@@ -4987,7 +5046,7 @@ sub Perfdataout {
                                 "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; ";
                                 "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
-                            $grefhCurrent->{If}->{$Name}->{ifSpeed} = "" if ($grefhCurrent->{If}->{$Name}->{ifSpeed});
+                            $grefhCurrent->{If}->{$Name}->{ifSpeed} = "" if (not defined $grefhCurrent->{If}->{$Name}->{ifSpeed});
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                 "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} " .
@@ -5002,6 +5061,16 @@ sub Perfdataout {
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
                                 $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";;;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
+                                if ($ghOptions{'pkt'}) {
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast})
+                                        and $perfdata .= "PpsInUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast})
+                                        and $perfdata .= "PpsOutUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast})
+                                        and $perfdata .= "PpsInNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast})
+                                        and $perfdata .= "PpsOutNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast}*1 .";;;0; ";
+                                }
                             }
                         }
 
@@ -5111,6 +5180,16 @@ sub Perfdataout {
                                     if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard});
                                 $perfdata .= "PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}c;;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard});
+                                if ($ghOptions{'pkt'}) {
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast})
+                                        and $perfdata .= "PktsInUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast})
+                                        and $perfdata .= "PktsOutUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast})
+                                        and $perfdata .= "PktsInNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast}c;;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast})
+                                        and $perfdata .= "PktsOutNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast}c;;;0; ";
+                                }
                             }
                         }
 
@@ -5145,6 +5224,7 @@ sub Perfdataout {
                                 "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
                             
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $grefhCurrent->{If}->{$Name}->{ifSpeed} = "" if (not defined $grefhCurrent->{If}->{$Name}->{ifSpeed});
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
                                 "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
                                 "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0;$grefhCurrent->{If}->{$Name}->{ifSpeed} " .
@@ -5159,6 +5239,16 @@ sub Perfdataout {
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
                                 $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";;;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
+                                if ($ghOptions{'pkt'}) {
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast})
+                                        and $perfdata .= "PpsInUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast})
+                                        and $perfdata .= "PpsOutUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast})
+                                        and $perfdata .= "PpsInNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast}*1 .";;;0; ";
+                                    (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast})
+                                        and $perfdata .= "PpsOutNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast}*1 .";;;0; ";
+                                }
                             }
                         }
 
