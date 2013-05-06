@@ -93,7 +93,6 @@
 #           + extended 32-bit counters (low/high)
 #         - epn support back
 #         - better support of IP info for HP Procurve switches
-#         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
 # DONE    - netscreen, NSRP status support
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
 # IN PROG - support bluecoat
@@ -104,7 +103,6 @@
 #         - update bank of snmp device snapshots
 # DONE    - ingraph graphing solution support
 # DONE    - option to show a column with the interface type
-#         - IpInfo ipv6 support
 #
 # ----------------------------------------------------------------------
 # Todo for 0.06
@@ -112,6 +110,11 @@
 #         - think on a method for adding interfaces from vendor's mib to standard interfaces
 #         - stats for Netscreen tunnels
 #              -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=2246
+#         - feature allowing exclusion of particular ports from alarms for errors and bandwidth, but statistics for 
+#           bandwidth and errors still generated. 
+#              -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1697#p1961
+#         - IpInfo ipv6 support
+#         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
