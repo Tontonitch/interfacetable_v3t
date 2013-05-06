@@ -42,6 +42,7 @@ $display_errors     = 1; # 0/1: disable/enable the error graph
 $display_operstatus = 1; # 0: disable the operational status info in graphs
                          # 1: generate a new graph for operstatus
                          # 2: add a red/orange/green line on the top of the traffic graph depending on the operstatus
+$display_pktload    = 1; # 0/1: disable/enable the packet load graph
 
 #
 # Initial Logic ...
@@ -50,13 +51,27 @@ $display_operstatus = 1; # 0: disable the operational status info in graphs
 $num_graph = 0;
 
 ###############################
+# Operational status graph
+###############################
+
+if($display_operstatus == 1){
+    $num_graph++;
+    $ds_name[$num_graph] = 'Operational status';
+    $opt[$num_graph] = " --vertical-label \"\"  --title 'Operational status' --y-grid none --units-length 8";
+    $opt[$num_graph] .= " --watermark=\"Template: check_interface_table_port.php by Yannick Charton\" ";
+    $def[$num_graph] = "";
+    $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
+    $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, 0.33,"ff","#00ff00","#ff0000","#ff8c00");
+}
+
+###############################
 # Traffic graph
 ###############################
 
 if($display_traffic == 1){
     $num_graph++;
     $ds_name[$num_graph] = 'Interface traffic';
-    $opt[$num_graph] = " --vertical-label \"bits/s\" -b 1000 --slope-mode  --title \"Interface Traffic for $hostname / $servicedesc\" ";
+    $opt[$num_graph] = " --vertical-label \"bits/s\" -l 0 -b 1000 --slope-mode  --title \"Interface Traffic for $hostname / $servicedesc\" ";
     $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port.php by Yannick Charton\" ";
     $def[$num_graph] = "";
     $def[$num_graph] .= rrd::def     ("bits_in", $RRDFILE[2], $DS[2], "AVERAGE");
@@ -88,7 +103,7 @@ if($display_traffic == 1){
 if(($display_errors == 1) && (isset($RRDFILE[7]))){
     $num_graph++;
     $ds_name[$num_graph] = 'Error/discard packets';
-    $opt[$num_graph] = " --vertical-label \"pkts/s\" -b 1000 --title \"Error/discard packets for $hostname / $servicedesc\" ";
+    $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Error/discard packets for $hostname / $servicedesc\" ";
     $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port.php by Yannick Charton\" ";
     $def[$num_graph] = "";
     $def[$num_graph] .= rrd::def     ("pkt_in_err", $RRDFILE[4], $DS[4], "AVERAGE");
@@ -105,14 +120,28 @@ if(($display_errors == 1) && (isset($RRDFILE[7]))){
     $def[$num_graph] .= rrd::gprint  ("pkt_out_discard", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
 }
 
-if($display_operstatus == 1){
+###############################
+# Packets load graph
+###############################
+
+if(($display_pktload == 1) && (isset($RRDFILE[11]))){
     $num_graph++;
-    $ds_name[$num_graph] = 'Operational status';
-    $opt[$num_graph] = " --vertical-label \"\"  --title 'Operational status' --y-grid none --units-length 8";
-    $opt[$num_graph] .= " --watermark=\"Template: check_interface_table_port.php by Yannick Charton\" ";
+    $ds_name[$num_graph] = 'Packets load';
+    $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Packets load for $hostname / $servicedesc\" ";
+    $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port.php by Yannick Charton\" ";
     $def[$num_graph] = "";
-    $def[$num_graph] .= rrd::def     ("oper_status", $RRDFILE[1], $DS[1], "AVERAGE");
-    $def[$num_graph] .= rrd::ticker  ("oper_status", 1.1, 2.1, 0.33,"ff","#00ff00","#ff0000","#ff8c00");
+    $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
+    $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
+    $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
+    $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
+    $def[$num_graph] .= rrd::area    ("pkt_in_ucast",   '#FFD700', 'in_ucast           ');
+    $def[$num_graph] .= rrd::gprint  ("pkt_in_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    $def[$num_graph] .= rrd::area    ("pkt_out_ucast",  '#FF8C00', 'out_ucast          ', 'STACK');
+    $def[$num_graph] .= rrd::gprint  ("pkt_out_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    $def[$num_graph] .= rrd::area    ("pkt_in_nucast",  '#7B68EE', 'in_nucast          ', 'STACK');
+    $def[$num_graph] .= rrd::gprint  ("pkt_in_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    $def[$num_graph] .= rrd::area    ("pkt_out_nucast", '#BA55D3', 'out_nucast         ', 'STACK');
+    $def[$num_graph] .= rrd::gprint  ("pkt_out_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
 }
 
 ?>
