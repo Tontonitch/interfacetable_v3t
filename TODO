@@ -7,16 +7,7 @@
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing
 #            -> test phase would include tests on simulated type of monitored nodes
-#         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
-#           use stpxInconsistentState?
-#         - add a feature to anonymize the info in debug reports (script or option?)
-#         - review normalization for a more standard one available in perl and php
-#         - evaluate a system where properties changing from empty to a value are not
-#           reported as a problem
 # DONE    - add an option for debug output in a file
-#         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
-#           modem) where the download and upload speeds are different 
-#         - option for (re-)adding/remove some bw stats
 # DONE    - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 #             -> use of snmpget/snmpbulkget
 # DONE    - enhance code flexibility for easier device support extension
@@ -42,7 +33,7 @@
 # DONE    - fix wrong old variable in settings.cfg
 # DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
 # DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
-#         - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
+# DONE    - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
 # DONE    - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
 # DONE    - fix for double-quoted string from unixsnmp method
 # DONE    - fix for double-quotes in servicenames (perfdata)
@@ -76,7 +67,7 @@
 #         - review all function specs and desc
 # DONE    - split physical & virtual interfaces in separate tables
 #             -> split by ifType
-#         - pnp templates per device
+# DONE    - pnp templates for particular devices (currently bigip)
 #         - sudo config in separate file for sudoers.d dir
 #         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
 #         - full/specific support of the following vendor devices: 
@@ -115,6 +106,15 @@
 #              -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1697#p1961
 #         - IpInfo ipv6 support
 #         - add support of Fabric OS Firmware < v5.3.0 (Brocade) 
+#         - multiple spanning tree support (currently only default vlan for cisco). Maybe 
+#           use stpxInconsistentState?
+#         - add a feature to anonymize the info in debug reports (script or option?)
+#         - review normalization for a more standard one available in perl and php
+#         - add feature for second ifSpeed in asymetrical links (such as a DSL line or cable 
+#           modem) where the download and upload speeds are different 
+#         - option for (re-)adding/remove some bw stats
+#         - evaluate a system where properties changing from empty to a value are not
+#           reported as a problem
 #
 # ----------------------------------------------------------------------
 # Ideas in vrac
