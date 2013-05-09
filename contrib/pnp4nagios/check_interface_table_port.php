@@ -50,7 +50,7 @@ $display_thresholds = 1; # 0/1: disable/enable the thresholds display on graphs
 #
 
 $num_graph = 0;
-$thresholds_fmt = '%.3lf';
+$thresholds_fmt = '%.0lf';
 
 ###############################
 # Operational status graph
@@ -89,17 +89,19 @@ if($display_traffic == 1){
     $def[$num_graph] .= rrd::line1   ("bits_out_redef", '#0000CD', 'out_bps       ');
     $def[$num_graph] .= rrd::gprint  ("bits_out_redef", array("LAST","MAX","AVERAGE"), "%8.2lf%Sbps");
     # Thresholds
-    if ($WARN[1] != "" && is_numeric($WARN[1] && $display_thresholds == 1) ){
-        $warn = pnp::adjust_unit( $WARN[1],1000,$thresholds_fmt );
-        $def[1] .= rrd::hrule($WARN[1], "#FFFF00", "Warning on ".$warn[0]."bps ");
-    }
-    if($CRIT[1] != "" && is_numeric($CRIT[1] && $display_thresholds == 1) ){
-        $crit = pnp::adjust_unit( $CRIT[1],1000,$thresholds_fmt );
-        $def[1] .= rrd::hrule($CRIT[1], "#FF0000", "Critical on ".$crit[0]."bps ");
-    }
-    if($MAX[1] != "" && is_numeric($MAX[1] && $display_thresholds == 1) ){
-        $max = pnp::adjust_unit( $MAX[1],1000,$thresholds_fmt );
-        $def[1] .= rrd::hrule($MAX[1], "#003300", "Maximum on ".$max[0]."bps\\n");
+    if ($display_thresholds == 1) {
+        if ($WARN[2] != "" && is_numeric($WARN[2])){
+            $warn = pnp::adjust_unit( $WARN[2],1000,$thresholds_fmt );
+            $def[$num_graph] .= rrd::hrule($WARN[2], $_WARNRULE, "Warning on ".$warn[0]."bps ");
+        }
+        if($CRIT[2] != "" && is_numeric($CRIT[2])){
+            $crit = pnp::adjust_unit( $CRIT[2],1000,$thresholds_fmt );
+            $def[$num_graph] .= rrd::hrule($CRIT[2], $_CRITRULE, "Critical on ".$crit[0]."bps ");
+        }
+        if($MAX[2] != "" && is_numeric($MAX[2])){
+            $max = pnp::adjust_unit( $MAX[2],1000,$thresholds_fmt );
+            $def[$num_graph] .= rrd::hrule($MAX[2], $_MAXRULE, "Maximum on ".$max[0]."bps\\n");
+        }
     }
     # Total Values in
     $def[$num_graph] .= rrd::cdef    ("octets_in", "bits_in,8,/");

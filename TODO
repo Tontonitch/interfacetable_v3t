@@ -6,7 +6,7 @@
 # Todo for 0.05
 # ----------------------------------------------------------------------
 # IN PROG - better non regression testing
-#            -> test phase would include tests on simulated type of monitored nodes
+#             -> test phase would include tests on simulated type of monitored nodes
 # DONE    - add an option for debug output in a file
 # DONE    - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 #             -> use of snmpget/snmpbulkget
@@ -46,7 +46,7 @@
 # DONE    - Link to table page when unreachable/down
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1849
 #             -> exemple: when host unreachable ([ERROR] Could not read sysUpTime information from host "x.x.x.x" with snmp)
-#         - bps perfdata: Warning, critical and max levels in graph
+# DONE    - bps perfdata: Warning, critical and max levels in graph
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
 # DONE    - code simplifications
 # DONE        -> cachedir in snmp options
