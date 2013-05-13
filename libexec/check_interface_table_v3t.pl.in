@@ -2288,7 +2288,7 @@ sub Get_Traffic {
         # traffic monitoring capacity advice
         # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume_decimal((60*57*10*10**6)/($ghOptions{'delta'}*4/3)),"bps")." maximum. " .
+            "Can monitor a bandwidth of ".format_volume_decimal((60*57*10*10**6)/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
             "If not enough, consider decreasing delta";
         # old calculation
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit counters, with delta $ghOptions{'delta'}. " .
@@ -2320,7 +2320,7 @@ sub Get_Traffic {
         # traffic monitoring capacity advice
         # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume_decimal((60*30*81*10**12)/($ghOptions{'delta'}*4/3)),"bps")." maximum. " .
+            "Can monitor a bandwidth of ".format_volume_decimal((60*30*81*10**12)/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
             "If not enough, consider decreasing delta";
         # old calculation
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
@@ -2387,9 +2387,9 @@ sub Get_Traffic {
         # traffic monitoring capacity advice
         # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
-            "Can monitor a bandwidth of ".format_volume_decimal((60*30*81*10**12)/($ghOptions{'delta'}*4/3)),"bps")." maximum. " .
+            "Can monitor a bandwidth of ".format_volume_decimal((60*30*81*10**12)/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
             "If not enough, consider decreasing delta";
-        #OLD
+        # old calculation
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
         #    "Can monitor a bandwidth of ".format_volume_decimal((2**(32+32)-1 )/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
         #    "If not enough, consider decreasing delta";
