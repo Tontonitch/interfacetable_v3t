@@ -38,6 +38,7 @@ use Data::Dumper;
   $Data::Dumper::Terse = 1;
 use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
 use Sort::Naturally;
+use Time::HiRes qw();
 use GeneralUtils;
 use Settings;
 use SnmpUtils;
@@ -54,14 +55,15 @@ use SnmpUtils;
 use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
-$PROGNAME       = $0;
-$REVISION       = '0.05-rc1';
-$CONTACT        = 'tontonitch-pro@yahoo.fr';
-my %ERRORCODES  = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
-my %COLORS      = ('HighLight' => '#81BEF7');
-my $UMASK       = "0000";
-my $TMPDIR      = File::Spec->tmpdir();         # define cache directory or use /tmp
-my $STARTTIME   = time ();                      # time of program start
+$PROGNAME        = $0;
+$REVISION        = '0.05-rc1';
+$CONTACT         = 'tontonitch-pro@yahoo.fr';
+my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
+my %COLORS       = ('HighLight' => '#81BEF7');
+my $UMASK        = "0000";
+my $TMPDIR       = File::Spec->tmpdir();         # define cache directory or use /tmp
+my $STARTTIME_HR = Time::HiRes::time();          # time of program start, high res
+my $STARTTIME    = sprintf("%.0f",$STARTTIME_HR); # time of program start
 
 # ------------------------------------------------------------------------
 # OIDs definitions
@@ -1138,7 +1140,7 @@ $grefhCurrent->{MD}->{Node}->{adminupfree} = ${gNumberOfFreeUpInterfaces};
 # we take a separate field where we remember the last reset
 # of the entire file
 if (not $grefhFile->{TableReset}) {
-    $grefhFile->{TableReset} = scalar localtime time ();
+    $grefhFile->{TableReset} = scalar localtime time();
     $grefhFile->{If} = $grefhCurrent->{If};
     logger(1, "Initial run -> $grefhFile->{TableReset}");
 }
@@ -1421,8 +1423,8 @@ if ( $gInitialRun ) {
 # Add extra info to the output message
 # ------------------------------------------------------------------------------
 
-my $EndTime = time ();
-my $TimeDiff = $EndTime-$STARTTIME;
+my $ENDTIME_HR = Time::HiRes::time();
+my $RUNTIME_HR = sprintf("%0.2f", ($ENDTIME_HR-$STARTTIME_HR));
 
 # Cisco node info
 if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
@@ -5084,7 +5086,7 @@ sub WriteHtmlFile {
         </div>
         <div>';
         print OUT '
-        ' , $ghOptions{'hostdisplay'} , ' updated: ' , scalar localtime $EndTime , ' (' , $EndTime-$STARTTIME , ' sec.)';
+        ' , $ghOptions{'hostdisplay'} , ' updated: ' , scalar localtime $ENDTIME_HR , ' (' , sprintf("%.2f", $RUNTIME_HR) , ' sec.)';
         print OUT '
             <span class="button2">';
         while ( my ($key, $value) = each(%{$ghOptions{'accessmethod'}}) ) {
@@ -5168,7 +5170,7 @@ sub Perfdataout {
 
         # plugin related stats
         $gPerfdata .= "Interface_global::check_interface_table_global::".
-            "time=${TimeDiff}s;;;; ".
+            "time=${RUNTIME_HR}s;;;; ".
             "uptime=$grefhCurrent->{MD}->{Node}->{sysUpTime}s;;;; ".
             "watched=${gNumberOfPerfdataInterfaces};;;; ".
             "useddelta=${gUsedDelta}s;;;; ".
@@ -5370,7 +5372,7 @@ sub Perfdataout {
         print OUT "$grefhCurrent->{MD}->{Node}->{sysName}\t";  # hostname
         print OUT "Interface_global";                  # servicename
         print OUT "\t\t";                              # pluginoutput
-        print OUT "time=${TimeDiff}s;;;; ";            # performancedata
+        print OUT "time=${RUNTIME_HR}s;;;; ";            # performancedata
         print OUT "uptime=$grefhCurrent->{MD}->{Node}->{sysUpTime}s;;;; ";
         print OUT "watched=${gNumberOfPerfdataInterfaces};;;; ";
         print OUT "useddelta=${gUsedDelta}s;;;; ";
