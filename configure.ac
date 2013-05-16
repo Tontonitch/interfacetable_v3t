@@ -2,7 +2,7 @@
 ### Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(interfacetable_v3t, 0.05-alpha, tontonitch-pro@yahoo.fr)
+AC_INIT(interfacetable_v3t, 0.05-rc1, tontonitch-pro@yahoo.fr)
 
 ### For later filesystem permissions
 AC_DEFINE([DEFAULT_USER], [nagios], [Default User])
@@ -23,7 +23,7 @@ AC_CANONICAL_HOST
 
 ### Some information about the project
 PKG_NAME=interfacetable_v3t
-PKG_VERSION="0.05-alpha"
+PKG_VERSION="0.05-rc1"
 PKG_HOME_URL="http://www.tontonitch.com"
 PKG_REL_DATE="XX-XX-2013"
 AC_SUBST(PKG_NAME)
@@ -135,6 +135,15 @@ then
 	AC_MSG_RESULT([found])
 else
 	AC_MSG_WARN([not found - install Exception::Class module!])
+fi
+
+dnl Checking Time::HiRes
+AC_MSG_CHECKING(for Time::HiRes perl module)
+if ( $PERL -M"Time::HiRes" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Time::HiRes perl module!])
 fi
 
 ### Checks for header files.
