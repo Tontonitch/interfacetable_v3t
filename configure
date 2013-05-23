@@ -2519,6 +2519,17 @@ else
 $as_echo "$as_me: WARNING: not found - install Exception::Class module!" >&2;}
 fi
 
+{ $as_echo "$as_me:$LINENO: checking for Time::HiRes perl module" >&5
+$as_echo_n "checking for Time::HiRes perl module... " >&6; }
+if ( $PERL -M"Time::HiRes" -e 'exit' 2>/dev/null  )
+then
+	{ $as_echo "$as_me:$LINENO: result: found" >&5
+$as_echo "found" >&6; }
+else
+	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Time::HiRes perl module!" >&5
+$as_echo "$as_me: WARNING: not found - install Time::HiRes perl module!" >&2;}
+fi
+
 ### Checks for header files.
 
 ### Checks for typedefs, structures, and compiler characteristics.
