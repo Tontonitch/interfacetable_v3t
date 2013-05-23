@@ -61,9 +61,12 @@ $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
 my $UMASK        = "0000";
-my $TMPDIR       = File::Spec->tmpdir();         # define cache directory or use /tmp
-my $STARTTIME_HR = Time::HiRes::time();          # time of program start, high res
+my $TMPDIR       = File::Spec->tmpdir();          # define cache directory or use /tmp
+my $STARTTIME_HR = Time::HiRes::time();           # time of program start, high res
 my $STARTTIME    = sprintf("%.0f",$STARTTIME_HR); # time of program start
+my $MAX_PLUGIN_OUTPUT_LENGTH = 8192;              # change it to reflect any change of the corresponding 
+                                                  # variable MAX_PLUGIN_OUTPUT_LENGTH in the sources of nagios 
+                                                  # (nagios.h) or icinga (icinga.h) 
 
 # ------------------------------------------------------------------------
 # OIDs definitions
@@ -592,8 +595,8 @@ my $grefhFile;                                       # Properties from the inter
 my $grefhCurrent;                                    # Properties from current interface states
 my $grefhListOfChanges               = undef;        # List all the changes for long plugin output
 my $gExitCode                        = $ERRORS{"OK"};
-
-my $refhSNMPResult;                                 # Temp snmp structure result
+my $gOutputSize                      = 0;
+my $refhSNMPResult;                                  # Temp snmp structure result
 
 # ========================================================================
 # FUNCTION DECLARATIONS
@@ -1289,30 +1292,13 @@ if ($ghOptions{'table-split'}) {
         $grefAoHInterfaceTableData->{"$Type"} = GenerateInterfaceTableData ($Indexes, $grefAoHInterfaceTableHeader, $ghOptions{'track-property'});
     }
 
-
 } else {
     logger(2, "Interface table data generation: a unique table for all interfaces");
     $grefAoHInterfaceTableData->{"Interface information"} = GenerateInterfaceTableData ($grefaAllIndizes, $grefAoHInterfaceTableHeader, $ghOptions{'track-property'});
 }
 
 # ------------------------------------------------------------------------------
-# Create HTML tables
-# ------------------------------------------------------------------------------
-
-# Create "small" information table
-$gInfoTableHTML = Convert2HtmlTable (1,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
-
-# Create "big" interface table(s)
-for my $Type (keys %{$grefAoHInterfaceTableData}) {
-    $gInterfaceTableHTML->{"$Type"} = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData->{"$Type"},"interfacetable","#81BEF7");
-}
-
-# Create configuration table
-logger(5, "Config table:".Dumper($grefAoHConfigTableData));
-$gConfigTableHTML = Convert2HtmlTable (2,$grefAoHConfigTableHeader,$grefAoHConfigTableData,"configtable","");
-
-# ------------------------------------------------------------------------------
-# Calculate exitcode and feed the output with warning and error messages
+# Feed the output with warning and error messages, and calculate exit code
 # ------------------------------------------------------------------------------
 
 # If current run is the first run we dont compare data
@@ -1423,18 +1409,44 @@ if ( $gInitialRun ) {
 # Add extra info to the output message
 # ------------------------------------------------------------------------------
 
-my $ENDTIME_HR = Time::HiRes::time();
-my $RUNTIME_HR = sprintf("%0.2f", ($ENDTIME_HR-$STARTTIME_HR));
-
 # Cisco node info
 if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and $grefhCurrent->{MD}->{cisco_serial}) {
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
 }
 
-# Write perfdata
+
+# Calculate end time
+my $ENDTIME_HR = Time::HiRes::time();
+my $RUNTIME_HR = sprintf("%0.2f", ($ENDTIME_HR-$STARTTIME_HR));
+
+# Generate perfdata
 if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory and $ghOptions{'enableperfdata'}) {
     Perfdataout();
 }
+
+# Output size check
+$gOutputSize += length($gText);
+$gOutputSize += length($gPerfdata) + 3 if ($gPerfdata);
+if ($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH) {
+    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Plugin output length up to the maximum allowed by nagios/icinga core ($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH). Generated performance should have been truncated. One solution is to bypass the nagios/icinga core to keep all the performance data (--perfdatadir option). See the documentation for some alternative solutions.</div>";
+}
+logger(1, "OutputSize=$gOutputSize (output:".length($gText).", perfdata:".length($gPerfdata).") MAX_PLUGIN_OUTPUT_LENGTH=$MAX_PLUGIN_OUTPUT_LENGTH");
+
+# ------------------------------------------------------------------------------
+# Create HTML tables
+# ------------------------------------------------------------------------------
+
+# Create "small" information table
+$gInfoTableHTML = Convert2HtmlTable (1,$grefAoHInfoTableHeader,$grefAoHInfoTableData,"infotable","");
+
+# Create "big" interface table(s)
+for my $Type (keys %{$grefAoHInterfaceTableData}) {
+    $gInterfaceTableHTML->{"$Type"} = Convert2HtmlTable (1,$grefAoHInterfaceTableHeader,$grefAoHInterfaceTableData->{"$Type"},"interfacetable","#81BEF7");
+}
+
+# Create configuration table
+logger(5, "Config table:".Dumper($grefAoHConfigTableData));
+$gConfigTableHTML = Convert2HtmlTable (2,$grefAoHConfigTableHeader,$grefAoHConfigTableData,"configtable","");
 
 # ------------------------------------------------------------------------------
 # Write the Html table and exit this program
