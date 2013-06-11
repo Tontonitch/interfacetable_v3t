@@ -1971,11 +1971,7 @@ sub Get_Speed {
                     } else {
                         logger(1, " $ifName($Index) -> interface speed exceeding standard counter ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). ".
                             "No high speed counter available, so the speed should be incorrect.");
-                        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
-                            denormalize($ifName)." ($Index). No high speed counter available, so the speed should be incorrect.</div>";
-                        #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Interface speed exceeding standard counter for interface " .
-                        #denormalize($ifName)." ($Index). ".
-                        #    "No high speed counter available, so the speed should be incorrect.</div>";
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">".denormalize($ifName)." ($Index): interface speed exceeding standard counter. No high speed counter available, so the speed should be incorrect.</div>";
                     }
                 }
             } else {
@@ -1989,8 +1985,7 @@ sub Get_Speed {
             # Recommendation in case Gigabit detected
             if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
-                denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
+                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): use of 32-bit counters not recommended with high speed interfaces like. If possible, consider the use of highperf mib (--64bits).</div>";
             }
             # Store ifSpeed in a machine and human readable format
             $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
@@ -2007,8 +2002,7 @@ sub Get_Speed {
             # Recommendation in case Gigabit detected
             if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
-                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">Use of 32-bit counters not recommended with high speed interfaces like " .
-                denormalize($ifName)." (Idx: $Index). If possible, consider the use of highperf mib (--64bits).</div>";
+                $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): use of 32-bit counters not recommended with high speed interfaces. If possible, consider the use of highperf mib (--64bits).</div>";
             }
             # Store ifSpeed in a machine and human readable format
             $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = $IfSpeed;
