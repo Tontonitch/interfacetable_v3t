@@ -1973,6 +1973,13 @@ sub Get_Speed {
                             "No high speed counter available, so the speed should be incorrect.");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">".denormalize($ifName)." ($Index): interface speed exceeding standard counter. No high speed counter available, so the speed should be incorrect.</div>";
                     }
+                } elsif ($IfSpeed == 1410065408 and $ghOptions{'nodetype'} eq 'netapp') {
+                    # Problem with 10 gigabit interfaces on Netapp, forcing the speed (workaround)
+                    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
+                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
+                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
+                        "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
+                    $IfSpeed = 10000000000;
                 }
             } else {
                 if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
