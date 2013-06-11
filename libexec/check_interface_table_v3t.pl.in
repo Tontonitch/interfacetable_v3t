@@ -1414,7 +1414,6 @@ if ($ghOptions{'nodetype'} eq "cisco" and $grefhCurrent->{MD}->{cisco_type} and 
     $gText = "$grefhCurrent->{MD}->{cisco_type} ($grefhCurrent->{MD}->{cisco_serial}): ". $gText;
 }
 
-
 # Calculate end time
 my $ENDTIME_HR = Time::HiRes::time();
 my $RUNTIME_HR = sprintf("%0.2f", ($ENDTIME_HR-$STARTTIME_HR));
@@ -1425,6 +1424,7 @@ if ( $gNumberOfPerfdataInterfaces > 0 and not $gInitialRun and not $gNoHistory a
 }
 
 # Output size check
+$gText =~ s/^, //; # remove starting comma if any
 $gOutputSize += length($gText);
 $gOutputSize += length($gPerfdata) + 3 if ($gPerfdata);
 if ($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH) {
@@ -2622,6 +2622,8 @@ sub Process_IfCounter {
             if ($gBasetime and defined $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"}){
                 my $overfl = ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} >=
                     $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} ) ? 0 : $overfl_mod;
+                logger(2, " Counter wrap detected, historical value is ".
+                    $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"}) if ($overfl);
                 $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"$WhatCounter"} = sprintf("%0.2f",
                     ($grefhFile->{History}->{$STARTTIME}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} -
                     $grefhFile->{History}->{$gBasetime}->{IfCounters}->{"$ifName"}->{"$WhatCounter"} + $overfl) / $gUsedDelta);
@@ -3328,7 +3330,8 @@ sub Calculate_LastTraffic {
             }
         }
     }
-    logger(1, "ifName: $ifName\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk");
+    logger(1, "ifName: $ifName\tFreeUp: $gNumberOfFreeUpInterfaces\tWithoutTrunk: $gNumberOfInterfacesWithoutTrunk\tSpeed: ".
+        $grefhCurrent->{If}->{"$ifName"}->{ifSpeed});
 }
 
 
