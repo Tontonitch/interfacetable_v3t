@@ -1679,7 +1679,12 @@ sub Get_InterfaceNames {
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
                 $grefhCurrent->{MD}->{If}->{$Name}->{MsgInfo} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
-                #$grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
+            }
+            
+            # 4. Known problematic interface
+            if ($Name =~ /^FCIP GIGE port .*$/) {
+                logger(1, "  Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'");
+                $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'.</div>";
             }
         }
 
