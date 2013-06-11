@@ -50,7 +50,7 @@ $display_thresholds = 1; # 0/1: disable/enable the thresholds display on graphs
 #
 
 $num_graph = 0;
-$thresholds_fmt = '%.0lf';
+$thresholds_fmt = '%.2lf';
 
 ###############################
 # Interface status graph
@@ -106,11 +106,11 @@ if($display_traffic == 1){
     # Total Values in
     $def[$num_graph] .= rrd::cdef    ("octets_in", "bits_in,8,/");
     $def[$num_graph] .= rrd::vdef    ("total_in", "octets_in,TOTAL");
-    $def[$num_graph] .= "GPRINT:total_in:\"Total in  %3.0lf %sB total\\n\" ";
+    $def[$num_graph] .= "GPRINT:total_in:\"Total in  %3.2lf %sB total\\n\" ";
     # Total Values out
     $def[$num_graph] .= rrd::cdef    ("octets_out", "bits_out,8,/");
     $def[$num_graph] .= rrd::vdef    ("total_out", "octets_out,TOTAL");
-    $def[$num_graph] .= "GPRINT:total_out:\"Total out %3.0lf %sB total\\n\" ";
+    $def[$num_graph] .= "GPRINT:total_out:\"Total out %3.2lf %sB total\\n\" ";
 }
 
 ###############################
