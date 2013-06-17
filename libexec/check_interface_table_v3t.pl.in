@@ -1684,7 +1684,7 @@ sub Get_InterfaceNames {
             # 4. Known problematic interface
             if ($Name =~ /^FCIP GIGE port .*$/) {
                 logger(1, "  Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'");
-                $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'.</div>";
+                $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them globally using --exclude '^FCIP GIGE port', or only from traffic tracking using --et '^FCIP GIGE port'.</div>";
             }
         }
 
@@ -6021,7 +6021,7 @@ sub print_usage () {
     --(no)snapshot (optional)
         Force the plugin to run like if it was the first launch. Cached data will be
         ignored. Default is enabled.
-    --timeout (optional)
+    --timeout | -t (optional)
         Define the global timeout limit of the plugin. By default, the nagios plugin
         global timeout is taken (default is 15s)
     --css (optional)
@@ -6124,7 +6124,7 @@ sub check_options () {
         'snapshot!',
         'version|V',
         'regexp|r',
-        'timeout=i',                            # global plugin timeout
+        'timeout|t=i',                          # global plugin timeout
         'outputshort',                          # the plugin only returns general counts (nb ports, nb changes,...).
                                                 # By default, the plugin returns general counts (nb ports, nb changes,...)
                                                 # + what changes has been detected
