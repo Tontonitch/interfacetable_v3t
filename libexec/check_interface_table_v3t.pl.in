@@ -5200,7 +5200,7 @@ sub Perfdataout {
             "adminupfree=${gNumberOfFreeUpInterfaces};;;; ";
 
         # interface status, and interface load stats
-        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
+        unless ($ghOptions{'perfdataformat'} eq 'globalonly') {
 
             # $grefaAllIndizes is a indexed and sorted list of all interfaces
             for my $InterfaceIndex (@$grefaAllIndizes) {
@@ -5283,17 +5283,24 @@ sub Perfdataout {
                         #Add interface status if available
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port_bigip::" . # servicename::plugin
-                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ".
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ";
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
+                            $perfdata .= "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                my $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
-                                my $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
-                                my $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
-                                my $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdrop, $critical_pktdrop) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
+                                    $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
+                                }
                                 $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
                                 $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
@@ -5305,17 +5312,24 @@ sub Perfdataout {
                             }
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
-                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ".
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ";
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
+                            $perfdata .= "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                my $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
-                                my $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
-                                my $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
-                                my $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdiscard, $critical_pktdiscard) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
+                                    $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
+                                }
                                 $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
                                 $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
@@ -5403,7 +5417,7 @@ sub Perfdataout {
         print OUT "\t$STARTTIME\n";                    # unix timestamp
 
         # interface status, and interface load stats
-        unless ($ghOptions{'perfdataformat'} eq 'generalonly') {
+        unless ($ghOptions{'perfdataformat'} eq 'globalonly') {
 
             # $grefaAllIndizes is a indexed and sorted list of all interfaces
             for my $InterfaceIndex (@$grefaAllIndizes) {
@@ -5492,15 +5506,24 @@ sub Perfdataout {
                         #Add interface status if available
                         if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port_bigip::" . # servicename::plugin
-                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";;;0; " .
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";;;0; ";
+                                "Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber};;;0; ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
+                            $perfdata .= "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                my $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
-                                my $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
-                                my $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
-                                my $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdrop, $critical_pktdrop) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
+                                    $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
+                                }
                                 $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
                                 $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
@@ -5512,17 +5535,24 @@ sub Perfdataout {
                             }
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
                             $perfdata .= "${servicename}::check_interface_table_port::" . # servicename::plugin
-                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; " .
-                                "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ".
-                                "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";". $grefhCurrent->{If}->{$Name}->{bpsWarn} .";".
-                                  $grefhCurrent->{If}->{$Name}->{bpsCrit} .";0;". $grefhCurrent->{If}->{$Name}->{bpsMax} ." ";
+                                "OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber};;;0; ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
+                            $perfdata .= "BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .";$warning_bps;$critical_bps;0;$maximum_bps ";
                             #Add pkt errors/discards if available and wanted
                             unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
-                                my $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
-                                my $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
-                                my $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
-                                my $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdiscard, $critical_pktdiscard) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
+                                    $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
+                                }
                                 $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
                                 $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
@@ -5774,7 +5804,7 @@ sub print_usage () {
         [--htmltableurl <url to html interface tables>] [--htmltablelinktarget <target window>] [-d <delta>] [--ifs <separator>]
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient]
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
-        [--portperfunit <unit>] [--perfdataformat <format>] [--outputshort]
+        [--portperfunit <unit>] [--perfdataformat <format>] [--perfdatathreshold <format>] [--outputshort]
         [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
         [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
 
@@ -5948,6 +5978,17 @@ sub print_usage () {
         'loadonly' should be used in case of too many interfaces and consequently too much performance
         data which cannot fit in the nagios plugin output buffer. By default, its size is 8k and
         can be extended by modifying MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources.
+    --perfdatathreshold (optional)
+        Define which thresholds are printed in the generated performance data.
+        Can be:
+         * full : thresholds in the generated performance data are generated for include plugin 
+                  related stats, interface load stats, and packet error stats
+         * loadonly : thresholds in the generated performance data include plugin related stats 
+                  and interface load stats
+         * globalonly : thresholds in the generated performance data include only plugin related stats
+        Default is full.
+        'loadonly' or 'globalonly' could be used in case of a too long plugin output producing problems 
+        with nagios/icinga's buffers.
     --perfdatadir (optional)
         When specified, the performance data are also written directly to a file, in the specified
         location. Please use the same hostname as in Icinga/Nagios for -H or -h.
@@ -6143,6 +6184,7 @@ sub check_options () {
         'enableperfdata|f',                     # enable port performance data, default is port perfdata disabled
         'portperfunit=s',                       # bit|bps: in/out traffic in perfdata could be reported in bits or in bps
         'perfdataformat=s',                     # define which performance data will be generated.
+        'perfdatathreshold=s',                  # define which thresholds should be printed in the generated performance data.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
         'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph
@@ -6240,6 +6282,7 @@ sub check_options () {
         'enableperfdata'            => 0,
         'portperfunit'              => "@portperfunit@",
         'perfdataformat',           => "full",
+        'perfdatathreshold',        => "full",
         'perfdatadir',              => undef,
         'perfdataservicedesc',      => undef,
         'grapher'                   => "@grapher@",
@@ -6559,10 +6602,18 @@ sub check_options () {
         }
     }
     if (exists $commandline{perfdataformat}) {
-        if ($commandline{perfdataformat} =~ /^full$|^loadonly$|^generalonly$/i) {
+        if ($commandline{perfdataformat} =~ /^full$|^loadonly$|^globalonly$/i) {
             $ghOptions{'perfdataformat'} = "$commandline{perfdataformat}";
         } else {
-            print "Specified performance data format \"$commandline{perfdataformat}\" is not valid. Valid formats are: full, loadonly, generalonly.\n";
+            print "Specified performance data format \"$commandline{perfdataformat}\" is not valid. Valid formats are: full, loadonly, globalonly.\n";
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
+    if (exists $commandline{perfdatathreshold}) {
+        if ($commandline{perfdatathreshold} =~ /^full$|^loadonly$|^globalonly$/i) {
+            $ghOptions{'perfdatathreshold'} = "$commandline{perfdatathreshold}";
+        } else {
+            print "Specified thresholds keyword \"$commandline{perfdatathreshold}\" is not valid. Valid formats are: full, loadonly, globalonly.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
