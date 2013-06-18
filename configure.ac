@@ -174,6 +174,7 @@ AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
 AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data],grapher=$withval,grapher=pnp4nagios)
 AC_ARG_WITH(grapher_url,  [  --with-grapher-url=<grapher-url>               Sets URL to the graphing solution web interface],grapher_url=$withval,grapher_url=none)
+AC_ARG_WITH(portperfunit, [  --with-portperfunit=<unit>                     Sets the unit used to report traffic statistics. could be reported in bits (counters) or in bps (calculated value, new and default since v0.05). Can be 'bit' or 'bps'.],portperfunit=$withval,portperfunit=bps)
 AC_ARG_ENABLE(testing,    [  --enable-testing                               Testing mode. All files and directories will be installed in <prefix>])
 
 dnl Testing mode
@@ -209,6 +210,14 @@ if test x$grapher_url = xnone; then
 	fi
 fi
 AC_SUBST(grapher_url)
+
+dnl Check the validity of the portperfunit variable
+if test x$portperfunit != xbit; then
+	if test x$portperfunit != xbps; then
+		portperfunit="bps"
+	fi
+fi
+AC_SUBST(portperfunit)
 
 dnl Check for location of Apache conf.d directory
 HTTP_CONF=no
@@ -343,8 +352,50 @@ AC_MSG_RESULT([                     Apache AuthName:  $apache_authname])
 AC_MSG_RESULT([                        Sudoers file:  $sudoers])
 
 echo ""
+echo " Other options:"
+echo " ----------------------"
+AC_MSG_RESULT([          Port performance data unit:  $portperfunit])
 echo ""
-echo "Review the options above for accuracy.  If they look okay,"
+echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING - PLEASE READ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+echo " !! Interfacetable_v3t release 0.05 introduces some important changes in the way traffic      !!"
+echo " !! statistics are calculated and reported.                                                   !!"
+echo " !! In previous versions, the statistics were collected from counters and were written as     !!"
+echo " !! counters in the performance data. The graphing solution, in charge of processing the      !!"
+echo " !! performance data, had to insertcounters in the rrd files. During this rrd update, the     !!"
+echo " !! traffic rate (in bits/octets per second) was calculated. With this method, there is no    !!"
+echo " !! way to avoid abnormal statistics to be inserted in the rrd files.                         !!"
+echo " !! In this new 0.05 release, the statistics are still collected from counters, but the rates !!"
+echo " !! (usually bps) are calculated and transmitted to performance data (no more as counters).   !!"
+echo " !! The graphing solution, in charge of processing the performance data, have to insert bps   !!"
+echo " !! values in the rrd files. With this method, abnormal statistics are not transmitted to the !!"
+echo " !! graphing solution, leaving the rrd files only with consistent statistics.                 !!"
+echo " !! This new method is now default one in this new release of the plugin. The old method is   !!"
+echo " !! still available but should be removed in future versions of the plugin.                   !!"
+echo " !!                                                                                           !!"
+echo " !! Important notes:                                                                          !!"
+echo " !!  * if you are proceeding to a new installation of the interfacetable_v3t plugin,          !!"
+echo " !!    everything should be okay, the new default method will be used.                        !!"
+echo " !!  * if you are upgrading an existing installation of the interfacetable_v3t plugin:        !!"
+echo " !!    - by default, the new method will be used.                                             !!"
+echo " !!      YOU WILL NEED TO CONVERT THE EXISTING RRD FILES! See the upgrade procedure at        !!"
+echo " !!      http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v !!"
+echo " !!      3t+-+documentation+-+0.05+-+Upgrade&structure=Nagios+plugins+-+interfacetable_v3t+-+ !!"
+echo " !!      documentation+-+0.05                                                                 !!"
+echo " !!    - or you can still use the old method                                                  !!"
+echo " !!       a) during the installation by using the configure option --with-portperfunit=bit    !!"
+echo " !!       b) or when running the plugin by using the plugin option --portperfunit=bit         !!"
+echo " !!      Please KEEP IN MIND that switching from one method to another imply the convertion   !!"
+echo " !!      of the rrd files as a prerequisite!!!                                                !!"
+echo " !!      Please KEEP IN MIND that the old method returning counters as performance data will  !!"
+echo " !!      be REMOVED from future releases                                                      !!"
+echo " !!  * the option --portperfunit cannot take the value 'octet' anymore. This option has been  !!"
+echo " !!    removed as not used, for better maintenance, and in the forcast of the unique unit     !!"
+echo " !!    'bps' in future releases. If you use it, please contact me.                            !!"
+echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING - PLEASE READ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+
+echo ""
+echo ""
+echo "Review the options above for accuracy. If they look okay,"
 echo "type 'make install' to install the software."
 echo "type 'make fullinstall' to install the software and environment configs (apache, sudo)."
 echo ""

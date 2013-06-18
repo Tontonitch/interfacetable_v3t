@@ -6238,7 +6238,7 @@ sub check_options () {
         'critical-property'         => 0,
         #------- performance data -------#
         'enableperfdata'            => 0,
-        'portperfunit'              => "bps",
+        'portperfunit'              => "@portperfunit@",
         'perfdataformat',           => "full",
         'perfdatadir',              => undef,
         'perfdataservicedesc',      => undef,
