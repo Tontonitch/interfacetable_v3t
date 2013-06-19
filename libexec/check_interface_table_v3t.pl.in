@@ -861,7 +861,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
     Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
-        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+        Get_Traffic ('32+64', \%oid_ifInOctets, \%oid_ifOutOctets, \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
         Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
     }
@@ -2316,8 +2316,8 @@ sub Get_Traffic {
         #    "If not enough, consider decreasing delta or use 64-bit counters (--64bits)";
 
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "32");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "32");
 
     } elsif ("$counterType" eq "64") {
         my $refhOIDoctetsIn = shift;
@@ -2348,8 +2348,8 @@ sub Get_Traffic {
         #    "If not enough, consider decreasing delta";
         
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "64");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "64");
 
     } elsif ("$counterType" eq "HighLow") {
         # 64-bit unsigned integer for In/Out octet counters, splitted in 2 objects (Low and High)
@@ -2415,8 +2415,56 @@ sub Get_Traffic {
         #    "If not enough, consider decreasing delta";
         
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn");
-        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut");
+        Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "64");
+        Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "64");
+
+    } elsif ("$counterType" eq "32+64") {
+        my $refhOIDoctetsIn32 = shift;
+        my $refhOIDoctetsOut32 = shift;
+        my $refhOIDoctetsIn64 = shift;
+        my $refhOIDoctetsOut64 = shift;
+        my $refhSNMPResultOctetsIn32;   # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsOut32;  # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsIn64;   # Lines returned from snmpwalk storing ifXOctetsIn
+        my $refhSNMPResultOctetsOut64;  # Lines returned from snmpwalk storing ifXOctetsIn
+
+        # get all interface in/out traffic octet counters - no caching !
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultOctetsIn32 = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn32 ])) if ($@);
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultOctetsOut32 = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut32 ])) if ($@);
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn64->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultOctetsIn64 = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn64 ])) if ($@);
+        eval {
+            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut64->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+            $refhSNMPResultOctetsOut64 = GetTableDataWithSnmp (\%hOptions);
+        };
+        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut64 ])) if ($@);
+
+        # traffic monitoring capacity advice
+        # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
+        $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
+            "Can monitor a bandwidth of ".format_volume_decimal((60*30*81*10**12)/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
+            "If not enough, consider decreasing delta";
+        # old calculation
+        #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
+        #    "Can monitor a bandwidth of ".format_volume_decimal((2**64-1 )/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
+        #    "If not enough, consider decreasing delta";
+        
+        # post-processing interface octet counters
+        Process_IfCounter ($refhSNMPResultOctetsIn32, "OctetsIn", "32");
+        Process_IfCounter ($refhSNMPResultOctetsOut32, "OctetsOut", "32");
+        Process_IfCounter ($refhSNMPResultOctetsIn64, "OctetsIn", "64");
+        Process_IfCounter ($refhSNMPResultOctetsOut64, "OctetsOut", "64");
     }
 
     return 0;
@@ -2468,10 +2516,10 @@ sub Get_Error_Discard {
     # post-processing interface octet counters
     #------------------------------------------
 
-    Process_IfCounter ($refhSNMPResultInErrors, "PktsInErr");
-    Process_IfCounter ($refhSNMPResultOutErrors, "PktsOutErr");
-    Process_IfCounter ($refhSNMPResultInDiscards, "PktsInDiscard");
-    Process_IfCounter ($refhSNMPResultOutDiscard, "PktsOutDiscard");
+    Process_IfCounter ($refhSNMPResultInErrors, "PktsInErr", "32");
+    Process_IfCounter ($refhSNMPResultOutErrors, "PktsOutErr", "32");
+    Process_IfCounter ($refhSNMPResultInDiscards, "PktsInDiscard", "32");
+    Process_IfCounter ($refhSNMPResultOutDiscard, "PktsOutDiscard", "32");
 
     return 0;
 }
@@ -2552,6 +2600,14 @@ sub Get_Packets {
             $refhSNMPResultPktsOutNUcast->{"$key"} += $refhSNMPResultBroadcastPktOut->{"$key"} if (defined $refhSNMPResultBroadcastPktOut->{"$key"});
         }
 
+        # post-processing interface pkts counters
+        #------------------------------------------
+    
+        Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast", "64");
+        Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast", "64");
+        Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast", "64");
+        Process_IfCounter ($refhSNMPResultPktsOutNUcast, "PktsOutNUcast", "64");
+
     } elsif ("$counterType" eq "32") {
         my $refhOidUCastIn = shift;
         my $refhOidUCastOut = shift;
@@ -2579,15 +2635,15 @@ sub Get_Packets {
             $refhSNMPResultPktsOutNUcast = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOidNUCastOut ])) if ($@);
+
+        # post-processing interface pkts counters
+        #------------------------------------------
+    
+        Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast", "32");
+        Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast", "32");
+        Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast", "32");
+        Process_IfCounter ($refhSNMPResultPktsOutNUcast, "PktsOutNUcast", "32");
     }
-
-    # post-processing interface pkts counters
-    #------------------------------------------
-
-    Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast");
-    Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast");
-    Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast");
-    Process_IfCounter ($refhSNMPResultPktsOutNUcast, "PktsOutNUcast");
 
     return 0;
 }
@@ -2609,10 +2665,11 @@ sub Process_IfCounter {
 
     my $refhCounter = shift;
     my $WhatCounter = shift;
+    my $TypeCounter = shift;
     
     # check if the counter is back to 0 after 2^32 / 2^64.
     # First set the modulus depending on highperf counters or not
-    my $overfl_mod = ($ghSNMPOptions{'64bits'}) ? 18446744073709551616 : 4294967296;
+    my $overfl_mod = ($ghSNMPOptions{'64bits'} and "$TypeCounter" ne "32") ? 18446744073709551616 : 4294967296;
 
     # Example of $refhCounter
     #    .1.3.6.1.2.1.2.2.1.10.2 2510821601
@@ -3860,10 +3917,10 @@ sub Get_Error_Drop_Bigip {
     # post-processing interface octet counters
     #------------------------------------------
 
-    Process_IfCounter ($refhSNMPResultInErrors, "PktsInErr");
-    Process_IfCounter ($refhSNMPResultOutErrors, "PktsOutErr");
-    Process_IfCounter ($refhSNMPResultInDrops, "PktsInDrop");
-    Process_IfCounter ($refhSNMPResultOutDrops, "PktsOutDrop");
+    Process_IfCounter ($refhSNMPResultInErrors, "PktsInErr", "64");
+    Process_IfCounter ($refhSNMPResultOutErrors, "PktsOutErr", "64");
+    Process_IfCounter ($refhSNMPResultInDrops, "PktsInDrop", "64");
+    Process_IfCounter ($refhSNMPResultOutDrops, "PktsOutDrop", "64");
 
     return 0;
 }
