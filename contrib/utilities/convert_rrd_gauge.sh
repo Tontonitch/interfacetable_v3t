@@ -7,11 +7,13 @@ echo "######################## List of files to convert ########################
 for i in `ls -d $1/*`; do
     cd $i
     echo "=== Scanning directory $i ==="
+    echo "- RRD files:"
     for x in `ls If_*Pkts*.rrd If_*Bits*.rrd 2>/dev/null`; do
-        echo "- $x"
+        echo "-  $x"
     done
+    echo "- XML files:"
     for x in `ls If_*.xml 2>/dev/null`; do
-        echo "- $x"
+        echo "-  $x"
     done
 done
 echo "############################################################################"
@@ -25,7 +27,7 @@ then
         cd $i
         echo "######################## Directory $i ##########################"
     
-        echo "=== Processing rrd files ==="
+        echo "=== Processing RRD files ==="
         for x in `ls If_*Pkts*.rrd If_*Bits*.rrd 2>/dev/null`; do
             
             # get mtime of the file
@@ -43,9 +45,9 @@ then
             mv -f ${x} ${y}
             
             # reapply kept mtime
-            touch -t $xmtime $x
+            touch -d @$xmtime $x
         done
-        echo "=== Processing xml files ==="
+        echo "=== Processing XML files ==="
         for x in `ls If_*.xml 2>/dev/null`; do
             
             # get mtime of the file
@@ -60,7 +62,7 @@ then
             sed -i 's#<UNIT>c</UNIT>#<UNIT></UNIT>#g' $x
             
             # reapply kept mtime
-            touch -t $xmtime $x
+            touch -d @$xmtime $x
         done
     done
 fi
