@@ -13,7 +13,7 @@
 # DONE    - enhance code flexibility for easier device support extension
 # DONE    - infobulle pkt err/discard
 # DONE    - notes and recommendations in the config table (bandwidth monitoring capacity calculation,...)
-# IN PROG - perfdata in bps instead of counters. experimental phase      
+# DONE    - perfdata in bps instead of counters. experimental phase      
 # DONE    - new workflow for device support extension
 # DONE    - nodetype change protection
 # DONE    - fix nodenames with " " (idroj)
@@ -54,8 +54,8 @@
 # DONE        -> snmp functions rewamp
 # DONE    - all functions of SnmpUtils return one hash for the results. No more arrays.
 # DONE    - new cache storage methods to store hashs and arrays
-#         - usage help update
-#         - website help & doc update
+# IN PROG - usage help update
+# IN PROG - website help & doc update
 #            -> tag new features and changes introduced in 0.05
 #         - website doc : howto html output on nagiosxi
 # DONE    - test of ncsp module in case it now support huge perfdata outputs 
