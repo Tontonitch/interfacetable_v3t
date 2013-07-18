@@ -598,6 +598,10 @@ my $gExitCode                        = $ERRORS{"OK"};
 my $gOutputSize                      = 0;
 my $refhSNMPResult;                                  # Temp snmp structure result
 
+my $gConfigTableOtherMsgInfo         = "";
+my $gConfigTableOtherMsgWarn         = "";
+my $gConfigTableOtherMsgCrit         = "";
+
 # ========================================================================
 # FUNCTION DECLARATIONS
 # ========================================================================
@@ -861,7 +865,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
     Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
     Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
-        Get_Traffic ('32+64', \%oid_ifInOctets, \%oid_ifOutOctets, \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+        Get_Traffic ('64+32', \%oid_ifHCInOctets, \%oid_ifHCOutOctets, \%oid_ifInOctets, \%oid_ifOutOctets);
     } else {
         Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
     }
@@ -1233,9 +1237,6 @@ $grefAoHConfigTableData->[6]->[1]->{Value} .= ( $ghOptions{'critical-property'} 
  ? "critical for $ghOptions{'critical-property'} change(s)" : "no critical threshold";
 
 # Loop through all interfaces
-my $ConfigTableOtherMsgInfo = "";
-my $ConfigTableOtherMsgWarn = "";
-my $ConfigTableOtherMsgCrit = "";
 for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
     # Denormalize interface name
     my $ifNameReadable = denormalize ($ifName);
@@ -1244,9 +1245,9 @@ for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
         $grefAoHConfigTableData->[0]->[1]->{Value} ne "" and $grefAoHConfigTableData->[0]->[1]->{Value} .= ", ";
         $grefAoHConfigTableData->[0]->[1]->{Value} .= "$ifNameReadable";
     } else {
-        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo} and $ConfigTableOtherMsgInfo .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo};
-        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} and $ConfigTableOtherMsgWarn .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn};
-        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} and $ConfigTableOtherMsgCrit .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit};
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo} and $gConfigTableOtherMsgInfo .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgInfo};
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} and $gConfigTableOtherMsgWarn .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn};
+        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} and $gConfigTableOtherMsgCrit .= $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit};
         if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedLoadTrack} eq "true") {
             $grefAoHConfigTableData->[1]->[1]->{Value} ne "" and $grefAoHConfigTableData->[1]->[1]->{Value} .= ", ";
             $grefAoHConfigTableData->[1]->[1]->{Value} .= "$ifNameReadable";
@@ -1260,7 +1261,7 @@ for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
 $grefAoHConfigTableData->[0]->[1]->{Value} eq "" and $grefAoHConfigTableData->[0]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[1]->[1]->{Value} eq "" and $grefAoHConfigTableData->[1]->[1]->{Value} = "none";
 $grefAoHConfigTableData->[2]->[1]->{Value} eq "" and $grefAoHConfigTableData->[2]->[1]->{Value} = "none";
-$grefAoHConfigTableData->[8]->[1]->{Value} .= $ConfigTableOtherMsgInfo . $ConfigTableOtherMsgWarn . $ConfigTableOtherMsgCrit;
+$grefAoHConfigTableData->[8]->[1]->{Value} .= $gConfigTableOtherMsgInfo . $gConfigTableOtherMsgWarn . $gConfigTableOtherMsgCrit;
 
 #
 # Generate Html Table
@@ -2418,27 +2419,20 @@ sub Get_Traffic {
         Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "64");
         Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "64");
 
-    } elsif ("$counterType" eq "32+64") {
-        my $refhOIDoctetsIn32 = shift;
-        my $refhOIDoctetsOut32 = shift;
+    } elsif ("$counterType" eq "64+32") {
         my $refhOIDoctetsIn64 = shift;
         my $refhOIDoctetsOut64 = shift;
-        my $refhSNMPResultOctetsIn32;   # Lines returned from snmpwalk storing ifOctetsIn
-        my $refhSNMPResultOctetsOut32;  # Lines returned from snmpwalk storing ifOctetsIn
         my $refhSNMPResultOctetsIn64;   # Lines returned from snmpwalk storing ifXOctetsIn
         my $refhSNMPResultOctetsOut64;  # Lines returned from snmpwalk storing ifXOctetsIn
+        
+        my $refhOIDoctetsIn32 = shift;
+        my $refhOIDoctetsOut32 = shift;
+        my $refhSNMPResultOctetsIn32;   # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsOut32;  # Lines returned from snmpwalk storing ifOctetsIn
+        my $refhSNMPResultOctetsIn32Filtered;
+        my $refhSNMPResultOctetsOut32Filtered;
 
-        # get all interface in/out traffic octet counters - no caching !
-        eval {
-            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetsIn32 = GetTableDataWithSnmp (\%hOptions);
-        };
-        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn32 ])) if ($@);
-        eval {
-            my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
-            $refhSNMPResultOctetsOut32 = GetTableDataWithSnmp (\%hOptions);
-        };
-        ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut32 ])) if ($@);
+        ### Start by retrieving the 64-bit counters
         eval {
             my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn64->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
             $refhSNMPResultOctetsIn64 = GetTableDataWithSnmp (\%hOptions);
@@ -2461,10 +2455,59 @@ sub Get_Traffic {
         #    "If not enough, consider decreasing delta";
         
         # post-processing interface octet counters
-        Process_IfCounter ($refhSNMPResultOctetsIn32, "OctetsIn", "32");
-        Process_IfCounter ($refhSNMPResultOctetsOut32, "OctetsOut", "32");
         Process_IfCounter ($refhSNMPResultOctetsIn64, "OctetsIn", "64");
         Process_IfCounter ($refhSNMPResultOctetsOut64, "OctetsOut", "64");
+        
+        ### Then retrieve the 32bit counters if needed
+        # loop through all found interfaces
+        my @aListIfLowSpeedNoCounter;
+        my @aListIfLowSpeedCounter32Idx;
+        my @aListIfLowSpeedCounter32Name;
+        for my $ifName (keys %{$grefhCurrent->{If}}) {
+            # Extract the index out of the MetaData
+            my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
+            if (not defined $refhSNMPResultOctetsIn64->{$Index} and defined $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} 
+              and $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} <= 20000000) {
+                push(@aListIfLowSpeedNoCounter, $Index);
+            }
+        }
+        if (@aListIfLowSpeedNoCounter){
+            # get all interface in/out traffic octet counters - no caching !
+            eval {
+                my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsIn32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+                $refhSNMPResultOctetsIn32 = GetTableDataWithSnmp (\%hOptions);
+            };
+            ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsIn32 ])) if ($@);
+            eval {
+                my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDoctetsOut32->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
+                $refhSNMPResultOctetsOut32 = GetTableDataWithSnmp (\%hOptions);
+            };
+            ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut32 ])) if ($@);
+            
+            for my $idx (@aListIfLowSpeedNoCounter) {
+                if (defined $refhSNMPResultOctetsIn32->{$idx} and defined $refhSNMPResultOctetsOut32->{$idx} ){
+                    $refhSNMPResultOctetsIn32Filtered->{$idx} = $refhSNMPResultOctetsIn32->{$idx};
+                    $refhSNMPResultOctetsOut32Filtered->{$idx} = $refhSNMPResultOctetsOut32->{$idx};
+                    push(@aListIfLowSpeedCounter32Idx, $idx);
+                    my $Name = denormalize($grefhCurrent->{MD}->{Map}->{IndexToName}->{"$idx"});
+                    push(@aListIfLowSpeedCounter32Name, $Name);
+                    $grefhCurrent->{MD}->{If}->{"$Name"}->{MsgInfo} .= "<div class=\"information\">".
+                        "Interface \"$Name\": no 64-bit counter but 32-bit counter found for this low speed interface (<20Mbps). Using it.</div>";
+                }
+            }
+            if (@aListIfLowSpeedCounter32Idx){
+                # traffic monitoring capacity advice
+                # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
+                $grefAoHConfigTableData->[7]->[1]->{Value} .= "<br>Moreover, using 32-bit counters for the following low speed interfaces as no 64-bit " .
+                    "counters where found: " . join(', ',@aListIfLowSpeedCounter32Name) . ". For there interfaces, with delta $ghOptions{'delta'}, the plugin " .
+                    "can monitor a bandwidth of ".format_volume_decimal((60*57*10*10**6)/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
+                    "If not enough, consider decreasing delta";
+                ## logger(2, "IfName=\"$ifName\", StpIndex=\"$StpIndex\", StpPortstate not found for the interface");
+                # post-processing interface octet counters
+                Process_IfCounter ($refhSNMPResultOctetsIn32Filtered, "OctetsIn", "32");
+                Process_IfCounter ($refhSNMPResultOctetsOut32Filtered, "OctetsOut", "32");
+            }
+        }
     }
 
     return 0;
