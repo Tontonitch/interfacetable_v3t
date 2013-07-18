@@ -172,7 +172,7 @@ AC_ARG_WITH(statedir,     [  --with-statedir=/path/to/cache/dir             Sets
 AC_ARG_WITH(htmlurl,      [  --with-htmlurl=<local-url>                     Sets interface table URL location],htmlurl=$withval,htmlurl=/interfacetable_v3t)
 AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets software cgi programs directory],cgidir=$withval,cgidir=${prefix}/sbin)
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
-AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data],grapher=$withval,grapher=pnp4nagios)
+AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data. Possible values are pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph],grapher=$withval,grapher=pnp4nagios)
 AC_ARG_WITH(grapher_url,  [  --with-grapher-url=<grapher-url>               Sets URL to the graphing solution web interface],grapher_url=$withval,grapher_url=none)
 AC_ARG_WITH(portperfunit, [  --with-portperfunit=<unit>                     Sets the unit used to report traffic statistics. could be reported in bits (counters) or in bps (calculated value, new and default since v0.05). Can be 'bit' or 'bps'.],portperfunit=$withval,portperfunit=bps)
 AC_ARG_ENABLE(testing,    [  --enable-testing                               Testing mode. All files and directories will be installed in <prefix>])
@@ -384,7 +384,7 @@ echo " !!      documentation+-+0.05                                             
 echo " !!    - or you can still use the old method                                                  !!"
 echo " !!       a) during the installation by using the configure option --with-portperfunit=bit    !!"
 echo " !!       b) or when running the plugin by using the plugin option --portperfunit=bit         !!"
-echo " !!      Please KEEP IN MIND that switching from one method to another imply the convertion   !!"
+echo " !!      Please KEEP IN MIND that switching from one method to another imply the conversion   !!"
 echo " !!      of the rrd files as a prerequisite!!!                                                !!"
 echo " !!      Please KEEP IN MIND that the old method returning counters as performance data will  !!"
 echo " !!      be REMOVED from future releases                                                      !!"
