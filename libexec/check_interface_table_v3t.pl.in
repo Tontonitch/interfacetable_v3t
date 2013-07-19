@@ -64,7 +64,7 @@ my $UMASK        = "0000";
 my $TMPDIR       = File::Spec->tmpdir();          # define cache directory or use /tmp
 my $STARTTIME_HR = Time::HiRes::time();           # time of program start, high res
 my $STARTTIME    = sprintf("%.0f",$STARTTIME_HR); # time of program start
-my $MAX_PLUGIN_OUTPUT_LENGTH = 8192;              # change it to reflect any change of the corresponding 
+my $MAX_PLUGIN_OUTPUT_LENGTH = @max_plugin_output_length@;              # change it to reflect any change of the corresponding 
                                                   # variable MAX_PLUGIN_OUTPUT_LENGTH in the sources of nagios 
                                                   # (nagios.h) or icinga (icinga.h) 
 
@@ -1429,7 +1429,9 @@ $gText =~ s/^, //; # remove starting comma if any
 $gOutputSize += length($gText);
 $gOutputSize += length($gPerfdata) + 3 if ($gPerfdata);
 if ($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH) {
-    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Plugin output length up to the maximum allowed by nagios/icinga core ($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH). Generated performance should have been truncated. One solution is to bypass the nagios/icinga core to keep all the performance data (--perfdatadir option). See the documentation for some alternative solutions.</div>";
+    $grefAoHConfigTableData->[8]->[1]->{Value} .= "<div class=\"critical\">Plugin output length up to the maximum allowed by nagios/icinga core ".
+        "($gOutputSize > $MAX_PLUGIN_OUTPUT_LENGTH). Generated performance could have been truncated. One solution is to bypass the nagios/icinga ".
+        "core to keep all the performance data (--perfdatadir option). See the documentation for some alternative solutions.</div>";
 }
 logger(1, "OutputSize=$gOutputSize (output:".length($gText).", perfdata:".length($gPerfdata).") MAX_PLUGIN_OUTPUT_LENGTH=$MAX_PLUGIN_OUTPUT_LENGTH");
 

@@ -174,6 +174,7 @@ AC_ARG_WITH(cgidir,       [  --with-cgidir=/path/to/cgi/dir                 Sets
 AC_ARG_WITH(cgiurl,       [  --with-cgiurl=<local-url>                      Sets URL for interfacetable_v3t cgi programs],cgiurl=$withval,cgiurl=/interfacetable_v3t/cgi-bin)
 AC_ARG_WITH(grapher,      [  --with-grapher=<solution name>                 Sets the graphing solution which will be in charge of processing the performance data. Possible values are pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph],grapher=$withval,grapher=pnp4nagios)
 AC_ARG_WITH(grapher_url,  [  --with-grapher-url=<grapher-url>               Sets URL to the graphing solution web interface],grapher_url=$withval,grapher_url=none)
+AC_ARG_WITH(max_plugin_output_length, [  --with-max-plugin-output-length=<length>       Sets the maximum plugin output length as used during the nagios/icinga core compilation. Default is 8192. If you used a different value, specify it here so the plugin would correctly detect the oversized plugin outputs.],portperfunit=$withval,portperfunit=8192)
 AC_ARG_WITH(portperfunit, [  --with-portperfunit=<unit>                     Sets the unit used to report traffic statistics. could be reported in bits (counters) or in bps (calculated value, new and default since v0.05). Can be 'bit' or 'bps'.],portperfunit=$withval,portperfunit=bps)
 AC_ARG_ENABLE(testing,    [  --enable-testing                               Testing mode. All files and directories will be installed in <prefix>])
 
@@ -355,6 +356,7 @@ echo ""
 echo " Other options:"
 echo " ----------------------"
 AC_MSG_RESULT([          Port performance data unit:  $portperfunit])
+AC_MSG_RESULT([            MAX_PLUGIN_OUTPUT_LENGTH:  $max_plugin_output_length])
 echo ""
 echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING - PLEASE READ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 echo " !! Interfacetable_v3t release 0.05 introduces some important changes in the way traffic      !!"

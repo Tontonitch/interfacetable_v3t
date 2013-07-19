@@ -84,6 +84,8 @@ ${cgiurlrel} =~ s/^https*:\/\/[^\/]*\//\//;
 my ${grapher}="@grapher@";
 my ${grapher_url}="@grapher_url@";
 my ${portperfunit}="@portperfunit@";
+my ${max_plugin_output_length}="@max_plugin_output_length@";
+
 
 #================================#
 # Variable substitution
@@ -149,6 +151,7 @@ while ($f = shift @ARGV) {
         s|\@grapher\@|$grapher|g;
         s|\@grapher_url\@|$grapher_url|g;
         s|\@portperfunit\@|$portperfunit|g;
+        s|\@max_plugin_output_length\@|$max_plugin_output_length|g;
         print OUT $_;
     }
 
