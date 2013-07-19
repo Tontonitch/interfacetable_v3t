@@ -1981,6 +1981,17 @@ sub Get_Speed {
                             "No high speed counter available, so the speed should be incorrect.");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">".denormalize($ifName)." ($Index): interface speed exceeding standard counter. No high speed counter available, so the speed should be incorrect.</div>";
                     }
+                } elsif ($IfSpeed == 3705032704 and $ghOptions{'nodetype'} eq 'cisco') {
+                    # At least for a problem with Cisco NX-OS, which has an ifSpeed limit/max of 3705032704 for some 8G interfaces
+                    # Forcing to take the ifHighSpeed instead
+                    logger(1, " $ifName($Index) -> interface speed matching a situation where ifSpeed limit is 3705032704. Forcing the use of ifHighSpeed instead.");
+                    if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
+                        $IfSpeed = $refhSNMPResultIfHighSpeed->{"$Index"} * 1000000;
+                    } else {
+                        logger(1, " $ifName($Index) -> interface speed exceeding standard counter ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). ".
+                            "No high speed counter available, so the speed should be incorrect.");
+                        $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">".denormalize($ifName)." ($Index): interface speed exceeding standard counter. No high speed counter available, so the speed should be incorrect.</div>";
+                    }
                 } elsif ($IfSpeed == 1410065408 and $ghOptions{'nodetype'} eq 'netapp') {
                     # Problem with 10 gigabit interfaces on Netapp, forcing the speed (workaround)
                     logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
