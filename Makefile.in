@@ -68,7 +68,7 @@ clean:
 	cd $(SRC_SHARE) && $(MAKE) $@
 	-rm -f *.cfg core
 	-rm -f *~ *.*~ */*~ */*.*~
-	-rm -f config.log config.status config.cache
+	-rm -f config.log config.status config.cache subst
 
 distclean: clean
 	cd $(SRC_SBIN) && $(MAKE) $@
