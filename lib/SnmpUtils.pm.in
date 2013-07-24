@@ -310,7 +310,9 @@ sub GetDataWithSnmp {
             } else {
                 $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authNoPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} "
             }
-            defined $refhArgs->{'contextname'} and $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
+            if (defined $refhArgs->{'contextname'} and $refhArgs->{'contextname'} ne "") {
+                $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
+            }
         } else {
             $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
         }
@@ -630,7 +632,9 @@ sub GetTableDataWithSnmp {
                 $snmpQueryOptions .= "-u $refhArgs->{'login'} -l authNoPriv -a $refhArgs->{'authproto'} -A $refhArgs->{'passwd'} "
             }
             defined $refhArgs->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhArgs->{'max-repetitions'} ";
-            defined $refhArgs->{'contextname'} and $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
+            if (defined $refhArgs->{'contextname'} and $refhArgs->{'contextname'} ne "") {
+                $snmpQueryOptions .= "-n$refhArgs->{'contextname'} ";
+            }
         } elsif ( $refhArgs->{'version'} eq 2 ) {
             $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
             defined $refhArgs->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhArgs->{'max-repetitions'} ";
