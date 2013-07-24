@@ -645,9 +645,9 @@ my $grefAoHInfoTableHeader = [                           # Header for the colomn
     { Title => 'Uptime',                         Nodetype => 'ALL',                         Enabled => 1 },
     { Title => 'System Information',             Nodetype => 'ALL',                         Enabled => 1 },
     { Title => 'Type',                           Nodetype => 'cisco',                       Enabled => 1 },
-    { Title => 'Serial',                         Nodetype => 'cisco,brocade,nortel',        Enabled => 1 },
-    { Title => 'Model',                          Nodetype => 'netapp,bigip,brocade,nortel', Enabled => 1 },
-    { Title => 'Firmware',                       Nodetype => 'brocade',                     Enabled => 1 },
+    { Title => 'Serial',                         Nodetype => 'cisco,brocade,brocade-nos,nortel',        Enabled => 1 },
+    { Title => 'Model',                          Nodetype => 'netapp,bigip,brocade,brocade-nos,nortel', Enabled => 1 },
+    { Title => 'Firmware',                       Nodetype => 'brocade,brocade-nos',                     Enabled => 1 },
     { Title => 'Location',                       Nodetype => 'ALL',                         Enabled => 1 },
     { Title => 'Contact',                        Nodetype => 'ALL',                         Enabled => 1 },
     { Title => 'NSRP Status',                    Nodetype => 'netscreen',                   Enabled => 1 },
@@ -661,36 +661,36 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1 },
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => 1 },
     { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'alias'} },
     { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                        Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1 },
     { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1, 
         Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1,
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => 1,
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR></TABLE>' },
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => 1, 
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR><TR><TD>unknown</TD><TD>status can not be determined for some reason</TD></TR><TR><TD>dormant</TD><TD></TD></TR><TR><TD>notPresent</TD><TD>some component are missing</TD></TR><TR><TD>lowerLayerDown</TD><TD>down due to state of lower-layer interface(s)</TD></TR></TABLE>' },
     { Title => 'Type',                 Dataname => 'ifType',          Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'type'},
         Tooltip => 'The type of interface. <br>Values for ifType are assigned by the Internet Assigned Numbers Authority (IANA), <br>and available in the IANAifType textual convention.' },
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'duplex'} },
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'stp'} },
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => $ghOptions{'stp'} },
     { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => $ghOptions{'vlan'} },
     { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'ipinfo'} },
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => $ghOptions{'ipinfo'} },
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
-    { Title => 'Pkt err/disc',         Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => 1, 
+    { Title => 'Pkt err/disc',         Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => 1, 
         Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
     { Title => 'Pkt err/drop',         Dataname => 'pktErrDrop',      Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'bigip', Enabled => 1, 
         Tooltip => 'Number of error/drop packets per sec.<br>Format:<br>error in / error out / drop in / drop out' },
-    { Title => 'Pkt load',             Dataname => 'pktUcastNUcast',  Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,nortel', Enabled => $ghOptions{'pkt'}, 
+    { Title => 'Pkt load',             Dataname => 'pktUcastNUcast',  Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel', Enabled => $ghOptions{'pkt'}, 
         Tooltip => 'Number of unicast/non-unicast packets per sec.<br>Format:<br>Ucast in / Ucast out / NUcast in / NUcast out' },
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                        Enabled => 1 },
 ];
@@ -821,7 +821,7 @@ if ($ghOptions{'nodetype'} eq "bigip") {
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_bigip_sysGeneralHwName ])) if ($@);
     $grefhCurrent->{MD}->{Node}->{bigip_model} = "$refhSNMPResult->{$oid_bigip_sysGeneralHwName{'oid'}}";
 }
-if ($ghOptions{'nodetype'} eq "brocade") {
+if ($ghOptions{'nodetype'} eq "brocade" or $ghOptions{'nodetype'} eq "brocade-nos") {
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_brocade_swFirmwareVersion{'oid'}","$oid_brocade_model{'oid'}","$oid_brocade_serial{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResult = GetDataWithSnmp (\%hOptions);
@@ -856,7 +856,7 @@ if ($ghOptions{'nodetype'} eq "netscreen") {
 
 # +++++ Cisco +++++
 if ($ghOptions{'nodetype'} eq "cisco") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -882,7 +882,7 @@ if ($ghOptions{'nodetype'} eq "cisco") {
 }
 # +++++ HP +++++
 elsif ($ghOptions{'nodetype'} eq "hp") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -901,7 +901,7 @@ elsif ($ghOptions{'nodetype'} eq "hp") {
 }
 # +++++ Netapp +++++
 elsif ($ghOptions{'nodetype'} eq "netapp") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -919,7 +919,7 @@ elsif ($ghOptions{'nodetype'} eq "netapp") {
 }
 # +++++ Netscreen +++++
 elsif ($ghOptions{'nodetype'} eq "netscreen") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus_Netscreen (\%oid_ifOperStatus); # Gather interface operational status
@@ -957,7 +957,7 @@ elsif ($ghOptions{'nodetype'} eq "bigip") {
 }
 # +++++ BlueCoat +++++
 elsif ($ghOptions{'nodetype'} eq "bluecoat") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -976,7 +976,34 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
 }
 # +++++ Brocade +++++
 elsif ($ghOptions{'nodetype'} eq "brocade") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
+    Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
+    Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
+    Get_Speed (\%oid_ifSpeed, \%oid_ifHighSpeed); # Gather interface speed
+    Get_Alias_Brocade () if ($ghOptions{'alias'}); # Gather interface alias
+    Get_Duplex (\%oid_ifDuplexStatus) if ($ghOptions{'duplex'}); # Gather interface duplex state
+    Get_IpInfo (\%oid_ipAdEntIfIndex, \%oid_ipAdEntNetMask) if ($ghOptions{'ipinfo'}); # Gather interface ip addresses and masks
+    if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
+        Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
+    } else {
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+    }
+    Get_Error_Discard();
+    if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
+        if ($ghSNMPOptions{'64bits'}) {
+            Get_Packets ('64', \%oid_ifHCInUcastPkts, \%oid_ifHCOutUcastPkts, \%oid_ifHCInMulticastPkts, \%oid_ifHCOutMulticastPkts, \%oid_ifHCInBroadcastPkts, \%oid_ifHCOutBroadcastPkts);
+        } else {
+            Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
+        }
+    }
+    ###Get_Vlan (); # Gather interface vlans
+    Get_Stp () if ($ghOptions{'stp'}); # Gather Spanning Tree specific info
+
+}
+# +++++ Brocade NOS +++++
+elsif ($ghOptions{'nodetype'} eq "brocade-nos") {
+    Get_InterfaceNames (\%oid_ifName, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -1003,7 +1030,7 @@ elsif ($ghOptions{'nodetype'} eq "brocade") {
 }
 # +++++ Nortel +++++
 elsif ($ghOptions{'nodetype'} eq "nortel") {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -1030,7 +1057,7 @@ elsif ($ghOptions{'nodetype'} eq "nortel") {
 }
 # +++++ Standard device +++++
 else {
-    Get_InterfaceNames (); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -1564,6 +1591,8 @@ exit $ERRORS{"UNKNOWN"};
 # ------------------------------------------------------------------------------
 sub Get_InterfaceNames {
 
+    my $refhOIDIfDescr = shift;
+    my $refhOIDIfPhysAddress = shift;
     my $refhSNMPResultIfDescr;
     my $refhSNMPResultIfPhysAddress;
     my $refhIfDescriptionCounts = {};   # For duplicates counting
@@ -1578,18 +1607,18 @@ sub Get_InterfaceNames {
 
     # get all interface descriptions
     eval {
-        my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_ifDescr{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 1));
+        my %hOptions = ( %ghSNMPOptions, (oids => ["$refhOIDIfDescr->{'oid'}"], cachetimer => 0, outputhashkeyidx => 0, checkempty => 1));
         $refhSNMPResultIfDescr = GetTableDataWithSnmp (\%hOptions);
     };
-    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_ifDescr ])) if ($@);
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDIfDescr ])) if ($@);
 
     # get all interface mac addresses
     eval {
-        my %hOptions = ($ghOptions{'usemacaddr'}) ? ( %ghSNMPOptions, (oids => ["$oid_ifPhysAddress{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1))
-            : ( %ghSNMPOptions, (oids => ["$oid_ifPhysAddress{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 1, checkempty => 0));
+        my %hOptions = ($ghOptions{'usemacaddr'}) ? ( %ghSNMPOptions, (oids => ["$refhOIDIfPhysAddress->{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1))
+            : ( %ghSNMPOptions, (oids => ["$refhOIDIfPhysAddress->{'oid'}"], cachetimer => $gLongCacheTimer, outputhashkeyidx => 1, checkempty => 0));
         $refhSNMPResultIfPhysAddress = GetTableDataWithSnmp (\%hOptions);
     };
-    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_ifPhysAddress ])) if ($@);
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDIfPhysAddress ])) if ($@);
 
     # Look for duplicate values
     #------------------------------------------
@@ -1676,7 +1705,24 @@ sub Get_InterfaceNames {
                 $Name="FWSM $1";
                 logger(2, "  Interface name matching a Cisco Firewall Services Module interface pattern, name reduced to \"$Name\"");
             }
-
+            elsif ($ghOptions{'nodetype'} eq "brocade-nos") {
+                if ($Name =~ /^TenGigabitEthernet (.*)$/) {
+                    #Brocade VDX - TenGigabitEthernet interface
+                    $Name="TenGigabitEthernet$1";
+                    logger(2, "  Interface name matching a Brocade VDX TenGig Interface, renamed to \"$Name\"");
+                }
+                elsif ($Name =~ /^GigabitEthernet (.*)$/) {
+                    #Brocade VDX - GigabitEthernet interface
+                    $Name="GigabitEthernet$1";
+                    logger(2, "  Interface name matching a Brocade VDX Gig Interface, renamed to \"$Name\"");
+                }
+                elsif ($Name =~ /^\d(.*)$/) {
+                    #Brocade VDX - FCoE interface
+                    $Name="FCoE$1";
+                    logger(2, "  Interface name matching a Brocade VDX TenGig Interface, renamed to \"$Name\"");
+                }
+            }
+            
             # Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
@@ -3708,7 +3754,7 @@ sub Get_InterfaceNames_Bigip {
 
             # 3. Known long of problematic interface names
             # Detect long name, which may be reduced for a cleaner interface table
-            my $name_warning_length = 30;
+            my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
                 $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"";
@@ -6131,7 +6177,7 @@ sub print_usage () {
         Sets the directory where the interface states are stored.
     --nodetype (optional)
         Specify the node type, for specific information to be printed / specific oids to be used
-        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.
+        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel.
     --(no)duplex (optional)
         Add the duplex mode property for each interface in the interface table.
     --(no)stp (optional)
@@ -6140,6 +6186,7 @@ sub print_usage () {
          * Cisco device using pvst / multiple vlan stp
     --(no)vlan (optional)
         Add the vlan attribution property for each interface in the interface table.
+         This option is available only for the following nodetypes: cisco, hp, nortel
     --(no)ipinfo (optional)
         Add the ip information for each interface in the interface table.
     --(no)alias (optional)
@@ -6272,7 +6319,7 @@ sub check_options () {
         'type!',                                # Add interface type for each interface
         'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
-                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.
+                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel.
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
         'snapshot!',
@@ -6575,10 +6622,10 @@ sub check_options () {
         $ghOptions{'human'} = $commandline{human};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^nortel$/i) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
-            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, nortel.\n";
+            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -6600,7 +6647,7 @@ sub check_options () {
         }
     }
     if (exists $commandline{'type'}) {
-        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^nortel$/i) {
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$/i) {
             $ghOptions{'type'} = $commandline{'type'};
         } else {
             print "Option \"--type\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
@@ -6771,7 +6818,7 @@ sub check_options () {
         }
     }
     if (exists $commandline{'table-split'}) {
-        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^nortel$/i) {
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$/i) {
             $ghOptions{'table-split'} = $commandline{'table-split'};
         } else {
             print "Option \"--table-split\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
