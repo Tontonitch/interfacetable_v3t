@@ -39,6 +39,7 @@ use Data::Dumper;
 use Getopt::Long qw(:config no_ignore_case no_ignore_case_always bundling_override);
 use Sort::Naturally;
 use Time::HiRes qw();
+use Encode qw(decode encode);
 use GeneralUtils;
 use Settings;
 use SnmpUtils;
@@ -1657,8 +1658,23 @@ sub Get_InterfaceNames {
             $Name = "Port $Index";
             logger(2, "  Interface with index $Index has no description.\nName is set to $Name");
         } else {
-
-            # 2. append the index to duplicate interface descriptions. Index is better than mac address as in lots of cases the
+            
+            # 2. Convert HEX names to ASCII (mod by Enfileyb)
+            if ($Name =~ /^0x([a-fA-F0-9]{2})*00$/) {
+                chomp($Name);
+                # Remove 0x at start and Zero-Byte at end
+                $Name =~ s/^0x(.*)00$/$1/;
+                # Convert HEX to Char
+                $Name = pack("H*",$Name);
+                # Because Windows SNMP-service uses different codepages (Win2k3 uses CP125x, Win2k8 uses CP85x) encode 
+                # to ascii (there should be no chars, that disturb PNP4Nagios)
+                $Name = encode('ascii', $Name);
+                # Any Non-Ascii-Chars have been replaced by '?', now replace them with '_' (could be another char).
+                $Name =~ s/\?/_/g;
+                logger(2, "  Interface with index $Index has HEX-description. Name converted to \"$Name\"");
+            }
+         
+            # 3. append the index to duplicate interface descriptions. Index is better than mac address as in lots of cases the
             # same mac address can be used for multiples interfaces (if there is a mac address...)
             # Example of nodes in that case: Dell Powerconnect Switches 53xx, 54xx, 60xx and 62xx: same interface name 'Ethernet Interface'
             # However, be sure to fix the interface index (see the node type documentation). If not fixed, this could lead to problems
@@ -1681,7 +1697,7 @@ sub Get_InterfaceNames {
                 }
             }
 
-            # 3. Known long of problematic interface names
+            # 4. Known long of problematic interface names
             if ($Name =~ /^Adaptive Security Appliance '(.*)' interface$/) {
                 #Cisco ASA 55xx series
                 $Name="$1";
@@ -1730,7 +1746,7 @@ sub Get_InterfaceNames {
                 $grefhCurrent->{MD}->{If}->{$Name}->{MsgInfo} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
             }
             
-            # 4. Known problematic interface
+            # 5. Known problematic interface
             if ($Name =~ /^FCIP GIGE port .*$/) {
                 logger(1, "  Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'");
                 $grefhCurrent->{MD}->{If}->{$Name}->{MsgWarn} .= "<div class=\"warning\">Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them globally using --exclude '^FCIP GIGE port', or only from traffic tracking using --et '^FCIP GIGE port'.</div>";
@@ -5966,6 +5982,7 @@ sub print_usage () {
         [--portperfunit <unit>] [--perfdataformat <format>] [--perfdatathreshold <format>] [--outputshort]
         [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
         [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
+        [--(no)pkt] [--(no)type]
 
     * other usages:
       $PROGNAME [--help | -?]
@@ -6047,6 +6064,9 @@ sub print_usage () {
         * Format:
            --critical-traffic <load%>,<pkterr/s>,<pktdiscard/s>
            ex: --critical-traffic 95,1000,1000
+    --(no)pkt (optional)
+        Add unicast/non-unicast pkt stats for each interface. No tracking, just for statistics 
+        and graphs
 
   Property checks (interface property changes)
     --tp, --track-property (optional)
@@ -6241,6 +6261,8 @@ sub print_usage () {
         Default table sorting, can be index (default) or name.
     --table-split (optional)
         Generate multiple interface tables, one per interface type.
+    --(no)type (optional)
+        Add the interface type for each interface.
 
   Notes:
     - For options --exclude, --include, --exclude-traffic, --include-traffic, --track-property,

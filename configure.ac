@@ -146,6 +146,15 @@ else
 	AC_MSG_WARN([not found - install Time::HiRes perl module!])
 fi
 
+dnl Checking Encode
+AC_MSG_CHECKING(for Encode perl module)
+if ( $PERL -M"Encode" -e 'exit' 2>/dev/null  )
+then
+	AC_MSG_RESULT([found])
+else
+	AC_MSG_WARN([not found - install Encode perl module!])
+fi
+
 ### Checks for header files.
 
 ### Checks for typedefs, structures, and compiler characteristics.
@@ -309,9 +318,7 @@ AC_MSG_RESULT([*** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DAT
 if test x$enable_testing = xyes; then
   echo ""
   echo "                               --- TESTING MODE ENABLED ---"
-  echo " Note: dur to testing mode, you will need to"
-  echo "    * copy the utils.pm file from the non-testing nagios libexec directory to the testing nagios"
-  echo "      testing nagios libexec directory specified below"
+  echo " Note: due to the testing mode, you will need to"
   echo "    * copy the generated interfacetable_v3t.conf httpd config file from the testing apache conf.d dir"
   echo "      to the httpd configuration directory on the system, renamed as you want"
   echo ""

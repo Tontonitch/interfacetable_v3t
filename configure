@@ -2536,6 +2536,17 @@ else
 $as_echo "$as_me: WARNING: not found - install Time::HiRes perl module!" >&2;}
 fi
 
+{ $as_echo "$as_me:$LINENO: checking for Encode perl module" >&5
+$as_echo_n "checking for Encode perl module... " >&6; }
+if ( $PERL -M"Encode" -e 'exit' 2>/dev/null  )
+then
+	{ $as_echo "$as_me:$LINENO: result: found" >&5
+$as_echo "found" >&6; }
+else
+	{ $as_echo "$as_me:$LINENO: WARNING: not found - install Encode perl module!" >&5
+$as_echo "$as_me: WARNING: not found - install Encode perl module!" >&2;}
+fi
+
 ### Checks for header files.
 
 ### Checks for typedefs, structures, and compiler characteristics.
@@ -3934,9 +3945,7 @@ $as_echo "*** Configuration summary for $PKG_NAME $PKG_VERSION $PKG_REL_DATE ***
 if test x$enable_testing = xyes; then
   echo ""
   echo "                               --- TESTING MODE ENABLED ---"
-  echo " Note: dur to testing mode, you will need to"
-  echo "    * copy the utils.pm file from the non-testing nagios libexec directory to the testing nagios"
-  echo "      testing nagios libexec directory specified below"
+  echo " Note: due to the testing mode, you will need to"
   echo "    * copy the generated interfacetable_v3t.conf httpd config file from the testing apache conf.d dir"
   echo "      to the httpd configuration directory on the system, renamed as you want"
   echo ""
