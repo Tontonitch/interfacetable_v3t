@@ -2,11 +2,82 @@
 # CHANGELOG
 # ========================================================================
 #
+# Possible change types: enhancement, feature, bugfix, add
+#
 #   ----------------------------------------------------------------------
 # * 0.05 (in progress)
 #   ----------------------------------------------------------------------
 #
-#
+#    - enhancement: support of ifDescr in HEX-String (i.e. ifDescr used by Windows SNMP-Service in case 
+#                   of umlauts) (by Enfileyb)
+#    - enhancement: snmpsim recorder reorg and update
+#    - enhancement: more tolerancy for unaccessible oids
+#    - enhancement: config table enhancements (exclusions reviewed: no repetitions in non global 
+#                   exclusion for globally excluded interfaces, other messages not displayed for 
+#                   excluded interfaces)
+#    - enhancement: snmp functions merge and standardization: now 2 functions (get and walk), 
+#                   returning a hash of oids and values
+#    - enhancement: snmp functions enhancement: 
+#                      * can receive multiple oids as arguments, 
+#                      * new cache storage methods (based on Storable library), 
+#                      * exceptions (errors) handling, including oid details on error
+#                      * unixsnmp now use exclusively snmpget/snmpbulkget instead of perl bindings
+#                      * result hash can be built with indexes as keys (outputhashkeyidx param)
+#                      * result hash empty check (checkempty param)
+#                      * results concatened by key when querying multiple oids
+#    - enhancement: link to html table now persistent when exist, even in case of an UNKNOWN 
+#                   error (ex: when target not accessible)
+#    - enhancement: switched to a cleaner and more standard exception handling system (based on 
+#                   the Exception::Class perl library)
+#    - enhancement: lots of functions revamped and cleaned
+#    - enhancement: new option --(no)ipinfo, to enable/disable the ipinfo. Enabled by default
+#    - enhancement: protection against interface descriptions including double-quotes.
+#    - enhancement: extended support of the following nodetypes:
+#                       * extended netscreen nodetype: ipinfo, nsrp state and corresponding operstatus alarm 
+#                         rule
+#    - enhancement: easier device support extension
+#    - enhancement: nodetype change protection (changing the nodetype will reset the table)
+#    - enhancement: don't use utils.pm anymore (utils.pm deprecated soon)
+#    - enhancement: oids in a hash format with related info (mib, conversion, ...) + renamed lots of 
+#                   oids for quick understanding
+#    - enhancement: most of the properties are now optional (to select only the wanted columns, and also 
+#                   reduce snmp queries). Use the following options: --alias, --ipinfo, --stp, --duplex, 
+#                   --vlan. Note that the use of the option --alias-matching automatically enable the 
+#                   --alias option.
+#    - enhancement: settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
+#    - feature: option to sort on Name column at first page load (--default-table-sorting)
+#    - feature: option to write the debug in a file (--debugfile=/aaa/bbb/ccc)
+#    - feature: information tooltips to describe some columns (i.e. oper and admin status)
+#    - feature: added interface type property (--type option)
+#    - feature: the interface table can be splitted by interface type (--table-split option)
+#    - feature: add the graph popups directly on the interface tables.
+#    - feature: new support of the following nodetypes:
+#               * new bigip nodetype: support of "BIG-IP Local Traffic Manager" (and maybe other 
+#                 devices of that vendor)
+#               * new netapp nodetype: support of Netapp filers (model/product node info + 64-bit 
+#                 counters + extended 32-bit counters (low/high))
+#               * new bluecoat nodetype
+#               * new brocade nodetype: firmware model, serial, portnames (~ interface alias) 
+#                 (incl/excl possible)
+#               * new brocade-nos nodetype
+#               * new nortel nodetype: model, serial, vlan ids per port
+#    - feature: notes, recommendations and warnings in the config table
+#    - feature: new option snmp v3 contextname
+#    - feature: convert sysLocation from hex to string when needed
+#    - feature: max bandwidth monitoring capacity, recommendation on switching to 32/64 counters 
+#               and delta
+#    - feature: added total bytes to graph in pnp4nagios templates
+#    - bugfix: missing snmp session close
+#    - bugfix: speed detection works when having ifHighSpeed only
+#    - bugfix: remove problematic '#' char from perfdata servicename
+#    - bugfix: fix on ipinfo gathering function to garantee correct ip (mainly for Bluecoat device)
+#    - bugfix: pipe removed from snmp results via unixsnmp
+#    - bugfix: fix nodenames with " "
+#    - bugfix: fix servicename with "."
+#    - bugfix: fix for unixsnmp when object not available
+#    - bugfix: fix when pkt errors/discards not all available
+#    - bugfix: fix wrong old variable in settings.cfg
+#    - bugfix: fixing an issue with the speed info and related calculations
 #
 #   ----------------------------------------------------------------------
 # * 0.04-1
