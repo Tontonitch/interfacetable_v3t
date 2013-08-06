@@ -5,8 +5,6 @@
 # ----------------------------------------------------------------------
 # Todo for 0.05
 # ----------------------------------------------------------------------
-# IN PROG - better non regression testing
-#             -> test phase would include tests on simulated type of monitored nodes
 # DONE    - add an option for debug output in a file
 # DONE    - in unixsnmp mode, switching any remaining use of net-snmp perl binding
 #             -> use of snmpget/snmpbulkget
@@ -54,7 +52,7 @@
 # DONE        -> snmp functions rewamp
 # DONE    - all functions of SnmpUtils return one hash for the results. No more arrays.
 # DONE    - new cache storage methods to store hashs and arrays
-# IN PROG - usage help update
+# DONE    - usage help update
 # IN PROG - website help & doc update
 #            -> tag new features and changes introduced in 0.05
 #         - website doc : howto html output on nagiosxi
@@ -68,36 +66,43 @@
 # DONE    - split physical & virtual interfaces in separate tables
 #             -> split by ifType
 # DONE    - pnp templates for particular devices (currently bigip)
-#         - sudo config in separate file for sudoers.d dir
-#         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
-#         - full/specific support of the following vendor devices: 
+# IN PROG - full/specific support of the following vendor devices: 
 # IN PROG     * netapp, 
 # DONE        * brocade, 
-# IN PROG     * nortel, 
-# IN PROG     * bigip (BIG-IP Local Traffic Manager), 
-# IN PROG     * bluecoat, 
-# IN PROG     * hp (HP Procurve support)
-#             * ...
+# DONE        * brocade-nos, 
+# DONE        * nortel, 
+# DONE        * bigip (BIG-IP Local Traffic Manager), 
+# DONE        * bluecoat, 
+# DONE        * hp (HP Procurve support)
+#             => best effort
 # DONE    - VLAN support for Nortel switches (Avaya)
 # DONE    - Alias support for Brocade switches
 # DONE    - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
 #           + extended 32-bit counters (low/high)
-#         - epn support back
-#         - better support of IP info for HP Procurve switches
 # DONE    - netscreen, NSRP status support
 #             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
 # IN PROG - support bluecoat
 #             -> ip address in other mib (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1845)
-# IN PROG - https / ssl support/guidelines
-# IN PROG - automatic nodetype detection
-#         - update snmpsim recorder
-#         - update bank of snmp device snapshots
 # DONE    - ingraph graphing solution support
 # DONE    - option to show a column with the interface type
 #
 # ----------------------------------------------------------------------
+# Todo for 0.05-1
+# ----------------------------------------------------------------------
+#         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
+#
+# ----------------------------------------------------------------------
 # Todo for 0.06
 # ----------------------------------------------------------------------
+#         - sudo config in separate file for sudoers.d dir
+#         - epn support back
+#         - better support of IP info for HP Procurve switches
+#         - update snmpsim recorder
+#         - update bank of snmp device snapshots
+# IN PROG - https / ssl support/guidelines
+# IN PROG - automatic nodetype detection
+# IN PROG - better non regression testing
+#             -> test phase would include tests on simulated type of monitored nodes
 #         - think on a method for adding interfaces from vendor's mib to standard interfaces
 #         - stats for Netscreen tunnels
 #              -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=2246
