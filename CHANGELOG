@@ -72,8 +72,8 @@
 #    - bugfix: remove problematic '#' char from perfdata servicename
 #    - bugfix: fix on ipinfo gathering function to garantee correct ip (mainly for Bluecoat device)
 #    - bugfix: pipe removed from snmp results via unixsnmp
-#    - bugfix: fix nodenames with " "
-#    - bugfix: fix servicename with "."
+#    - bugfix: fix nodenames with " " (idroj)
+#    - bugfix: fix servicename with "." (idroj)
 #    - bugfix: fix for unixsnmp when object not available
 #    - bugfix: fix when pkt errors/discards not all available
 #    - bugfix: fix wrong old variable in settings.cfg
