@@ -3,93 +3,17 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.05
+# Todo for 0.05-1
 # ----------------------------------------------------------------------
-# DONE    - add an option for debug output in a file
-# DONE    - in unixsnmp mode, switching any remaining use of net-snmp perl binding
-#             -> use of snmpget/snmpbulkget
-# DONE    - enhance code flexibility for easier device support extension
-# DONE    - infobulle pkt err/discard
-# DONE    - notes and recommendations in the config table (bandwidth monitoring capacity calculation,...)
-# DONE    - perfdata in bps instead of counters. experimental phase      
-# DONE    - new workflow for device support extension
-# DONE    - nodetype change protection
-# DONE    - fix nodenames with " " (idroj)
-# DONE    - fix servicename with "." (idroj)
-# DONE    - don't use utils.pm anymore (deprecated soon)
-# DONE    - oids in a hash format with related info (mib, conversion, ...) + renamed lots of oids for quick understanding
-# DONE    - most of the properties are now optional (to select only the wanted columns, and reduce snmp queries): alias, ipinfo, stp, duplex
-# DONE    - some function splits + dedicated functions for more flexibility
-# DONE    - checks of returned snmp arrays now in SnmpUtils
-# DONE    - some code optimisation
-# DONE    - fix for unixsnmp when object not available
-# DONE    - tables generation review, new field selection system
-# DONE    - fix when pkt errors/discards not all available (reported by Bjorn)
-# DONE    - new option snmp v3 contextname
-# DONE    - settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
-# DONE    - convert sysLocation from hex to string when needed
-# DONE    - fix wrong old variable in settings.cfg
-# DONE    - max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta
-# DONE    - added total bytes to graph in pnp4nagios templates (Markus Frosch)
-# DONE    - packet per sec graphing: http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1838#p2187 (akrus)
-# DONE    - popup graph from html table (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1826)
-# DONE    - fix for double-quoted string from unixsnmp method
-# DONE    - fix for double-quotes in servicenames (perfdata)
+#         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
 #         - Spike-Remover contribution revamp (fix_rrd_peaks.sh)
-# DONE    - more tolerancy for unaccessible oids
-#             -> for some oids (ex: dot3StatsDuplexStatus), only a warning in the "Configuration table", in the "Other" row
-#         - doc: pnp popup only for pnp 0.6.x
-# DONE    - default sorting on Name(ifdescr)
-#             -> option
-# DONE    - Link to table page when unreachable/down
-#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1849
-#             -> exemple: when host unreachable ([ERROR] Could not read sysUpTime information from host "x.x.x.x" with snmp)
-# DONE    - bps perfdata: Warning, critical and max levels in graph
-#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1844
-# DONE    - code simplifications
-# DONE        -> cachedir in snmp options
-# DONE        -> merge of GetDataWithSnmp and GetMultipleDataWithSnmp
-# DONE        -> snmp functions rewamp
-# DONE    - all functions of SnmpUtils return one hash for the results. No more arrays.
-# DONE    - new cache storage methods to store hashs and arrays
-# DONE    - usage help update
-# IN PROG - website help & doc update
-#            -> tag new features and changes introduced in 0.05
-#         - website doc : howto html output on nagiosxi
-# DONE    - test of ncsp module in case it now support huge perfdata outputs 
-#            -> ok now
 #         - review all script comments: function desc and syntax, examples, function list, 
 #         - function descriptions / syntax
 #         - review all examples
 #         - review function list
 #         - review all function specs and desc
-# DONE    - split physical & virtual interfaces in separate tables
-#             -> split by ifType
-# DONE    - pnp templates for particular devices (currently bigip)
-# IN PROG - full/specific support of the following vendor devices: 
-# IN PROG     * netapp, 
-# DONE        * brocade, 
-# DONE        * brocade-nos, 
-# DONE        * nortel, 
-# DONE        * bigip (BIG-IP Local Traffic Manager), 
-# DONE        * bluecoat, 
-# DONE        * hp (HP Procurve support)
-#             => best effort
-# DONE    - VLAN support for Nortel switches (Avaya)
-# DONE    - Alias support for Brocade switches
-# DONE    - nodetype "netapp(filer)" + model/product node info + 64-bit counters 
-#           + extended 32-bit counters (low/high)
-# DONE    - netscreen, NSRP status support
-#             -> http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1688&p=2283#p2283
-# IN PROG - support bluecoat
-#             -> ip address in other mib (http://www.tontonitch.com/phpbb/viewtopic.php?f=3&t=1845)
-# DONE    - ingraph graphing solution support
-# DONE    - option to show a column with the interface type
-#
-# ----------------------------------------------------------------------
-# Todo for 0.05-1
-# ----------------------------------------------------------------------
-#         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
+#         - website doc : howto html output on nagiosxi
+#         - doc: pnp popup only for pnp 0.6.x
 #
 # ----------------------------------------------------------------------
 # Todo for 0.06

@@ -5,7 +5,7 @@
 # Possible change types: enhancement, feature, bugfix, add
 #
 #   ----------------------------------------------------------------------
-# * 0.05 (in progress)
+# * 0.05
 #   ----------------------------------------------------------------------
 #
 #    - enhancement: support of ifDescr in HEX-String (i.e. ifDescr used by Windows SNMP-Service in case 
