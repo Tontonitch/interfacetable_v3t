@@ -227,8 +227,6 @@ sub SnmpGet {
         $refoSession->close();
     } else { 
         # session establishment problem
-        $sessionError = $refoSession->error();
-        $refoSession->close();
         logger(0, "SNMP session object creation problem: ".$sessionError);
         throw_error_common(code=>1000, message=>"SNMP session object creation problem: $sessionError");
     }
@@ -509,7 +507,7 @@ sub SnmpGetTable {
                     }
                 } else {
                     $sessionError = $refoSession->error();
-                    if ($sessionError eq "Requested table is empty or does not exist") {
+                    if ($sessionError =~ /Requested table is empty or does not exist/i) {
                         if ($CheckEmpty) {
                             $refoSession->close();
                             logger(0, "Not expected empty tree for base-oid \"".$refhQuery->{'-baseoid'}."\"");
@@ -546,8 +544,6 @@ sub SnmpGetTable {
         $refoSession->close();
     } else {
         # session establishment problem
-        $sessionError = $refoSession->error();
-        $refoSession->close();
         logger(0, "SNMP session object creation problem: ".$sessionError);
         throw_error_common(code=>1000, message=>"SNMP session object creation problem: $sessionError");
     }

@@ -4981,7 +4981,8 @@ sub GenerateInterfaceTableData {
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
                             $CellContent .= '<a href="' .
-                                #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '&page_act=[1]+Interface+traffic' .
+                                #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . 
+                                #'&page_act=[1]+Interface+traffic' .
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "netwaysgrapherv2") {
@@ -4989,9 +4990,15 @@ sub GenerateInterfaceTableData {
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "ingraph") {
-                            $CellContent .= '<a href="' .
-                                $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bit">' .
-                                '<img src="../img/chart.png" alt="Trends" /></a>';
+                            if ($ghOptions{'nodetype'} eq  "bigip") {
+                                $CellContent .= '<a href="' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip">' .
+                                    '<img src="../img/chart.png" alt="Trends" /></a>';
+                            } else {
+                                $CellContent .= '<a href="' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port">' .
+                                    '<img src="../img/chart.png" alt="Trends" /></a>';
+                            }
                         }
                 }
                 # Retrieve detailed interface info via snmp link
@@ -6106,8 +6113,7 @@ sub print_usage () {
 
   Snmp options:
     -C, --community (required)
-        Specifies the snmp v1 community string. Other snmp versions are not
-        implemented yet.
+        Specifies the snmp v1/v2c community string.
     -2, --v2c
         Use snmp v2c
     -l, --login=LOGIN ; -x, --passwd=PASSWD
