@@ -62,7 +62,7 @@ $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
 my $UMASK        = "0000";
-my $TMPDIR       = File::Spec->tmpdir();          # define cache directory or use /tmp
+my $TMPDIR       = File::Spec->tmpdir();          # define cache directory or use /tmp  -- not used yet
 my $STARTTIME_HR = Time::HiRes::time();           # time of program start, high res
 my $STARTTIME    = sprintf("%.0f",$STARTTIME_HR); # time of program start
 my $MAX_PLUGIN_OUTPUT_LENGTH = @max_plugin_output_length@;              # change it to reflect any change of the corresponding 
