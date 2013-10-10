@@ -39,10 +39,14 @@ $colors     = array("#CC3300","#CC3333","#CC3366","#CC3399","#CC33CC",
 ## Parameters
 $display_traffic    = 1; # 0/1: disable/enable the traffic graph
 $display_errors     = 1; # 0/1: disable/enable the error graph
-$display_operstatus = 1; # 0: disable the interface status info in graphs
+$display_operstatus = 2; # 0: disable the interface status info in graphs
                          # 1: generate a new graph for ifstatus
                          # 2: add a red/orange/green line on the top of the traffic graph depending on the ifstatus
-$display_pktload    = 1; # 0/1: disable/enable the packet load graph
+$display_pktload    = 1; # 0: disable the packet load graph
+                         # 1: enable the packet load graph, one graphs, lined total in/out
+                         # 2: enable the packet load graph, one graphs, lined in/out uni/multicast
+                         # 3: enable the packet load graph, one graphs, stacked in/out uni/multicast
+                         # 4: enable the packet load graph, two graphs (uni/multicast), bps traffic style
 $display_thresholds = 1; # 0/1: disable/enable the thresholds display on graphs
 
 #
@@ -141,24 +145,88 @@ if(($display_errors == 1) && (isset($RRDFILE[7]))){
 # Packets load graph
 ###############################
 
-if(($display_pktload == 1) && (isset($RRDFILE[11]))){
-    $num_graph++;
-    $ds_name[$num_graph] = 'Packets load';
-    $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Packets load for $hostname / $servicedesc\" ";
-    $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
-    $def[$num_graph] = "";
-    $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
-    $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
-    $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
-    $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
-    $def[$num_graph] .= rrd::area    ("pkt_in_ucast",   '#FFD700', 'in_ucast           ');
-    $def[$num_graph] .= rrd::gprint  ("pkt_in_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
-    $def[$num_graph] .= rrd::area    ("pkt_out_ucast",  '#FF8C00', 'out_ucast          ', 'STACK');
-    $def[$num_graph] .= rrd::gprint  ("pkt_out_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
-    $def[$num_graph] .= rrd::area    ("pkt_in_nucast",  '#7B68EE', 'in_nucast          ', 'STACK');
-    $def[$num_graph] .= rrd::gprint  ("pkt_in_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
-    $def[$num_graph] .= rrd::area    ("pkt_out_nucast", '#BA55D3', 'out_nucast         ', 'STACK');
-    $def[$num_graph] .= rrd::gprint  ("pkt_out_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+if(isset($RRDFILE[11])){
+    if($display_pktload == 1){
+        $num_graph++;
+        $ds_name[$num_graph] = 'Packets load';
+        $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Packets load for $hostname / $servicedesc\" ";
+        $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
+        $def[$num_graph] = "";
+        $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
+        $def[$num_graph] .= rrd::cdef    ("pkt_in", "pkt_in_ucast,pkt_in_nucast,+");
+        $def[$num_graph] .= rrd::cdef    ("pkt_out", "pkt_out_ucast,pkt_out_nucast,+");
+        $def[$num_graph] .= rrd::line1   ("pkt_in",   '#F78181', 'in_pkts           ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_out",  '#8A0808', 'out_pkts          ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    }
+    if($display_pktload == 2){
+        $num_graph++;
+        $ds_name[$num_graph] = 'Packets load';
+        $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Packets load for $hostname / $servicedesc\" ";
+        $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
+        $def[$num_graph] = "";
+        $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
+        $def[$num_graph] .= rrd::line1   ("pkt_in_ucast",   '#01DFD7', 'in_ucast           ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_out_ucast",  '#0B0B61', 'out_ucast          ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_in_nucast",  '#00FF40', 'in_nucast          ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_out_nucast", '#088A08', 'out_nucast         ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    }
+    if($display_pktload == 3){
+        $num_graph++;
+        $ds_name[$num_graph] = 'Packets load';
+        $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Packets load for $hostname / $servicedesc\" ";
+        $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
+        $def[$num_graph] = "";
+        $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
+        $def[$num_graph] .= rrd::area    ("pkt_in_ucast",   '#01DFD7', 'in_ucast           ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::area    ("pkt_out_ucast",  '#0B0B61', 'out_ucast          ', 'STACK');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::area    ("pkt_in_nucast",  '#00FF40', 'in_nucast          ', 'STACK');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::area    ("pkt_out_nucast", '#088A08', 'out_nucast         ', 'STACK');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    }
+    if($display_pktload == 4){
+        # Unicast packets load
+        $num_graph++;
+        $ds_name[$num_graph] = 'Packets load - Unicast';
+        $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Unicast packets load for $hostname / $servicedesc\" ";
+        $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
+        $def[$num_graph] = "";
+        $def[$num_graph] .= rrd::def     ("pkt_in_ucast", $RRDFILE[8], $DS[8], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_ucast", $RRDFILE[9], $DS[9], "AVERAGE");
+        $def[$num_graph] .= rrd::area    ("pkt_in_ucast",   '#01DFD7', 'in_ucast           ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_out_ucast",  '#0B0B61', 'out_ucast          ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_ucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        # Non-unicast packets load
+        $num_graph++;
+        $ds_name[$num_graph] = 'Packets load - Non-unicast';
+        $opt[$num_graph] = " --vertical-label \"pkts/s\" -l 0 -b 1000 --title \"Non-unicast packets load for $hostname / $servicedesc\" ";
+        $opt[$num_graph] .= "--watermark=\"Template: check_interface_table_port_bigip.php by Yannick Charton\" ";
+        $def[$num_graph] = "";
+        $def[$num_graph] .= rrd::def     ("pkt_in_nucast", $RRDFILE[10], $DS[10], "AVERAGE");
+        $def[$num_graph] .= rrd::def     ("pkt_out_nucast", $RRDFILE[11], $DS[11], "AVERAGE");
+        $def[$num_graph] .= rrd::area    ("pkt_in_nucast",  '#00FF40', 'in_nucast          ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_in_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+        $def[$num_graph] .= rrd::line1   ("pkt_out_nucast", '#088A08', 'out_nucast         ');
+        $def[$num_graph] .= rrd::gprint  ("pkt_out_nucast", array("LAST","MAX","AVERAGE"), "%5.1lf%S");
+    }
 }
 
 ?>
