@@ -3602,7 +3602,7 @@ sub Get_Vlan_Hp {
               and ( $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}} ne '')) {
                 my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}};
                 $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} = '' unless (defined $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
-                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $refhSNMPResultVlanName->{"$refhOIDVlanName->{'oid'}.$vlan"}. " ";
+                $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= $refhSNMPResultVlanName->{"$vlan"}. " ";
                 logger(2, "IfName=\"$ifName\", Vlan=\"".$grefhCurrent->{If}->{"$ifName"}->{ifVlanNames}."\"");
             }
         }
