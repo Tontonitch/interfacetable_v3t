@@ -2880,9 +2880,12 @@ sub Evaluate_Interfaces {
     # Loop through all interfaces
     for my $ifName (keys %{$grefhCurrent->{MD}->{If}}) {
 
-        # Denormalize interface name
+        # Denormalize interface name and alias
         my $ifNameReadable = denormalize ($ifName);
-        ($ghOptions{'alias'}) and my $ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$ifName"}->{ifAlias});
+        my $ifAliasReadable = "";
+        if ($ghOptions{'alias'}) {
+           $ifAliasReadable = denormalize ($grefhCurrent->{If}->{"$ifName"}->{ifAlias});
+        }
 
         #----- Includes or excludes interfaces from all tracking -----#
 
