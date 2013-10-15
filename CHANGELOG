@@ -10,6 +10,7 @@
 #
 #    - feature: added more variants of the pps graph(s) 
 #    - bugfix: fix for vlan on hp switches
+#    - bugfix: fix on StandardizeSNMPOutputBehaviour for unixsnmp mode where the oid was cleaned of the output
 #
 #   ----------------------------------------------------------------------
 # * 0.05
