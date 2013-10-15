@@ -12,6 +12,7 @@
 #    - bugfix: fix for vlan on hp switches
 #    - bugfix: fix on StandardizeSNMPOutputBehaviour for unixsnmp mode where the oid was cleaned of the output
 #    - bugfix: denormalize func fix when text empty
+#    - enhancement: looking at other oids for cisco model/serial info when the common ones don't provide the info
 #
 #   ----------------------------------------------------------------------
 # * 0.05
