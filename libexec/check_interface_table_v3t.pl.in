@@ -5933,7 +5933,7 @@ sub ExitPlugin {
 
     # Append html table link to text
     if (-e $htmltablefile) {
-        $output = $output.' <a href="' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . '" target="'.$ghOptions{'htmltablelinktarget'}.'">[details]</a>';
+        $output = $output.' <a href=' . $ghOptions{'htmltableurl'} . "/" . $gFile . ".html" . ' target='.$ghOptions{'htmltablelinktarget'}.'>[details]</a>';
     }
 
     print $output;
