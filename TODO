@@ -3,7 +3,7 @@
 # ========================================================================
 # 
 # ----------------------------------------------------------------------
-# Todo for 0.05-1
+# Todo for 0.05-2
 # ----------------------------------------------------------------------
 #         - change snmpget generated cache files to per oid cache files (to avoid too long filename/path for the filesystem)
 #         - Spike-Remover contribution revamp (fix_rrd_peaks.sh)
@@ -14,7 +14,6 @@
 #         - review all function specs and desc
 #         - website doc : howto html output on nagiosxi
 #         - doc: pnp popup only for pnp 0.6.x
-# DONE    - add nagios 4.x support
 #
 # ----------------------------------------------------------------------
 # Todo for 0.06
