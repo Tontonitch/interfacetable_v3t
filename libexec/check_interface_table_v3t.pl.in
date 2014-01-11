@@ -4986,9 +4986,8 @@ sub GenerateInterfaceTableData {
                     and $ghOptions{'enableperfdata'}) {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#//g;
+                        $servicename =~ s/[()'"#<>]//g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
                             $CellContent .= '<a class=\'tips\' ' .
@@ -5412,9 +5411,8 @@ sub Perfdataout {
                       and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $port = sprintf("%s", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#//g;
+                        $servicename =~ s/[()'"#<>]//g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
@@ -5473,9 +5471,8 @@ sub Perfdataout {
                       and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $port = sprintf("%s", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#//g;
+                        $servicename =~ s/[()'"#<>]//g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
@@ -5628,9 +5625,8 @@ sub Perfdataout {
                       and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}
                       and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#//g;
+                        $servicename =~ s/[()'"#<>]//g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
@@ -5696,9 +5692,8 @@ sub Perfdataout {
                       and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}
                       and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
                         my $servicename = "If_" . trim(denormalize($Name));
-                        $servicename =~ s/#//g;
+                        $servicename =~ s/[()'"#<>]//g;
                         $servicename =~ s/[: ]/_/g;
-                        $servicename =~ s/[()'"]//g;
                         $servicename =~ s/,/./g;
                         my $perfdata = "";
                         #Add interface status if available
