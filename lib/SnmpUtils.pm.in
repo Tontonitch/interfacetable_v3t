@@ -788,6 +788,13 @@ sub StandardizeSNMPOutputBehaviour {
         $snmpResult =~ s/noSuchInstance.*$//;
         logger(3, "Data validity check: no such objet in the mib. SNMP behavior standardization enabled, replacing by ''");
     }
+    elsif ($snmpResult =~ /Received noSuchName/) {
+        # Replacing noSuchName by an empty string.
+        # Indeed, the different snmp versions handle requests for missing oids
+        # differently. v1 always returns an empty string ?????. v2c/v3 return "noSuchName"
+        $snmpResult =~ s/Received noSuchName.*$//;
+        logger(3, "Data validity check: no such objet in the mib. SNMP behavior standardization enabled, replacing by ''");
+    }
     elsif ($snmpResult =~ /No Such Object available on this agent at this OID/) {
         # Replacing "No Such Object available on this agent at this OID" by an empty string.
         # Indeed, the different snmp versions handle requests for missing oids
@@ -804,6 +811,27 @@ sub StandardizeSNMPOutputBehaviour {
         #logger(2, "Data validity check: $line, no such objet in the mib. Strict mode disabled, returning an empty array");
         #return $refaLines;
         $snmpResult =~ s/No Such Object.*$//;
+        logger(3, "Data validity check: no such objet in the mib. SNMP behavior standardization enabled, replacing by ''");
+    }
+    elsif ($snmpResult =~ /No Such Instance currently exists at this OID/) {
+        # Replacing "No Such Instance currently exists at this OID" by an empty string.
+        # Indeed, the different snmp versions handle requests for missing oids
+        # differently. v1 returns an "Error in packet" message, v2c/v3 return "noSuchInstance"
+        # string
+        # Ex: snmpwalk
+        # [root@snoopy ~]# snmpget -Oqn -v 1 -t 15 -c public localhost:161 sysDescr
+        # Error in packet
+        # Reason: (noSuchName) There is no such variable name in this MIB.
+        # Failed object: .1.3.6.1.2.1.1.1
+        # [icinga@server libexec]$
+        # [root@snoopy ~]# snmpget -Oqn -v 2c -t 15 -c public localhost:161 sysDescr
+        # .1.3.6.1.2.1.1.1 No Such Instance currently exists at this OID
+        # [icinga@server libexec]$
+        #
+        #30/08/2012: commenting return to force empty check 
+        #logger(2, "Data validity check: $line, no such objet in the mib. Strict mode disabled, returning an empty array");
+        #return $refaLines;
+        $snmpResult =~ s/No Such Instance.*$//;
         logger(3, "Data validity check: no such objet in the mib. SNMP behavior standardization enabled, replacing by ''");
     }
     return $snmpResult;
