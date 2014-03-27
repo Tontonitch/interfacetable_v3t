@@ -2,7 +2,7 @@
 # "SnmpUtils" library
 # A collection of shared functions related to snmp.
 #
-# Version : 0.06
+# Version : 0.10
 # Author  : Y. Charton
 #
 # Revision history:
@@ -25,6 +25,7 @@
 #                                  Exception handling
 # 2013-10-10 v0.09   Y. Charton    Fix on StandardizeSNMPOutputBehaviour for unixsnmp mode where
 #                                  the oid was cleaned of the output
+# 2014-02-14 v0.10   Y. Charton    Added maxMsgSize option
 #
 ##############################################################################
 
@@ -286,6 +287,7 @@ sub GetDataWithSnmp {
             OutputHashKeyIdx => $OutputHashKeyIdx,
             CheckEmpty  => $CheckEmpty,
         );
+        defined $refhArgs->{'maxmsgsize'} and $refhSnmpQueryOptions{'-maxmsgsize'} = "$refhArgs->{'maxmsgsize'}";
         if ( $refhArgs->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhArgs->{'login'}";
             $refhSnmpQueryOptions{'-authpassword'} = "$refhArgs->{'passwd'}";
@@ -601,6 +603,7 @@ sub GetTableDataWithSnmp {
             OutputHashKeyIdx => $OutputHashKeyIdx,
             CheckEmpty  => $CheckEmpty,
         );
+        defined $refhArgs->{'maxmsgsize'} and $refhSnmpQueryOptions{'-maxmsgsize'} = "$refhArgs->{'maxmsgsize'}";
         if ( $refhArgs->{'version'} eq 3 ) {
             $refhSnmpQueryOptions{'-username'}     = "$refhArgs->{'login'}";
             $refhSnmpQueryOptions{'-authpassword'} = "$refhArgs->{'passwd'}";

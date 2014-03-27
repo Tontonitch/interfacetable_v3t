@@ -5998,7 +5998,7 @@ sub print_usage () {
         [--cache <cache retention time>] [--reseturl <url to reset cgi>] [--(no)ifloadgradient]
         [--(no)human] [--(no)snapshot] [-g <grapher solution>] [--grapherurl <url to grapher>]
         [--portperfunit <unit>] [--perfdataformat <format>] [--perfdatathreshold <format>] [--outputshort]
-        [--snmp-timeout <timeout>] [--snmp-retries <number of retries>]
+        [--snmp-timeout <timeout>] [--snmp-retries <number of retries>] [--snmp-maxmsgsize <maximum message size>]
         [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
         [--(no)pkt] [--(no)type]
 
@@ -6155,6 +6155,11 @@ sub print_usage () {
     --snmp-retries
         Define the number of times to retry sending a SNMP message (default is 2). Value can be
         from 0 to 20.
+    --snmp-maxmsgsize
+         max size of the SNMP message in octets, usefull in case of too Long responses.
+         Be carefull with network filters. Range 484 - 65535. The default is 1472 octets for UDP/IPv4, 
+         1452 octets for UDP/IPv6, 1460 octets for TCP/IPv4, and 1440 octets for TCP/IPv6.
+         Apply only to netsnmp perl bindings.
     --(no)unixsnmp
         Use unix snmp utilities for snmp requests (table/bulk requests), in place of perl bindings
         Default is to use perl bindings
@@ -6401,6 +6406,7 @@ sub check_options () {
         'contextname=s',                        # context name for snmp requests
         'snmp-timeout=i',                       # timeout for snmp requests
         'snmp-retries=i',                       # retries for snmp requests
+        'snmp-maxmsgsize=i',                    # max size for snmp message in octets
         '64bits',                               # Use 64-bits counters
         'max-repetitions=i',                    # Max-repetitions tells the get-bulk command to attempt up to M get-next operations to retrieve the remaining objects.
         'cachedir=s',                           # caching directory
@@ -6510,6 +6516,7 @@ sub check_options () {
         'contextname'               => "",
         'timeout'                   => 2,
         'retries'                   => 2,
+        'maxmsgsize'                => undef,
         '64bits'                    => 0,
         'max-repetitions'           => undef,
         'cachedir'                  => "@cachedir@",
@@ -6945,6 +6952,9 @@ sub check_options () {
     }
     if (exists $commandline{'snmp-retries'}) {
         $ghSNMPOptions{'retries'} = "$commandline{'snmp-retries'}";
+    }
+    if (exists $commandline{'snmp-maxmsgsize'}) {
+        $ghSNMPOptions{'maxmsgsize'} = "$commandline{'snmp-maxmsgsize'}";
     }
     if (exists $commandline{'64bits'}) {
         $ghSNMPOptions{'64bits'} = 1;
