@@ -48,10 +48,10 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(libdir)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(libdir)
 
 	for file in ./*.pm; \
-	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(libdir); done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(DESTDIR)$(libdir); done
 
 install-apache-config:
 	

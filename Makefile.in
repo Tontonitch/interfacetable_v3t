@@ -27,6 +27,7 @@ GREP=@GREP@
 httpd_conf=@httpd_conf@
 apache_user=@apache_user@
 apache_authname=@apache_authname@
+apache_authfile=@apache_authfile@
 #Sudo specific
 sudoers=@sudoers@
 #Software configuration

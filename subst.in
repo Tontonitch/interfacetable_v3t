@@ -59,6 +59,7 @@ my $INSTALL_OPTS="@INSTALL_OPTS@";
 my ${httpd_conf}="@httpd_conf@";
 my ${apache_user}="@apache_user@";
 my ${apache_authname}="@apache_authname@";
+my ${apache_authfile}="@apache_authfile@";
 #----------------
 # Sudo specific
 #----------------
@@ -134,6 +135,7 @@ while ($f = shift @ARGV) {
         s|\@httpd_conf\@|$httpd_conf|g;
         s|\@apache_user\@|$apache_user|g;
         s|\@apache_authname\@|$apache_authname|g;
+        s|\@apache_authfile\@|$apache_authfile|g;
         s|\@sudoers\@|$sudoers|g;
         s|\@nagios_base\@|$nagios_base|g;
         s|\@nagios_etc\@|$nagios_etc|g;

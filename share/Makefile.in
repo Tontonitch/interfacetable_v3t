@@ -48,23 +48,23 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(sharedir)
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(sharedir)/css
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(sharedir)/img
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(sharedir)/js
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(sharedir)/tables
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(sharedir)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(sharedir)/css
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(sharedir)/img
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(sharedir)/js
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(sharedir)/tables
 	
 	for file in css/*; \
-	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(sharedir)/css; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(DESTDIR)$(sharedir)/css; done
 	
 	for file in img/*; \
-	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(sharedir)/img; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(DESTDIR)$(sharedir)/img; done
 	
 	for file in js/*; \
-	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(sharedir)/js; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(DESTDIR)$(sharedir)/js; done
 	
 	for file in tables/*; \
-	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(sharedir)/tables; done
+	    do $(INSTALL) -m 644 $(INSTALL_OPTS) $$file $(DESTDIR)$(sharedir)/tables; done
 
 install-apache-config:
 	

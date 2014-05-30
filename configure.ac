@@ -276,6 +276,11 @@ if test $(echo $nagios_base | grep -i icinga | wc -l) -gt 0 -a "x$apache_authnam
 fi
 AC_SUBST(apache_authname)
 
+dnl AuthUserFile directive in apache config
+apache_authfile="${nagios_base}/etc/htpasswd.users"
+AC_ARG_WITH(apache_authfile,[  --with-apache-authfile=<authfile>              Sets value of AuthUserFile directive in Apache config],apache_authfile=$withval,apache_authfile="${nagios_base}/etc/htpasswd.users")
+AC_SUBST(apache_authfile)
+
 dnl Check for location of sudoers file
 sudoers=no
 AC_ARG_WITH(sudoers,[  --with-sudoers=<path_to_sudoers>               Sets path to sudoers file],sudoers=$withval,sudoers=no)
@@ -358,6 +363,7 @@ echo " ----------------------"
 AC_MSG_RESULT([                   Apache conf.d dir:  $httpd_conf])
 AC_MSG_RESULT([                         Apache User:  $apache_user])
 AC_MSG_RESULT([                     Apache AuthName:  $apache_authname])
+AC_MSG_RESULT([                     Apache AuthFile:  $apache_authfile])
 AC_MSG_RESULT([                        Sudoers file:  $sudoers])
 
 echo ""

@@ -8,7 +8,7 @@ ScriptAlias @cgiurlrel@ "@cgidir@"
     Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
-    AuthUserFile @nagios_etc@/htpasswd.users
+    AuthUserFile @apache_authfile@
     Require valid-user
 </Directory>
 
@@ -22,6 +22,6 @@ Alias @htmlurlrel@ "@sharedir@"
     Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
-    AuthUserFile @nagios_etc@/htpasswd.users
+    AuthUserFile @apache_authfile@
     Require valid-user
 </Directory>
