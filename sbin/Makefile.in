@@ -46,14 +46,11 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(cgidir)
-	$(INSTALL) -m 755 $(INSTALL_OPTS) InterfaceTableReset_v3t.cgi $(cgidir)/InterfaceTableReset_v3t.cgi
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(cgidir)
+	$(INSTALL) -m 755 $(INSTALL_OPTS) InterfaceTableReset_v3t.cgi $(DESTDIR)$(cgidir)/InterfaceTableReset_v3t.cgi
 
 install-apache-config:
 	
 install-sudo-config:
 
 fullinstall: install install-apache-config install-sudo-config
-	
-	
-	

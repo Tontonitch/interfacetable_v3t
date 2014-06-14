@@ -41,12 +41,12 @@ distclean: clean
 	-rm -f Makefile
 
 install:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(etcdir)
-	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg-sample $(etcdir)/settings.cfg-sample
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(etcdir)
+	$(INSTALL) -m 644 $(INSTALL_OPTS) settings.cfg-sample $(DESTDIR)$(etcdir)/settings.cfg-sample
 
 install-apache-config:
-	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(httpd_conf)
-	$(INSTALL) -m 644 interfacetable_v3t.conf.httpd $(httpd_conf)/interfacetable_v3t.conf
+	$(INSTALL) -m 755 $(INSTALL_OPTS) -d $(DESTDIR)$(httpd_conf)
+	$(INSTALL) -m 644 interfacetable_v3t.conf.httpd $(DESTDIR)$(httpd_conf)/interfacetable_v3t.conf
 	@echo ""
 	@echo "*** Apache config file installed. The apache service needs to be reloaded. ***"
 	@echo ""
