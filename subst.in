@@ -67,8 +67,8 @@ my ${sudoers}="@sudoers@";
 # Nagios and related configuration
 #----------------
 my ${nagios_base}="@nagios_base@";
-my ${nagios_etc}="@nagios_base@/etc";
 my ${nagios_libexec}="@nagios_libexec@";
+my ${nagios_etc}="@nagios_etc@";
 my ${cachedir}="@cachedir@";
 my ${statedir}="@statedir@";
 my ${htmlurl}="@htmlurl@";

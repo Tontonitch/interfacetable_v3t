@@ -176,6 +176,7 @@ AC_SUBST(INSTALL_OPTS)
 dnl Installation options
 AC_ARG_WITH(nagios_base,   [  --with-nagios-base=/path/to/nagios/dir         Sets the nagios base directory],nagios_base=$withval,nagios_base=/usr/local/nagios)
 AC_ARG_WITH(nagios_libexec,[  --with-nagios-libexec=/path/to/nagios/dir      Sets the nagios libexec directory, if not standard],nagios_libexec=$withval,nagios_libexec=${nagios_base}/libexec)
+AC_ARG_WITH(nagios_etc,   [  --with-nagios-etc=/path/to/nagios/dir          Sets the nagios etc directory, if not standard],nagios_etc=$withval,nagios_etc=${nagios_base}/etc)
 AC_ARG_WITH(cachedir,     [  --with-cachedir=/path/to/cache/dir             Sets the directory where snmp responses are cached],cachedir=$withval,cachedir=/tmp/.ifCache)
 AC_ARG_WITH(statedir,     [  --with-statedir=/path/to/cache/dir             Sets the directory where the interface states are stored],statedir=$withval,statedir=/tmp/.ifState)
 AC_ARG_WITH(htmlurl,      [  --with-htmlurl=<local-url>                     Sets interface table URL location],htmlurl=$withval,htmlurl=/interfacetable_v3t)
@@ -199,6 +200,7 @@ if test x$enable_testing = xyes; then
 fi
 AC_SUBST(nagios_base)
 AC_SUBST(nagios_libexec)
+AC_SUBST(nagios_etc)
 AC_SUBST(cachedir)
 AC_SUBST(statedir)
 AC_SUBST(htmlurl)
@@ -340,6 +342,7 @@ echo " -------------------------"
 AC_MSG_RESULT([                  Install user/group:  $nagios_user,$nagios_grp])
 AC_MSG_RESULT([                     Nagios base dir:  $nagios_base])
 AC_MSG_RESULT([                  Nagios libexec dir:  $nagios_libexec])
+AC_MSG_RESULT([                      Nagios etc dir:  $nagios_etc])
 AC_MSG_RESULT([    InterfaceTable_v3t addon CGI dir:  $cgidir])
 AC_MSG_RESULT([    InterfaceTable_v3t addon CGI url:  $cgiurl])
 AC_MSG_RESULT([   InterfaceTable_v3t addon HTML url:  $htmlurl])
