@@ -28,6 +28,7 @@ GREP=@GREP@
 httpd_conf=@httpd_conf@
 apache_user=@apache_user@
 apache_authname=@apache_authname@
+apache_authfile=@apache_authfile@
 #Sudo specific
 sudoers=@sudoers@
 #Software configuration
@@ -55,10 +56,10 @@ install-sudo-config:
 	#TODO sudoers.d 
 	SUDOERS_OK=0
 	if [ "$(sudoers)" != "no" ] ; then \
-	    chmod 0640 $(sudoers); \
-	    if test -w $(sudoers); then \
-	        if [ `$(GREP) -c "$(cgidir)/InterfaceTableReset" $(sudoers)` -eq 0 ] ; then \
-	            echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(sudoers); \
+	    chmod 0640 $(DESTDIR)$(sudoers); \
+	    if test -w $(DESTDIR)$(sudoers); then \
+	        if [ `$(GREP) -c "$(cgidir)/InterfaceTableReset" $(DESTDIR)$(sudoers)` -eq 0 ] ; then \
+	            echo '$(apache_user) ALL=(ALL) NOPASSWD: $(cgidir)/InterfaceTableReset_v3t.cgi' >> $(DESTDIR)$(sudoers); \
 	            SUDOERS_OK=1; \
 	            echo ""; \
 	            echo "***************************"; \
@@ -88,7 +89,7 @@ install-sudo-config:
 	        echo "*********************************************************************************"; \
 	        echo ""; \
 	    fi; \
-	    chmod 0440 $(sudoers); \
+	    chmod 0440 $(DESTDIR)$(sudoers); \
 	else \
 	    echo ""; \
 	    echo "********************************************************************************"; \
