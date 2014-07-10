@@ -2128,13 +2128,14 @@ sub Get_Speed {
                 #" ($Index): interface speed matching a situation where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
                 #    $IfSpeed = 10000000000;
                 #}
-                } elsif ($IfSpeed == 1410065408) {
-                    # Problem with 10 gigabit interfaces on Netapp and some other targets, forcing the speed (workaround)
+                } elsif (($IfSpeed%1410065408) == 0) {
+                    # Problem with 10Gbps interfaces (or multiple of 10Gbps interfaces) on Netapp and some other targets, forcing the speed (workaround)
+					$IfSpeed = $IfSpeed/1410065408*10000000000;
+					my $IfSpeedReadable = format_volume_decimal ($IfSpeed,"bit");
                     logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
-                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
+                        $IfSpeedReadable." ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
                     $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName).
-                    " ($Index): interface speed matching a situation where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
-                    $IfSpeed = 10000000000;
+                    " ($Index): interface speed matching a situation where speed is incorrect and should be ".$IfSpeedReadable.". Forcing the speed.</div>";
                 }
             } else {
                 if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
