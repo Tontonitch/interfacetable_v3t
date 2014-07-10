@@ -57,7 +57,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME        = $0;
-$REVISION        = '0.05-1';
+$REVISION        = '0.05-2a';
 $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
@@ -1086,7 +1086,11 @@ elsif ($ghOptions{'nodetype'} eq "hpux") {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+        if ($ghOptions{'trafficwithpkt'}) { 
+			Get_Traffic ('PktCalc', \%oid_ifMtu);
+        } else {
+			Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+		}
     }
     Get_Error_Discard();
     if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
@@ -1111,8 +1115,11 @@ else {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        #Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
-        Get_Traffic ('PktCalc', \%oid_ifMtu);
+        if ($ghOptions{'trafficwithpkt'}) { 
+			Get_Traffic ('PktCalc', \%oid_ifMtu);
+        } else {
+			Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
+		}
     }
     Get_Error_Discard();
     if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
@@ -2085,7 +2092,14 @@ sub Get_Speed {
             my $IfSpeed = $refhSNMPResultIfSpeed->{$Index};
             # Get the speed in normal or highperf speed counters
             if ($IfSpeed and $IfSpeed ne ""){
-                if ($IfSpeed >= 4294967294) {
+                if ($IfSpeed == 4294967295 and $ghOptions{'nodetype'} eq 'hpux') {
+                    # Problem with 10 gigabit interfaces on hpux, forcing the speed (workaround)
+                    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
+                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
+                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
+                        "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
+                    $IfSpeed = 10000000000;
+                } elsif ($IfSpeed >= 4294967294) {
                     # Too high for this counter (cf IF-MIB)
                     # get ifHighSpeed table (units of 1,000,000 bits per second)
                     if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
@@ -2106,12 +2120,20 @@ sub Get_Speed {
                             "No high speed counter available, so the speed should be incorrect.");
                         $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"critical\">".denormalize($ifName)." ($Index): interface speed exceeding standard counter. No high speed counter available, so the speed should be incorrect.</div>";
                     }
-                } elsif ($IfSpeed == 1410065408 and $ghOptions{'nodetype'} eq 'netapp') {
-                    # Problem with 10 gigabit interfaces on Netapp, forcing the speed (workaround)
+                #} elsif ($IfSpeed == 1410065408 and $ghOptions{'nodetype'} eq 'netapp') {
+                #    # Problem with 10 gigabit interfaces on Netapp, forcing the speed (workaround)
+                #    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
+                #        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
+                #    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName).
+                #" ($Index): interface speed matching a situation where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
+                #    $IfSpeed = 10000000000;
+                #}
+                } elsif ($IfSpeed == 1410065408) {
+                    # Problem with 10 gigabit interfaces on Netapp and some other targets, forcing the speed (workaround)
                     logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
                         "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
-                        "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
+                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName).
+                    " ($Index): interface speed matching a situation where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
                     $IfSpeed = 10000000000;
                 }
             } else {
@@ -2123,7 +2145,7 @@ sub Get_Speed {
                 }
             }
             # Recommendation in case Gigabit detected
-            if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp') {
+            if ($IfSpeed >= 1000000000 and not $ghSNMPOptions{'64bits'} and not $ghOptions{'nodetype'} eq 'netapp' and not $ghOptions{'nodetype'} eq 'hpux') {
                 logger(1, " $ifName($Index) -> not using highperf mib (--64bits): interface load calculation could be wrong for interface $ifName($Index) !!!");
                 $grefhCurrent->{MD}->{If}->{$ifName}->{MsgWarn} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): use of 32-bit counters not recommended with high speed interfaces like. If possible, consider the use of highperf mib (--64bits).</div>";
             }
@@ -5123,7 +5145,8 @@ sub GenerateInterfaceTableData {
             if (grep (/$Header->{Dataname}/i, "Actions")) {
                 # Graphing solution link - one link per line/interface/port
                 if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
-                    and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+                    and (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+					    or defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn})
                     and $ghOptions{'enableperfdata'}) {
                         #my $servicename = 'Port' . sprintf("%03d", $InterfaceIndex);
                         my $servicename = "If_" . trim(denormalize($Name));
@@ -6226,6 +6249,9 @@ sub print_usage () {
     --(no)pkt (optional)
         Add unicast/non-unicast pkt stats for each interface. No tracking, just for statistics 
         and graphs
+	--(no)trafficwithpkt (optional)
+		Enable traffic calculation using pkt counters instead of octet counters. Useful when 
+		using 32-bit counters to track the load on > 1GbE interfaces.
 
   Property checks (interface property changes)
     --tp, --track-property (optional)
@@ -6520,6 +6546,7 @@ sub check_options () {
         'include-traffic|it=s@',                # list of interfaces included in the load tracking
         'warning-traffic|warning|wt=s',
         'critical-traffic|critical|ct=s',
+		'trafficwithpkt!',						# enable traffic calculation using pkt counters instead of octet counters
         #------ property tracking -------#
         'track-property|tp=s@',                 # list of tracked properties
         'exclude-property|ep=s@',               # list of interfaces excluded from the property tracking
@@ -6619,6 +6646,7 @@ sub check_options () {
         'include-traffic'           => undef,
         'warning-traffic'           => "101,1000,1000",
         'critical-traffic'          => "101,5000,5000",
+		'trafficwithpkt'			=> 0,
         #------ property tracking -------#
         'track-property'            => ['ifOperStatus','ifStatus'],     # can be compared: ifAdminStatus, ifOperStatus, ifSpeedReadable, ifDuplexStatus, ifVlanNames, ifIpInfo
         'exclude-property'          => undef,
@@ -7013,6 +7041,9 @@ sub check_options () {
             exit $ERRORS{"UNKNOWN"};
         }
     }
+	if (exists $commandline{'trafficwithpkt'}) {
+        $ghOptions{'trafficwithpkt'} = "$commandline{'trafficwithpkt'}";
+    }
 
     #-------- SNMP related ----------#
     if ((exists $commandline{'login'} || exists $commandline{'passwd'}) && (exists $commandline{'community'} || exists $commandline{'v2c'})) {
@@ -7121,7 +7152,7 @@ sub check_options () {
             exit $ERRORS{"UNKNOWN"};
         }
     }
-    if (exists $commandline{'cachedir'}) {
+	if (exists $commandline{'cachedir'}) {
         $ghSNMPOptions{'cachedir'} = "$commandline{'cachedir'}";
     }
     if (exists $commandline{'unixsnmp'}) {
