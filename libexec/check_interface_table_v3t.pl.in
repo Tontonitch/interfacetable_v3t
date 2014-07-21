@@ -3268,7 +3268,7 @@ sub Calculate_Bps {
         logger(2, " ifName: $ifName (index: $Index)");
 
         # Skip interface if excluded
-        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+        if (!$ghOptions{'exclude-but-calculate'} and $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
             next;
         }
@@ -3466,7 +3466,7 @@ sub Calculate_Error_Discard {
         logger(2, " ifName: $ifName (index: $Index)");
 
         # Skip interface if excluded
-        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+        if (0 and $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
             next;
         }
@@ -3560,7 +3560,7 @@ sub Calculate_Packets {
         logger(2, " ifName: $ifName (index: $Index)");
 
         # Skip interface if excluded
-        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+        if (!$ghOptions{'exclude-but-calculate'} and $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
             next;
         }
@@ -4201,7 +4201,7 @@ sub Calculate_Error_Drop_Bigip {
         logger(2, " ifName: $ifName (index: $Index)");
 
         # Skip interface if excluded
-        if ($grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
+        if (!$ghOptions{'exclude-but-calculate'} and $grefhCurrent->{MD}->{If}->{$ifName}->{ExcludedTrack} eq "true") {
             logger(2, "  -> excluded interface, skipping");
             next;
         }
@@ -5041,7 +5041,7 @@ sub GenerateInterfaceTableData {
         my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
 
         # Skip the interface if config table enabled
-        if ($ghOptions{configtable} and $grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "true") {
+        if (!$ghOptions{'exclude-but-calculate'} and $ghOptions{configtable} and $grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "true") {
             next;
         }
 
@@ -6151,7 +6151,7 @@ sub print_usage () {
     * advanced usage:
       $PROGNAME [-vvvvv] [-t <timeout>] -H <hostname/IP> [-h <host alias>] [-2] [-C <community string>]
         [--domain <transport domain>] [-P <port>] [--nodetype <type>]
-        [-e <globally excluded interface list>] [-i <globally included interface list>]
+        [-e <globally excluded interface list>] [-i <globally included interface list>] [--exclude-but-calculate]
         [--et <traffic tracking interface exclusion list>] [--it <traffic tracking interface inclusion list>]
         [--wt <warning load prct>,<warning pkterr/s>,<warning pktdiscard/s>]
         [--ct <critical load prct>,<critical pkterr/s>,<critical pktdiscard/s>]
@@ -6221,9 +6221,11 @@ sub print_usage () {
         * There are some cases where you need to include an interface which is part
           of a group of previously excluded interfaces.
     --alias-matching (optional)
-        Allow you to specify alias in addition to interface names as inclusion/exclusion 
+        Allow you to specify alias in addition to interface names as inclusion/exclusion
         arguments (for global, traffic and property inclusion/exclusion).
-        
+    --exclude-but-calculate (optional)
+        Allow calculation of interface data for excluded interfaces, and show them in the table
+
   Traffic checks (load & packet errors/discards)
     --et, --exclude-traffic (optional)
         * Comma separated list of interfaces excluded from traffic checks
@@ -6519,6 +6521,7 @@ sub check_options () {
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
         'include|i=s@',                         # list of interfaces globally included
+        'exclude-but-calculate',                # calculate excluded interfaces
         'delta|d=i',                            # interface throuput delta in seconds
         'ifs=s',                                # input field separator
         'usemacaddr',                           # use mac address (if unique) instead of index when reformatting duplicate interface description
@@ -6624,6 +6627,7 @@ sub check_options () {
         'alias-matching'            => 0,
         'exclude'                   => undef,
         'include'                   => undef,
+        'exclude-but-calculate'     => 0,
         'delta'                     => 600,
         'ifs'                       => ',',
         'usemacaddr'                => 0,
@@ -6783,6 +6787,9 @@ sub check_options () {
     if (exists $commandline{'include'}) {
         my @tmparray = split("$ghOptions{ifs}", join("$ghOptions{ifs}",@{$commandline{'include'}}));
         $ghOptions{'include'} = \@tmparray;
+    }
+    if (exists $commandline{'exclude-but-calculate'}) {
+        $ghOptions{'exclude-but-calculate'} = $commandline{'exclude-but-calculate'};
     }
     if (exists $commandline{'alias'}) {
         $ghOptions{'alias'} = $commandline{'alias'};
