@@ -5950,6 +5950,174 @@ sub Perfdataout {
         # close the perfdata output file
         close (OUT);
     }
+	#------  Graphite (based on pnp4nagios)  ------#
+	elsif (( $ghOptions{'grapher'} eq  "graphite" )) {
+
+        # plugin related stats
+        $gPerfdata .= "Interface_global::".
+            "time=${RUNTIME_HR}, ".
+            "uptime=$grefhCurrent->{MD}->{Node}->{sysUpTime}, ".
+            "watched=${gNumberOfPerfdataInterfaces}, ".
+            "useddelta=${gUsedDelta}, ".
+            "ports=${gNumberOfInterfacesWithoutTrunk}, ".
+            "freeports=${gNumberOfFreeInterfaces}, ".
+            "adminupfree=${gNumberOfFreeUpInterfaces} ::";
+
+        # interface status, and interface load stats
+        unless ($ghOptions{'perfdataformat'} eq 'globalonly') {
+
+            # $grefaAllIndizes is a indexed and sorted list of all interfaces
+            for my $InterfaceIndex (@$grefaAllIndizes) {
+                # Get normalized interface name (key for If data structure)
+                my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
+                
+                # using portperfunit "bit" : bit counters
+                if ($ghOptions{'portperfunit'} eq "bit") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                      and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $port = sprintf("%s", $InterfaceIndex);
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/[()'"#<>]//g;
+						$servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/,/./g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            $perfdata .= "${servicename}_Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber}, " .
+                                "${servicename}_BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 .", " .
+                                "${servicename}_BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 .", ";
+                            #Add pkt errors/drops if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                $perfdata .= "${servicename}_PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr});
+                                $perfdata .= "${servicename}_PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr});
+                                $perfdata .= "${servicename}_PktsInDrop=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDrop}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDrop});
+                                $perfdata .= "${servicename}_PktsOutDrop=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDrop}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDrop});
+                            }
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $perfdata .= "${servicename}_OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber}, " .
+                                "${servicename}_BitsIn=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}*8 .", " .
+                                "${servicename}_BitsOut=". $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsOut}*8 .", ";
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                $perfdata .= "${servicename}_PktsInErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInErr});
+                                $perfdata .= "${servicename}_PktsOutErr=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutErr});
+                                $perfdata .= "${servicename}_PktsInDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInDiscard});
+                                $perfdata .= "${servicename}_PktsOutDiscard=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard}, "
+                                    if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutDiscard});
+                                if ($ghOptions{'pkt'}) {
+                                    $perfdata .= "${servicename}_PktsInUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast}, "
+                                        if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInUcast});
+                                    $perfdata .= "${servicename}_PktsOutUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast}, "
+                                        if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutUcast});
+                                    $perfdata .= "${servicename}_PktsInNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast}, "
+                                        if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsInNUcast});
+                                    $perfdata .= "${servicename}_PktsOutNUcast=$grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast}, "
+                                        if (defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{PktsOutNUcast});
+                                }
+                            }
+                        }
+
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        $gPerfdata .= "$perfdata";
+                    }
+                # using portperfunit "bps" : calculated bit per second
+                } 
+				elsif ($ghOptions{'portperfunit'} eq "bps") {
+                    if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}
+                      and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}
+                      and $grefhCurrent->{If}->{$Name}->{ifLoadExceedIfSpeed} eq "false") {
+                        my $port = sprintf("%s", $InterfaceIndex);
+                        my $servicename = "If_" . trim(denormalize($Name));
+                        $servicename =~ s/#//g;
+                        $servicename =~ s/[: ]/_/g;
+                        $servicename =~ s/[()'"]//g;
+                        $servicename =~ s/,/./g;
+                        my $perfdata = "";
+                        #Add interface status if available
+                        if ($ghOptions{'nodetype'} eq 'bigip' and defined $grefhCurrent->{If}->{$Name}->{ifStatus}) {
+                            $perfdata .= "${servicename}_Status=$grefhCurrent->{If}->{$Name}->{ifStatusNumber}, ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "${servicename}_BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .", ";
+                            $perfdata .= "${servicename}_BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .", ";
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdrop, $critical_pktdrop) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
+                                    $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
+                                }
+                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
+                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
+                                $perfdata .= "${servicename}_PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop});
+                                $perfdata .= "${servicename}_PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop});
+                            }
+                        } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
+                            $perfdata .= "${servicename}_OperStatus=$grefhCurrent->{If}->{$Name}->{ifOperStatusNumber}, ";
+                            my ($warning_bps, $critical_bps, $maximum_bps) = ('','','');
+                            unless ($ghOptions{'perfdatathreshold'} eq 'globalonly') {
+                                $warning_bps = ($grefhCurrent->{If}->{$Name}->{bpsWarn}) ? $grefhCurrent->{If}->{$Name}->{bpsWarn} : '';
+                                $critical_bps = ($grefhCurrent->{If}->{$Name}->{bpsCrit}) ? $grefhCurrent->{If}->{$Name}->{bpsCrit} : '';
+                                $maximum_bps = ($grefhCurrent->{If}->{$Name}->{bpsMax}) ? $grefhCurrent->{If}->{$Name}->{bpsMax} : '';
+                            }
+                            $perfdata .= "${servicename}_BpsIn=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}*8 .", ";
+                            $perfdata .= "${servicename}_BpsOut=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsOut}*8 .", ";
+                            #Add pkt errors/discards if available and wanted
+                            unless ($ghOptions{'perfdataformat'} eq 'loadonly') {
+                                my ($warning_pkterr, $critical_pkterr, $warning_pktdiscard, $critical_pktdiscard) = ('','','','');
+                                if ($ghOptions{'perfdatathreshold'} eq 'full') {
+                                    $warning_pkterr = ($ghOptions{'warning-pkterr'} >= 0) ? $ghOptions{'warning-pkterr'} : '';
+                                    $critical_pkterr = ($ghOptions{'critical-pkterr'} >= 0) ? $ghOptions{'critical-pkterr'} : '';
+                                    $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
+                                    $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
+                                }
+                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
+                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
+                                $perfdata .= "${servicename}_PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
+                                $perfdata .= "${servicename}_PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .", " 
+                                    if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
+                                if ($ghOptions{'pkt'}) {
+                                    $perfdata .= "${servicename}_PpsInUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast}*1 .", "
+                                        if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast});
+                                    $perfdata .= "${servicename}_PpsOutUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast}*1 .", "
+                                        if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutUcast});
+                                    $perfdata .= "${servicename}_PpsInNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast}*1 ." ,"
+                                        if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInNUcast});
+                                    $perfdata .= "${servicename}_PpsOutNUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast}*1 .", "
+                                        if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutNUcast});
+                                }
+                            }
+                        }
+
+                        logger(2, "collected perfdata: $Name\t$perfdata");
+                        $gPerfdata .= "$perfdata";
+                    }
+                }
+            }
+        }
+	}
     return 0;
 }
 
@@ -6369,7 +6537,7 @@ sub print_usage () {
         macros are enabled in nagios.cfg/icinga.cfg
     -g, --grapher (optional)
         Specify the used graphing solution.
-        Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph.
+        Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph or graphite.
     --grapherurl (optional)
         Graphing system url. Default values are:
         Ex: /pnp4nagios
@@ -6564,7 +6732,7 @@ sub check_options () {
         'perfdatathreshold=s',                  # define which thresholds should be printed in the generated performance data.
         'perfdatadir=s',                        # where to write perfdata files directly for netways nagios grapher v1
         'perfdataservicedesc=s',                # servicedescription in Nagios/Icinga so that PNP uses the correct name for its files
-        'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2 or ingraph
+        'grapher|g=s',                          # graphing system. Can be pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph or graphite
         'grapherurl=s',                         # graphing system url. By default, this is adapted for pnp4nagios standard install: /pnp4nagios
         #-------- SNMP related ----------#
         'host=s',                               # SNMP host target
@@ -6959,7 +7127,7 @@ sub check_options () {
     
     #------- performance data -------#
     if (exists $commandline{grapher}) {
-        if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$|^ingraph$/i) {
+        if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$|^ingraph$|^graphite$/i) {
             $ghOptions{'grapher'} = "$commandline{grapher}";
             if ($ghOptions{'grapher'} eq "pnp4nagios") {
                 $ghOptions{'grapherurl'} = "/pnp4nagios";
@@ -6967,7 +7135,7 @@ sub check_options () {
                 $ghOptions{'grapherurl'} = "/ingraph";
             }
         } else {
-            print "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph.\n";
+            print "Specified grapher solution \"$commandline{grapher}\" is not valid. Valid graphers are: pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph, graphite.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
