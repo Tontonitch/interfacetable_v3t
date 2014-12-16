@@ -643,6 +643,15 @@ my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";    # file w
 # If --snapshot is set, we dont track changes
 $ghOptions{'snapshot'} and $gInitialRun = 1;
 
+# Store service description for later use
+my $serviceDescription = '';
+if (defined $ENV{'NAGIOS_SERVICEDESC'} and $ENV{'NAGIOS_SERVICEDESC'} ne "") {
+    $serviceDescription = $ENV{'NAGIOS_SERVICEDESC'};
+}  elsif (defined $ENV{'ICINGA_SERVICEDESC'} and $ENV{'ICINGA_SERVICEDESC'} ne "") {
+    $serviceDescription = $ENV{'ICINGA_SERVICEDESC'};
+}
+
+
 # ------------------------------------------------------------------------
 # Info table initializations
 # ------------------------------------------------------------------------
@@ -5170,13 +5179,14 @@ sub GenerateInterfaceTableData {
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "ingraph") {
+                            my $parentService = '&parentService=' . $serviceDescription if ($serviceDescription);
                             if ($ghOptions{'nodetype'} eq  "bigip") {
                                 $CellContent .= '<a href="' .
-                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip">' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip' . $parentService. '">' .
                                     '<img src="../img/chart.png" alt="Trends" /></a>';
                             } else {
                                 $CellContent .= '<a href="' .
-                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port">' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port' . $parentService. '">' .
                                     '<img src="../img/chart.png" alt="Trends" /></a>';
                             }
                         } elsif ($ghOptions{'grapher'} eq  "nagiosxi") {
