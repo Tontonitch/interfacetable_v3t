@@ -643,6 +643,15 @@ my $gInterfaceInformationFile = "$ghOptions{'statedir'}/$gFile.txt";    # file w
 # If --snapshot is set, we dont track changes
 $ghOptions{'snapshot'} and $gInitialRun = 1;
 
+# Store service description for later use
+my $serviceDescription = '';
+if (defined $ENV{'NAGIOS_SERVICEDESC'} and $ENV{'NAGIOS_SERVICEDESC'} ne "") {
+    $serviceDescription = $ENV{'NAGIOS_SERVICEDESC'};
+}  elsif (defined $ENV{'ICINGA_SERVICEDESC'} and $ENV{'ICINGA_SERVICEDESC'} ne "") {
+    $serviceDescription = $ENV{'ICINGA_SERVICEDESC'};
+}
+
+
 # ------------------------------------------------------------------------
 # Info table initializations
 # ------------------------------------------------------------------------
@@ -5178,13 +5187,14 @@ sub GenerateInterfaceTableData {
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "ingraph") {
+                            my $parentService = '&parentService=' . $serviceDescription if ($serviceDescription);
                             if ($ghOptions{'nodetype'} eq  "bigip") {
                                 $CellContent .= '<a href="' .
-                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip">' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip' . $parentService. '">' .
                                     '<img src="../img/chart.png" alt="Trends" /></a>';
                             } else {
                                 $CellContent .= '<a href="' .
-                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port">' .
+                                    $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port' . $parentService. '">' .
                                     '<img src="../img/chart.png" alt="Trends" /></a>';
                             }
                         } elsif ($ghOptions{'grapher'} eq  "nagiosxi") {
@@ -6487,8 +6497,6 @@ sub print_usage () {
         <privproto> : Priv protocole (des|aes : default des)
     --domain
         SNMP transport domain. Can be: udp (default), tcp, udp6, tcp6.
-        Specifying a transport domain also change the default port according
-        to that selected transport domain. Use --port to overwrite the port.
     --contextname
         Context name for the snmp requests (snmpv3 only)
     -P, --port=PORT
@@ -7252,17 +7260,8 @@ sub check_options () {
         $ghSNMPOptions{'max-repetitions'} = $commandline{'max-repetitions'};
     }
     if (exists $commandline{domain}) {
-        if ($commandline{domain} =~ /^udp$|^tcp$|^udp6$|^tcp6$/i) {
+        if ($commandline{domain} =~ /^(?:udp|tcp)6?$/i) {
             $ghSNMPOptions{'domain'} = "$commandline{domain}";
-            if ($commandline{domain} eq "udp") {
-                $ghSNMPOptions{'port'} = 161;
-            } elsif ($commandline{domain} eq "tcp") {
-                $ghSNMPOptions{'port'} = 1161;
-            } elsif ($commandline{domain} eq "udp6") {
-                $ghSNMPOptions{'port'} = 10161;
-            } elsif ($commandline{domain} eq "tcp6") {
-                $ghSNMPOptions{'port'} = 1611;
-            }
         } else {
             print "Specified transport domain \"$commandline{domain}\" is not valid. Valid domains are: udp, tcp, udp6, tcp6.\n";
             exit $ERRORS{"UNKNOWN"};
