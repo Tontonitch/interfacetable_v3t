@@ -57,7 +57,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME        = $0;
-$REVISION        = '0.05-2a';
+$REVISION        = '0.05-2b';
 $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
@@ -2096,6 +2096,14 @@ sub Get_Speed {
                     # Problem with 10 gigabit interfaces on hpux, forcing the speed (workaround)
                     logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
                         "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
+                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
+                        "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
+                    $IfSpeed = 10000000000;
+                } elsif ($IfSpeed == 4294967295 and defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} == 1410) {
+                    # Problem with 10 gigabit interfaces, forcing the speed (workaround)
+                    # Problem found for HP NC522SFP Dual Port 10GbE Server Adapter
+                    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
+                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed, $oid_ifHighSpeed{'oid'}.$Index: $refhSNMPResultIfHighSpeed->{$Index}). Forcing the speed.");
                     $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
                         "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
                     $IfSpeed = 10000000000;
