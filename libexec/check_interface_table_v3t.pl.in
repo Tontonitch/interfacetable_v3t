@@ -7075,7 +7075,7 @@ sub check_options () {
         }
     }
     if (exists $commandline{'ifname'}) {
-        if ($ghOptions{nodetype} !~ /^standard$/i) {
+        if ($ghOptions{nodetype} =~ /^standard$/i) {
             $ghOptions{'ifname'} = $commandline{'ifname'};
         } else {
             print "Option \"--ifname\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
