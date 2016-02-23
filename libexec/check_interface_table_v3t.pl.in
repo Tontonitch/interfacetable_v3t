@@ -1706,7 +1706,7 @@ sub Get_InterfaceNames {
     # Example of $refhSNMPResultIfDescr
     #    TOADD
     while ( my ($Index,$Desc) = each(%$refhSNMPResultIfDescr) ) {
-        $Index =~ s/^\.*$oid_ifDescr{'oid'}\.//g; # remove all but the index
+        $Index =~ s/^\.*$refhOIDIfDescr->{'oid'}\.//g; # remove all but the index
         logger(2, "Index=$Index Descr=\"$Desc\" (long cache: $gLongCacheTimer)");
         my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$Index}) ? "$refhSNMPResultIfPhysAddress->{$Index}" : "";
 
