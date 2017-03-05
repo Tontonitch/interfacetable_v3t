@@ -70,6 +70,8 @@
 #         - Javascript-functions using jQuery plugins
 #         - add a 4th table in the html page, giving some specific device info,
 #           depending on the nodetype option
+#         - support netapp cdot: add nodeModel
+#         - support netapp cdot: add -Cc snmpwalk option of --unixsnmp
 #
 # ----------------------------------------------------------------------
 # Cancelled
