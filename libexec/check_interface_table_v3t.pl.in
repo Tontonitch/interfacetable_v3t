@@ -338,7 +338,7 @@ my %oid_netapp_if64OutErrors         = ( name => "if64OutErrors",      mib => "N
 my %oid_netapp_netportNode             = ( name => "netportNode",            mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.1" );
 my %oid_netapp_netportPort             = ( name => "netportPort",            mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.2" );
 my %oid_netapp_netportRole             = ( name => "netportRole",            mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.3" );
-my %oid_netapp_netportLinkState        = ( name => "netportLinkState",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.4", convertToReadable => {0=>'undef', 1=>'off', 2=>'up', 3=>'down'});
+my %oid_netapp_netportLinkState        = ( name => "netportLinkState",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.4", convertToReadable => {0=>'undef', 1=>'off', 2=>'up', 3=>'down'}, convertToOperStatus => {0=>'4', 1=>'7', 2=>'1', 3=>'2'});
 my %oid_netapp_netportMtu              = ( name => "netportMtu",             mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.5" );
 my %oid_netapp_netportAutonegAdmin     = ( name => "netportAutonegAdmin",    mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.6" );
 my %oid_netapp_netportAutonegOper      = ( name => "netportAutonegOper",     mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.7" );
@@ -5197,7 +5197,7 @@ sub Get_OperStatus_Netapp {
             if (defined $refhSNMPResult->{$Index}) {
                 my $OperStatusNow = $refhSNMPResult->{$Index};
                 # Store the oper status as property of the current interface
-                $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = "$OperStatusNow";
+                $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = $refhOID->{'convertToOperStatus'}->{"$OperStatusNow"};
                 defined $refhOID->{'convertToReadable'}->{"$OperStatusNow"} and $OperStatusNow = $refhOID->{'convertToReadable'}->{"$OperStatusNow"};
                 $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
     
