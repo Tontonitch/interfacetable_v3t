@@ -57,7 +57,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME        = $0;
-$REVISION        = '0.05-2b';
+$REVISION        = '0.05-2c';
 $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
@@ -1202,7 +1202,11 @@ elsif ($ghOptions{'nodetype'} eq "hpux") {
 }
 # +++++ Standard device +++++
 else {
-    Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    if ($ghOptions{'ifname'}) { 
+        Get_InterfaceNames (\%oid_ifName, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    } else {
+        Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
+    }
     Get_InterfaceType (\%oid_ifType) if ($ghOptions{'type'} or $ghOptions{'table-split'}); # Gather interface types
     Get_AdminStatus (\%oid_ifAdminStatus); # Gather interface administration status
     Get_OperStatus (\%oid_ifOperStatus); # Gather interface operational status
@@ -1798,7 +1802,7 @@ sub Get_InterfaceNames {
     # Example of $refhSNMPResultIfDescr
     #    TOADD
     while ( my ($Index,$Desc) = each(%$refhSNMPResultIfDescr) ) {
-        $Index =~ s/^\.*$oid_ifDescr{'oid'}\.//g; # remove all but the index
+        $Index =~ s/^\.*$refhOIDIfDescr->{'oid'}\.//g; # remove all but the index
         logger(2, "Index=$Index Descr=\"$Desc\" (long cache: $gLongCacheTimer)");
         my $MacAddr = (defined $refhSNMPResultIfPhysAddress->{$Index}) ? "$refhSNMPResultIfPhysAddress->{$Index}" : "";
 
@@ -6905,7 +6909,7 @@ sub print_usage () {
         [--portperfunit <unit>] [--perfdataformat <format>] [--perfdatathreshold <format>] [--outputshort]
         [--snmp-timeout <timeout>] [--snmp-retries <number of retries>] [--snmp-maxmsgsize <maximum message size>]
         [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
-        [--(no)pkt] [--(no)type]
+        [--(no)pkt] [--(no)type] [--ifname]
 
     * other usages:
       $PROGNAME [--help | -?]
@@ -7142,6 +7146,8 @@ sub print_usage () {
         Add the ip information for each interface in the interface table.
     --(no)alias (optional)
         Add the alias information for each interface in the interface table.
+    --ifname (optional)
+        Use OID ifName instead of ifDesc for nodetype standard.
     --accessmethod (optional)
         Access method for a shortcut to the host in the HTML page.
         Format is : <method>[:<target>]
@@ -7331,6 +7337,7 @@ sub check_options () {
         'tips!',                                # Enable or not the tips
         'default-table-sorting=s',              # Default table sorting, can be index (default) or name
         'table-split!',                         # Generate multiple interface tables, one per interface type (~ifType)
+        'ifname',                               # Use ifName instead of ifDesc in nodetype standard
         #------- deprecated options ---------#
         'cisco',                                # replaced by --nodetype=cisco
         );
@@ -7414,6 +7421,7 @@ sub check_options () {
         'tips'                      => 1,
         'default-table-sorting'     => "index",              # Default table sorting, can be index (default) or name
         'table-split'               => 0,
+        'ifname'                    => 0,
     );
     # Default values: snmp options
     %ghSNMPOptions = (
@@ -7617,6 +7625,15 @@ sub check_options () {
             exit $ERRORS{"UNKNOWN"};
         }
     }
+    if (exists $commandline{'ifname'}) {
+        if ($ghOptions{nodetype} =~ /^standard$/i) {
+            $ghOptions{'ifname'} = $commandline{'ifname'};
+        } else {
+            print "Option \"--ifname\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
+            exit $ERRORS{"UNKNOWN"};
+        }
+    }
+
     if (exists $commandline{pkt}) {
         $ghOptions{'pkt'} = $commandline{pkt};
     }
