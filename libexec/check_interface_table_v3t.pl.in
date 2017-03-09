@@ -2249,6 +2249,10 @@ sub Get_Speed {
                         $IfSpeedReadable." ($oid_ifSpeed{'oid'}.$Index: $IfSpeed). Forcing the speed.");
                     $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName).
                     " ($Index): interface speed matching a situation where speed is incorrect and should be ".$IfSpeedReadable.". Forcing the speed.</div>";
+                } elsif ($IfSpeed == 1000000000 and $ghOptions{'nodetype'} eq 'cisco' and $ifName =~ m/^Vlan/) {
+                    # Vlan interface with fake speed, removing the speed
+                    logger(1, " $ifName($Index) -> interface that should not have a speed, removing the value.");
+                    $IfSpeed = -1;
                 }
             } else {
                 if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
