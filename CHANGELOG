@@ -5,9 +5,31 @@
 # Possible change types: enhancement, feature, bugfix, add
 #
 #   ----------------------------------------------------------------------
-# * 0.05-2
+# * 0.06
 #   ----------------------------------------------------------------------
+#    - feature: use ifname instead of ifdesc (thanks freneticf)
+#    - feature: added netapp-cdot nodetype 
+#    - feature: added hpux nodetype
+#    - feature: added --trafficwithpkts option
+#    - feature: added --snmp-maxmsgsize option
+#    - feature: added nagiosxi as grapher solution
+#    - feature: added graphite support (thanks Israel Ochoa)
+#    - feature: added --exclude-but-calculate option, allowing calculation of interface data for excluded 
+#               interfaces and showing them in the interfacetable. (thanks lazyfrosch)
+#    - bugfix: error returned by Config::General: current key contains invalid characters
+#    - bugfix: filter special characters for grapher compatibility
 #    - enhancement: added support of HP NC522SFP Dual Port 10GbE Server Adapter (speed info problem)
+#    - enhancement: inGraph grapher now use serviceDescription for parentService (thanks mxhash)
+#    - enhancement: remove the speed on Cisco vlans as not relevant and generates wrong alerts
+#    - enhancement: added support of HP NC522SFP Dual Port 10GbE Server Adapters
+#    - enhancement: remove port change on SNMP domain specification (thanks lazyfrosch)
+#    - enhancement: more snmp error messages handled
+#    - enhancement: fix ifSpeed when aggregated interfaces (faced on Netapp filers when multiple 10Gbps 
+#                   interfaces)
+#    - enhancement: added another way of calculation, extending traffic load tracking limit for 32-bits 
+#                   counters. Calculation of the octet traffic based on interface MTU config and Pkt counters. 
+#                   Allow traffic calculation for high speed interfaces get all interface mtu + in/out traffic pkt counters (Unicast and Non-Unicast counters)
+#    - extra: adjusted build for packaging and added example spec for use with icinga (thanks Martin Hauke, Dirk Götz)
 #
 #   ----------------------------------------------------------------------
 # * 0.05-1
