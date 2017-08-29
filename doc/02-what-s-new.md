@@ -18,7 +18,7 @@
 
   * Enhanced configuration table with better config sum up, warnings and recommendations
 
-  ![Configuration table](images\what-s-new\Configuration_table.png)
+  ![Configuration table](images/what-s-new/Configuration_table.png)
 
 
 
