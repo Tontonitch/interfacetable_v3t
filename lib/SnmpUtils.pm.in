@@ -740,7 +740,7 @@ sub ExecuteCommand {
     # execute the unix command
     open(UNIX,"$Command 2>&1|") or throw_error_common(code=>$?>>8, message=>"Failed to execute \"$Command\", $!");
         while (<UNIX>) {
-            $_ =~ s/^\.*([0-9.]*) "?(.*)/\1 \2/g;
+            $_ =~ s/^\.*([0-9.]*) "?(.*)/$1 $2/g;
             $_ =~ s/"$//g;
             $_ =~ s/\|/ /g; # remove pipes which could produce problems (ex: with nagios performance data separator)
             $_ =~ s/\n$//g; # remove ending return carriers

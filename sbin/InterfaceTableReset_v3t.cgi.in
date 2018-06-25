@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/perl -w
 # ------------------------------------------------------------------------
 # This file:     /usr/local/nagios/sbin/InterfaceTableReset.cgi
 #
