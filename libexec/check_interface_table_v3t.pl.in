@@ -5376,6 +5376,7 @@ sub Get_Speed_Netapp {
                     logger(2, "Index=$Index ($ifName): Speed=".$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable});
                 } else {
                     logger(2, "Index=$Index ($ifName): Speed not applicable");
+                    $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = -1;
                 }
             } else {
                 #$grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = undef;
