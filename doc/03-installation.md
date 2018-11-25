@@ -1,8 +1,22 @@
-Installation
-============
+# **Installation**
 
-Prerequisits
-------------
+### Table of contents
+
+  * [Installation](#Installation)
+    * [Prerequisits](#Prerequisits)
+      * [Summary](#Summary)
+      * [Details](#Details)
+        * [Softwares](#Softwares)
+        * [PERL modules](#PERL_modules)
+    * [Interfacetable\_v3t installation](#Interfacetable_v3t_installation)
+    * [Post-installation tasks](#Post-installation_tasks)
+      * [Nagios cgi configuration](#Nagios_cgi_configuration)
+      * [Pnp4nagios templates](#Pnp4nagios_templates)
+    * [Addon structure](#Addon_structure)
+
+# Installation
+
+## Prerequisits
 
 This chapter describes the operating system prerequisits installation, needed to get the plugin running.
 
@@ -12,11 +26,15 @@ To quickly install all the requirements, just execute the following:
 
 Red Hat flavor
 
-\# yum install net-snmp net-snmp-utils sudo perl perl-Config-General perl-Data-Dumper perl-Getopt-Long perl-Sort-Naturally perl-Exception-Class perl-Time-HiRes
+```
+# yum install net-snmp net-snmp-utils sudo perl perl-Config-General perl-Data-Dumper perl-Getopt-Long perl-Sort-Naturally perl-Exception-Class perl-Time-HiRes
+```
 
 Debian flavor
 
-\# apt-get install snmpd sudo perl libconfig-general-perl libdata-dumper-simple-perl libsort-naturally-perl libexception-class-perl libencode-perl
+```
+# apt-get install snmpd sudo perl libconfig-general-perl libdata-dumper-simple-perl libsort-naturally-perl libexception-class-perl libencode-perl
+```
 
 ### Details
 
@@ -30,21 +48,27 @@ If not, install the following:
 
 Red Hat flavor
 
-\# yum install net-snmp net-snmp-utils
+```
+# yum install net-snmp net-snmp-utils
+```
 
 Debian flavor
 
-\# apt-get install snmpd
+```
+# apt-get install snmpd
+```
 
 Test your snmpwalk output with a command like:
 
-\# snmpwalk -Oqn -v 1 -c public myrouter | head
+```
+# snmpwalk -Oqn -v 1 -c public myrouter | head
     .1.3.6.1.2.1.1.1.0 Cisco IOS Software, 2174 Software Version 11.7(3c), REL.
     SOFTWARE (fc2)Technical Support: http://www.cisco.com/techsupport
     Copyright (c) 1986-2005 by Cisco Systems, Inc.
     Compiled Mon 22-Oct-03 9:46 by antonio
     .1.3.6.1.2.1.1.2.0 .1.3.6.1.4.1.9.1.620
     .1.3.6.1.2.1.1.3.0 9:11:09:19.48
+```
 
 snmpwalk parameters: -Oqn -v 1 : some noise (please read "man snmpwalk"). Change to -Oqn -v2c to check the access via SNMPv2 -c public : snmp community string myrouter : host where you do the snmp queries
 
@@ -52,13 +76,17 @@ snmpwalk is part of the net-snmp suite ([http://net-snmp.sourceforge.net/](http:
 
 Snmpwalk binary location:
 
+```
 snoopy:~# which snmpwalk
 /usr/bin/snmpwalk
+```
 
 Net-Snmp installed version:
 
+```
 snoopy:~# snmpwalk -V
 NET-SNMP version: 5.4.3
+```
 
 Note: Since Net-Snmp v5.4.2.1, the package libsnmp-base doesn't provide the same amont of mibs as before. Anyone who want to use keywords like 'system' or 'interfaces' need to install the package 'snmp-mibs-downloader', and uncomment 'mibs :' in /etc/snmp/snmp.conf
 
@@ -70,11 +98,15 @@ To install:
 
 Red Hat flavor
 
-\# yum install sudo
+```
+# yum install sudo
+```
 
 Debian flavor
 
-\# apt-get install sudo
+```
+# apt-get install sudo
+```
 
 *   **PERL v5**
 
@@ -82,33 +114,43 @@ You need a working perl 5.x installation. The plugin has been successfully teste
 
 Get your perl version with:
 
+```
 snoopy:~# perl -V | head -1
 Summary of my perl5 (revision 5 version 10 subversion 1) configuration:
+```
 
 If not installed, do the following:
 
 Red Hat flavor
 
-\# yum install perl
+```
+# yum install perl
+```
 
 Debian flavor
 
-\# apt-get install perl
+```
+# apt-get install perl
+```
 
 #### PERL modules
 
 To find out if a specific perl module is installed, execute the following from the command line:
 
+```
 perl -MModuleName -e 1
+```
 
-If you don't get any output from the above command then the module is installed. If you get an error, it's not installed. Exemple:
+If you don't get any output from the above command then the module is installed. If you get an error, it's not installed. Example:
 
-\[root@snoopy ~\]# perl -MEncode -e 1
-\[root@snoopy ~\]# 
-\[root@snoopy ~\]# perl -MNotInstalledModule -e 1
-Can't locate NotInstalledModule.pm in @INC (@INC contains: /usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor\_perl /usr/share/perl5/vendor\_perl /usr/lib64/perl5 /usr/share/perl5 .).
+```
+[root@snoopy ~]# perl -MEncode -e 1
+[root@snoopy ~]#
+[root@snoopy ~]# perl -MNotInstalledModule -e 1
+Can't locate NotInstalledModule.pm in @INC (@INC contains: /usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib64/perl5 /usr/share/perl5 .).
 BEGIN failed--compilation aborted.
-\[root@snoopy ~\]#
+[root@snoopy ~]#
+```
 
 *   **Net-SNMP library**
 
@@ -116,10 +158,12 @@ Net-SNMP is the perl's snmp library. Some ideas to see if it is installed:
 
 For RedHat, Fedora, SuSe:
 
-\# rpm -qa|grep -i perl|grep -i snmp
+```
+# rpm -qa|grep -i perl|grep -i snmp
 perl-Net-SNMP-5.2.0-12.2
 # find /usr -name SNMP.pm
 /usr/lib/perl5/vendor\_perl/5.8.8/Net/SNMP.pm
+```
 
 if it is not installed please check your operating systems packages or install it from CPAN: [http://search.cpan.org/search?query=Net%3A%3ASNMP&mode=all](http://search.cpan.org/search?query=Net%3A%3ASNMP&mode=all)![ ](img/icons/external_link.gif " ")
 
@@ -131,11 +175,15 @@ This perl library should be available via the package management tool of your sy
 
 Red Hat flavor
 
-\# yum install perl-Config-General
+```
+# yum install perl-Config-General
+```
 
 Debian flavor
 
-\# apt-get install libconfig-general-perl
+```
+# apt-get install libconfig-general-perl
+```
 
 CPAN page: [http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all](http://search.cpan.org/search?query=Config%3A%3AGeneral&mode=all)![ ](img/icons/external_link.gif " ")
 
@@ -147,11 +195,15 @@ This perl library should be available via the package management tool of your sy
 
 Red Hat flavor
 
-\# yum install perl-Data-Dumper
+```
+# yum install perl-Data-Dumper
+```
 
 Debian flavor
 
-\# apt-get install libdata-dumper-simple-perl
+```
+# apt-get install libdata-dumper-simple-perl
+```
 
 CPAN page: [http://search.cpan.org/search?query=Data%3A%3ADumper&mode=all](http://search.cpan.org/search?query=Data%3A%3ADumper&mode=all)![ ](img/icons/external_link.gif " ")
 
@@ -163,7 +215,9 @@ This perl library should already be available on your system.
 
 Red Hat flavor
 
-\# yum install perl-Getopt-Long
+```
+# yum install perl-Getopt-Long
+```
 
 Debian flavor
 
@@ -179,7 +233,9 @@ To install:
 
 Red Hat flavor
 
-\# yum install perl-Sort-Naturally
+```
+# yum install perl-Sort-Naturally
+```
 
 This library is included in the Perl doftware distribution, and should be available on your system.
 
@@ -191,11 +247,15 @@ To install:
 
 Red Hat flavor
 
-\# yum install perl-Sort-Naturally
+```
+# yum install perl-Sort-Naturally
+```
 
 Debian flavor
 
-\# apt-get install libsort-naturally-perl
+```
+# apt-get install libsort-naturally-perl
+```
 
 CPAN page: [http://search.cpan.org/~bingos/Sort-Naturally-1.03/lib/Sort/Naturally.pm](http://search.cpan.org/~bingos/Sort-Naturally-1.03/lib/Sort/Naturally.pm)![ ](img/icons/external_link.gif " ")
 
@@ -207,11 +267,15 @@ To install:
 
 Red Hat flavor
 
-\# yum install perl-Exception-Class
+```
+# yum install perl-Exception-Class
+```
 
 Debian flavor
 
-\# apt-get install libexception-class-perl
+```
+# apt-get install libexception-class-perl
+```
 
 CPAN page: [http://search.cpan.org/~drolsky/Exception-Class-1.37/lib/Exception/Class.pm](http://search.cpan.org/~drolsky/Exception-Class-1.37/lib/Exception/Class.pm)![ ](img/icons/external_link.gif " ")
 
@@ -223,7 +287,9 @@ To install:
 
 Red Hat flavor
 
-\# yum install perl-Time-HiRes
+```
+# yum install perl-Time-HiRes
+```
 
 Debian flavor
 
@@ -243,292 +309,208 @@ Provided with the core perl package
 
 Debian flavor
 
-\# apt-get install libencode-perl
+```
+# apt-get install libencode-perl
+```
 
 CPAN page: [http://search.cpan.org/~dankogai/Encode-2.51/Encode.pm](http://search.cpan.org/~dankogai/Encode-2.51/Encode.pm)![ ](img/icons/external_link.gif " ")  
 
-Interfacetable\_v3t installation
---------------------------------
+## Interfacetable\_v3t installation
 
-  
-Prepare the sources
+### Prepare the sources
 
 *   Upload the interface\_table\_XXX archive to your server and uncompress it in a temporary directory (ex: /var/tmp/install/icinga/plugins/interfacetable-0.05)
 *   Make the configure file executable:
-    
-    \# cd /var/tmp/install/icinga/plugins/interfacetable-0.05
-    # chmod a+x ./configure
-    
 
-  
-Configure the installer
+    ```
+    # cd /var/tmp/install/icinga/plugins/interfacetable-0.05
+    # chmod a+x ./configure
+    ```
+
+### Configure the installer
 
 Call ./configure with the wanted options.
 
-\[root@snoopy it\_v3t-0.05-rc2\]# ./configure \[...\]
+```
+[root@snoopy it_v3t-0.05-rc2]# ./configure [...]
+```
 
 Notes:
 
-*   all options descriptions are available via
-    
-    ./configure --help
-    
+*   all options descriptions are available via ./configure --help
+
 *   the software and perl library requirements are checked by ./configure:  
-    
-    \[root@snoopy interfacetable\_v3t-0.05-rc2\]# ./configure
-    \[...\]
+
+    ```
+    [root@snoopy interfacetable_v3t-0.05-rc2]# ./configure
+    [...]
     checking for perl... /usr/bin/perl
     checking for snmpget... /usr/bin/snmpget
     checking for snmpwalk... /usr/bin/snmpwalk
     checking for sudo... /usr/bin/sudo
-    \[...\]
+    [...]
     checking for Sort::Naturally perl module... found
     checking for Exception::Class perl module... found
     checking for Time::HiRes perl module... found
-    \[...\]
-    
+    [...]
+    ```
+
 *   without specifying any options, the plugin will be configured as following:  
-    
+
+    ```
+
     Global installation directories:
      --------------------------------
-                               ${prefix}:  /usr/local/interfacetable\_v3t
-                          ${exec\_prefix}:  /usr/local/interfacetable\_v3t
-             libdir (for perl libraries):  ${exec\_prefix}/lib
+                               ${prefix}:  /usr/local/interfacetable_v3t
+                          ${exec_prefix}:  /usr/local/interfacetable_v3t
+             libdir (for perl libraries):  ${exec_prefix}/lib
             sysconfdir (for config file):  ${prefix}/etc
      datarootdir (for html, css, js,...):  ${prefix}/share
-     Note: exec\_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations
-    
+     Note: exec_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations
+
      Nagios & related options:
      -------------------------
                       Install user/group:  nagios,nagios
                          Nagios base dir:  /usr/local/nagios
                       Nagios libexec dir:  /usr/local/nagios/libexec
-        InterfaceTable\_v3t addon CGI dir:  /usr/local/interfacetable\_v3t/sbin
-        InterfaceTable\_v3t addon CGI url:  /interfacetable\_v3t/cgi-bin
-       InterfaceTable\_v3t addon HTML url:  /interfacetable\_v3t
+        InterfaceTable_v3t addon CGI dir:  /usr/local/interfacetable_v3t/sbin
+        InterfaceTable_v3t addon CGI url:  /interfacetable_v3t/cgi-bin
+       InterfaceTable_v3t addon HTML url:  /interfacetable_v3t
                          Cache files dir:  /tmp/.ifCache
                          State files dir:  /tmp/.ifState
-    
+
      Graphing options:
      -----------------
                   Graphing solution name:  pnp4nagios
                    Graphing solution url:  /pnp4nagios
-    
+
      Apache & sudo options:
      ----------------------
                        Apache conf.d dir:  /etc/httpd/conf.d
                              Apache User:  apache
                          Apache AuthName:  Nagios Access
                             Sudoers file:  /etc/sudoers
-    
+
      Other options:
      ----------------------
               Port performance data unit:  bps
-                MAX\_PLUGIN\_OUTPUT\_LENGTH:  8192
-    
-      
+                MAX_PLUGIN_OUTPUT_LENGTH:  8192
+   ```
+
     Hereunder are the available option for ./configure:  
-    
-    Keyword
-    
-    Description
-    
-    Default value
-    
-    \--help
-    
-    Show the configure usage page
-    
-    \--prefix="/path/to/interfacetable\_v3t/dir"
-    
-    Sets the directory where the software will be installed
-    
-    /usr/local/interfacetable\_v3t
-    
-    \--with-nagios-user="user"
-    
-    Sets the owner of installed files
-    
-    nagios
-    
-    \--with-nagios-group="grp"
-    
-    Sets group of installed files
-    
-    nagios
-    
-    \--with-nagios-base="/path/to/nagios/dir"
-    
-    Sets the nagios base directory
-    
-    /usr/local/nagios
-    
-    \--with-nagios-libexec="/path/to/nagios/dir"
-    
-    Sets the nagios libexec directory, if not standard
-    
-    /usr/local/nagios/libexec
-    
-    \--with-cachedir="/path/to/cache/dir"
-    
-    Sets the directory where snmp responses are cached
-    
-    /tmp/.ifCache
-    
-    \--with-statedir="/path/to/cache/dir"
-    
-    Sets the directory where the interface states are stored
-    
-    /tmp/.ifState
-    
-    \--with-htmldir="/path/to/html/dir"
-    
-    Sets software HTML directory
-    
-    /usr/local/interfacetable\_v3t/share
-    
-    \--with-htmlurl="url"
-    
-    Sets interface table URL location
-    
-    [http://myserver/interfacetable\_v3t![ ](img/icons/external_link.gif " ")](http://myserver/interfacetable_v3t) or /interfacetable\_v3t
-    
-    \--with-cgidir="/path/to/cgi/dir"
-    
-    Sets software cgi programs directory
-    
-    /usr/local/interfacetable\_v3t/sbin
-    
-    \--with-cgiurl="url"
-    
-    Sets URL for interfacetable\_v3t cgi programs
-    
-    [http://myserver/interfacetable\_v3t/cgi-bin![ ](img/icons/external_link.gif " ")](http://myserver/interfacetable_v3t/cgi-bin) or /interfacetable\_v3t/cgi-bin
-    
-    \--with-grapher="solution name"
-    
-    Sets the graphing solution which will be in charge of processing the performance data. Possible values are pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph![Image](tiki-download_file.php?fileId=178&display)
-    
-    pnp4nagios
-    
-    \--with-grapher-url="grapher-url"
-    
-    Sets URL to the graphing solution web interface
-    
-    /pnp4nagios _(some automated detection depending on the selected grapher solution)_
-    
-    \--with-max-plugin-output-length= ![Image](tiki-download_file.php?fileId=178&display) 
-    
-    Sets the maximum plugin output length as used during the nagios/icinga core compilation. If you used a non-default value, specify it here so the plugin would correctly detect the oversized plugin outputs.
-    
-    8192
-    
-    \--with-portperfunit= ![Image](tiki-download_file.php?fileId=178&display) 
-    
-    Sets the unit used to report traffic statistics. Could be reported in bits (counters) or in bps (calculated value, new and default since v0.05). Can be 'bit' or 'bps'.
-    
-    bps
-    
-    \--with-httpd-conf="/path/to/conf/dir"
-    
-    Sets path to Apache conf.d directory
-    
-    _Automated detection_
-    
-    \--with-apache-user="user"
-    
-    Sets path Apache runs with
-    
-    _Automated detection_
-    
-    \--with-apache-authname="authname"
-    
-    Sets value of AuthName directive in Apache config
-    
-    Nagios Access _(some automated detection for Icinga)_
-    
-    \--with-sudoers="/path/to/sudoers"
-    
-    Sets path to sudoers file
-    
-    _Automated detection_
-    
 
-*   Configuration exemples:
+| Keyword | Description | Default value |
+| ------- | ----------- | ------------- |
+| --help | Show the configure usage page | |
+| --prefix="/path/to/interfacetable_v3t/dir" | Sets the directory where the software will be installed | /usr/local/interfacetable_v3t |
+| --with-nagios-user="user" | Sets the owner of installed files | nagios |
+| --with-nagios-group="grp" | Sets group of installed files | nagios |
+| --with-nagios-base="/path/to/nagios/dir" | Sets the nagios base directory | /usr/local/nagios |
+| --with-nagios-libexec="/path/to/nagios/dir" | Sets the nagios libexec directory, if not standard | /usr/local/nagios/libexec |
+| --with-cachedir="/path/to/cache/dir" | Sets the directory where snmp responses are cached | /tmp/.ifCache |
+| --with-statedir="/path/to/cache/dir" | Sets the directory where the interface states are stored | /tmp/.ifState |
+| --with-htmldir="/path/to/html/dir" | Sets software HTML directory | /usr/local/interfacetable_v3t/share |
+| --with-htmlurl="url" | Sets interface table URL location | http://myserver/interfacetable_v3t or /interfacetable_v3t |
+| --with-cgidir="/path/to/cgi/dir" | Sets software cgi programs directory | /usr/local/interfacetable_v3t/sbin |
+| --with-cgiurl="url" | Sets URL for interfacetable\_v3t cgi programs | http://myserver/interfacetable_v3t/cgi-bin or /interfacetable\_v3t/cgi-bin |
+| --with-grapher="solution name" | Sets the graphing solution which will be in charge of processing the performance data. Possible values are pnp4nagios, nagiosgrapher, netwaysgrapherv2, ingraph | pnp4nagios |
+| --with-grapher-url="grapher-url" | Sets URL to the graphing solution web interface | /pnp4nagios _(some automated detection depending on the selected grapher solution)_ |
+| --with-max-plugin-output-length= | Sets the maximum plugin output length as used during the nagios/icinga core compilation. If you used a non-default value, specify it here so the plugin would correctly detect the oversized plugin outputs. | 8192 |
+| --with-portperfunit= | Sets the unit used to report traffic statistics. Could be reported in bits (counters) or in bps (calculated value, new and default since v0.05). Can be 'bit' or 'bps'. | bps |
+| --with-httpd-conf="/path/to/conf/dir" | Sets path to Apache conf.d directory | _Automated detection_ |
+| --with-apache-user="user" | Sets path Apache runs with | _Automated detection_ |
+| --with-apache-authname="authname" | Sets value of AuthName directive in Apache config | Nagios Access _(some automated detection for Icinga)_ |
+| --with-sudoers="/path/to/sudoers" | Sets path to sudoers file | _Automated detection_ |
+
+*   Configuration examples:
     *   Nagios user  
-        
-        ./configure --prefix=/usr/local/interfacetable\_v3t --with-htmlurl=http://myserver/interfacetable\_v3t
-        
-    *   Icinga user  
-        
-        ./configure --prefix=/usr/local/interfacetable\_v3t --with-nagios-user=icinga --with-nagios-group=icinga --with-nagios-base=/usr/local/icinga 
-        --with-htmlurl=http://myserver/interfacetable\_v3t
-        
-    *   Changing cache and state files directory  
-        
-        ./configure --prefix=/usr/local/interfacetable\_v3t --with-nagios-user=icinga --with-nagios-group=icinga --with-nagios-base=/usr/local/icinga 
-        --with-cachedir=/usr/local/icinga/tmp/ifCache --with-statedir=/usr/local/icinga/tmp/ifState --with-htmlurl=http://myserver/interfacetable\_v3t
-        
-          
-        Note: by default, the html url for interfacetable\_v3t is relative (/interfacetable\_v3t). Even if this works well in most of the situations, it is recommended to change it to an absolute url including your server dns name or ip (http://myserver/interfacetable\_v3t). Without that, in some cases the link returned in the plugin output will not be valid (for exemple in a notification email)
 
-  
+        ```
+        ./configure --prefix=/usr/local/interfacetable_v3t --with-htmlurl=http://myserver/interfacetable_v3t
+        ```
+
+    *   Icinga user  
+
+        ```
+        ./configure --prefix=/usr/local/interfacetable_v3t --with-nagios-user=icinga --with-nagios-group=icinga --with-nagios-base=/usr/local/icinga
+        --with-htmlurl=http://myserver/interfacetable_v3t
+        ```
+
+    *   Changing cache and state files directory  
+
+        ```
+        ./configure --prefix=/usr/local/interfacetable_v3t --with-nagios-user=icinga --with-nagios-group=icinga --with-nagios-base=/usr/local/icinga
+        --with-cachedir=/usr/local/icinga/tmp/ifCache --with-statedir=/usr/local/icinga/tmp/ifState --with-htmlurl=http://myserver/interfacetable_v3t
+        ```
+
+        Note: by default, the html url for interfacetable\_v3t is relative (/interfacetable\_v3t). Even if this works well in most of the situations, it is recommended to change it to an absolute url including your server dns name or ip (http://myserver/interfacetable_v3t). Without that, in some cases the link returned in the plugin output will not be valid (for example in a notification email)
+
 Generate and install the plugin files When the configuration fits your needs, call the make command as following:
 
+```
 make install
+```
 
 This copies everything to the right places in the file system: cgis and perl scripts, html/php files, css stylesheets and js files.
 
 Then, you can call make to install an Apache configuration file to your web-server config directory
 
+```
 make install-apache-config
+```
 
 You can then update the sudoers file:
 
+```
 make install-sudo-config
+```
 
 This prepares the /etc/sudoers file so that the web server's account can call the cgi script (as shell script)
 
 Note:
 
 *   all the available make commands can be displayed by just entering make:  
-    
-    \[root@server interfacetable\_v3t-0.03b3\]# make
+
+    ```
+    [root@server interfacetable_v3t-0.03b3]# make
     Please supply a command line argument (i.e. 'make all').  Available targets are:
        clean distclean
        install install-apache-config install-sudo-config fullinstall
-    
+
     Usages:
-    
+
       make install
          - This installs the plugin, cgi files, and html resources
-    
+
       make install-apache-config
-         - This installs the apache config file for interfacetable\_v3t
-    
+         - This installs the apache config file for interfacetable_v3t
+
       make install-sudo-config
-         - This installs the sudo config for interfacetable\_v3t
-    
+         - This installs the sudo config for interfacetable_v3t
+
       make fullinstall
-         - This installs the plugin, cgi files, html resources, and the apache config file for interfacetable\_v3t
-    
+         - This installs the plugin, cgi files, html resources, and the apache config file for interfacetable_v3t
+    ```
+
 *   all these make steps are combined in  
-    
+
+    ```
     make fullinstall
-    
+    ```
+
 *   after copying the configuration file for the web server you have to restart the web server (service httpd restart or /etc/init.d/apache2 restart).
 
-  
 Check that the plugin works Check that all the requirements are well installed by launching the script as the nagios/icinga user:
 
-\[icinga@snoopy libexec\] ./check\_interface\_table\_v3t.pl -V
-./check\_interface\_table\_v3t.pl (0.05)
+```
+[icinga@snoopy libexec] ./check_interface_table_v3t.pl -V
+./check_interface_table_v3t.pl (0.05)
 This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute
 copies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).
-\[icinga@snoopy libexec\]
+[icinga@snoopy libexec]
+```
 
-Post-installation tasks
------------------------
+## Post-installation tasks
 
 ### Nagios cgi configuration
 
@@ -536,7 +518,9 @@ If not already the case, configure Nagios to display HTML links in plugin output
 
 Edit cgi.cfg and set this option to zero
 
-escape\_html\_tags=0
+```
+escape_html_tags=0
+```
 
 cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
@@ -544,31 +528,27 @@ cgi.cfg is located in your configuration directory. (ex: /usr/local/nagios/etc)
 
 If you use pnp4nagios as the graphing solution, you may be interested by the pnp4nagios templates provided with Interfacetable\_v3t. To install them, copy the 3 files from the installation directory interface\_table\_v3t-x.xx/contrib/pnp4nagios to your pnp4nagios template directory (ex: /usr/local/pnp4nagios/share/templates)
 
-Addon structure
----------------
+## Addon structure
 
 The directory tree will be the following:
 
-/usr/local/interfacetable\_v3t
+```
+/usr/local/interfacetable_v3t
 |-- etc (can contain some configuration files loaded by the --config option, optional)
 |-- lib (perl libraries for the plugin)
 |-- sbin (cgi scripts)
-\`-- share 
+\`-- share
     |-- css (css stylesheets)
     |-- img (images)
     |-- js (javascript functions)
     \`-- tables (generated interface tables as html files)
+```
 
 Moreover, some files are installed automatically in some other locations:
 
-*   the perl plugin check\_interface\_table\_v3t.pl is installed in the nagios plugin directory (/usr/local/nagios/libexec)
-*   the apache configuration file interfacetable\_v3t.conf is installed in the apache configuration directory (/etc/apache2/conf.d)
+*   the perl plugin check\_interface_table_v3t.pl is installed in the nagios plugin directory (/usr/local/nagios/libexec)
+*   the apache configuration file interfacetable_v3t.conf is installed in the apache configuration directory (/etc/apache2/conf.d)
 
-The main part of the addon is the check\_interface\_table\_v3t.pl perl script, which can be considered as the plugin itself. This script is indeed in charge of all the tasks of gathering node and interface info, thresholds comparison, change tracking and status/stats outputs.
+The main part of the addon is the check_interface_table_v3t.pl perl script, which can be considered as the plugin itself. This script is indeed in charge of all the tasks of gathering node and interface info, thresholds comparison, change tracking and status/stats outputs.
 
-Another interesting script is InterfaceTableReset\_v3t.cgi. This CGI script gives you the possibility to reset the interface table of a node. Indeed, it is common that someone changes some ip addresses or some other properties. When tracked, these changes produce some alerts and you may want to update (=reset) the table to clean them. Resetting the table means to delete the corresponding state file (ex: in /tmp/.ifState).
-
-* * *
-
-  
-The original document is available at [http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable\_v3t+-+documentation+-+0.05+-+Installation](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation)
+Another interesting script is InterfaceTableReset_v3t.cgi. This CGI script gives you the possibility to reset the interface table of a node. Indeed, it is common that someone changes some ip addresses or some other properties. When tracked, these changes produce some alerts and you may want to update (=reset) the table to clean them. Resetting the table means to delete the corresponding state file (ex: in /tmp/.ifState).
