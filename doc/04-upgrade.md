@@ -109,21 +109,23 @@ Hereunder the step to switch to this new method.
 
   What this script does:
 
-  *   Scan the subdirectories of the directory given to the script as argument, for   rrd and xml files to be converted  
+  * Scan the subdirectories of the directory given to the script as argument, for   rrd and xml files to be converted  
       => a list of files to be converted is reported, to let you check that the list is okay
 
-  *   For each rrd file of the list
-    *   the file mtime is gathered,
-    *   a backup of the file is created (.bak)
-    *   the RRD DST is converted from COUNTER to GAUGE
-    *   the file is renamed with the corresponding "bps perfdata file name"
-    *   mtime is reapplied to the file
+  * For each rrd file of the list
 
-  *   For each xml file of the list
-    *   the file mtime is gathered,
-    *   a backup of the file is created (.bak)
-    *   the labels and units are adapted to bps mode
-    *   mtime is reapplied to the file
+    * the file mtime is gathered,
+    * a backup of the file is created (.bak)
+    * the RRD DST is converted from COUNTER to GAUGE
+    * the file is renamed with the corresponding "bps perfdata file name"
+    * mtime is reapplied to the file
+
+  * For each xml file of the list
+
+    * the file mtime is gathered,
+    * a backup of the file is created (.bak)
+    * the labels and units are adapted to bps mode
+    * mtime is reapplied to the file
 
     Note: the xml files are automatically updated/replaced by pnp4nagios after some (each?) perfdata insertions, so this part is not needed but allows to not wait and directly see the graphs after the conversion.
 
@@ -155,7 +157,7 @@ Do you want to proceed with the conversion? [y|N] y
 
 6. (Re-)install the plugin
 
-(Re-)install the plugin without specifying the --with-portperfunit option. It will install by default the plugin with portperfunit = bps.
+    (Re-)install the plugin without specifying the --with-portperfunit option. It will install by default the plugin with portperfunit = bps.
 
 *   From 0.03-x and 0.04-x to 0.05-x  
     The upgrade to the 0.05-x version works (nearly) the same way as an installation. +Please look at the page [installation instructions](03-installation.md) to install the new requirements if any.  
