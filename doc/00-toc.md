@@ -2,24 +2,22 @@
 
 Table of Content
 
-  * [About the plugin](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+About+the+plugin&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [About the plugin](01-about-the-plugin.md)
 
-  * [What's new](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+What%27s+new&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [What's new](02-what-s-new.md)
 
-  * [Installation](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Installation](03-installation.md)
 
-  * [Upgrade](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Upgrade&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Upgrade](04-upgrade.md)
 
-  * [Plugin usage](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Plugin+usage&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Plugin usage](05-plugin-usage.md)
 
-  * [Integration in Nagios/Icinga interface](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Integration+in+Nagios+Icinga+interface&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Integration in Nagios/Icinga interface](06-integration-in-nagios-icinga-interface.md)
 
-  * [Alerts and notifications](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Alerts+and+notifications&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Alerts and notifications](07-alerts-and-notifications.md)
 
-  * [Interface statistics and trends](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Interface+statistics+and+trends&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Interface statistics and trends](08-interface-statistics-and-trends.md)
 
-  * [Troubleshooting](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Troubleshooting&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
+  * [Troubleshooting](09-troubleshooting.md)
 
-  * [Annexes](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Annexes&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05 "" )
-
-
+  * [Annexes](10-annexes.md)
