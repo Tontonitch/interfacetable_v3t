@@ -129,30 +129,29 @@ Hereunder the step to switch to this new method.
 
   Example:
 
-  ``
-\[root@snoopy\]# cd
-/var/tmp/install/Icinga/plugins/interfacetable\_v3t/interfacetable\_v3t-0.05-rc2/contrib/utilities
-\[root@snoopy utilities\]#
-\[root@snoopy utilities\]# chmod a+x convert\_rrd\_gauge.sh
-\[root@snoopy utilities\]# ./convert\_rrd\_gauge.sh /usr/local/pnp4nagios/perfdata/rrd
+```
+[root@snoopy]# cd
+/var/tmp/install/Icinga/plugins/interfacetable_v3t/interfacetable_v3t-0.05-rc2/contrib/utilities
+[root@snoopy utilities]#
+[root@snoopy utilities]# chmod a+x convert_rrd_gauge.sh
+[root@snoopy utilities]# ./convert_rrd_gauge.sh /usr/local/pnp4nagios/perfdata/rrd
 ######################## List of files to convert ##########################
 === Scanning directory /usr/local/pnp4nagios/perfdata/rrd/host1 ===
 === Scanning directory /usr/local/pnp4nagios/perfdata/rrd/host2 ===
 === Scanning directory /usr/local/pnp4nagios/perfdata/rrd/host3 ===
 === Scanning directory /usr/local/pnp4nagios/perfdata/rrd/host4 ===
-\[...\]
-
+[...]
 ############################################################################
  Total to convert:
-  \* rrd files: 0
-  \* xml files: 0
+  * rrd files: 0
+  * xml files: 0
  Before continuing, review the list of files to be processed
 ############################################################################
 
-Do you want to proceed with the conversion? \[y|N\] y
-\[...\]
-\[root@snoopy utilities\]#
-
+Do you want to proceed with the conversion? [y|N] y
+[...]
+[root@snoopy utilities]#
+```
 
 6. (Re-)install the plugin
 
@@ -187,13 +186,13 @@ Do you want to proceed with the conversion? \[y|N\] y
   List the files:
 
   ```
-  find /rrd\_directory -name "\*\\.bak" -type f -exec ls -larth {} \\;
+  find /rrd_directory -name "*\.bak" -type f -exec ls -larth {} \;
   ```
 
   Remove the files:
 
   ```
-  find /rrd\_directory -name "\*\\.bak" -type f -exec rm {} \\;
+  find /rrd_directory -name "*\.bak" -type f -exec rm {} \;
   ```
 
 Important release notes
