@@ -1,42 +1,35 @@
-**Upgrade**
-===========
+# **Upgrade**
 
 ### Table of contents
 
-[\[Show/Hide\]](javascript:toggleToc())
-
-*   [Update & upgrade](#Update_upgrade)
-    *   [Before update/upgrade (>=0.03)](#Before_update_upgrade_0.03_)
-    *   [Update](#Update)
-    *   [Upgrade](#Upgrade)
-        *   [Upgrade keeping the old method (not recommended)](#Upgrade_keeping_the_old_method_not_recommended_)
-            *   [From 0.03-x and 0.04-x to 0.05-x](#From_0.03-x_and_0.04-x_to_0.05-x)
-            *   [From <=0.02-x to 0.05-x](#From_0.02-x_to_0.05-x)
-        *   [Upgrade switching to the new method](#Upgrade_switching_to_the_new_method)
+* [Update & upgrade](#Update_upgrade)
+    * [Before update/upgrade (>=0.03)](#Before_update_upgrade_0.03_)
+    * [Update](#Update)
+    * [Upgrade](#Upgrade)
+        * [Upgrade keeping the old method (not recommended)](#Upgrade_keeping_the_old_method_not_recommended_)
+            * [From 0.03-x and 0.04-x to 0.05-x](#From_0.03-x_and_0.04-x_to_0.05-x)
+            * [From <=0.02-x to 0.05-x](#From_0.02-x_to_0.05-x)
+        * [Upgrade switching to the new method](#Upgrade_switching_to_the_new_method)
     *   [Important release notes](#Important_release_notes)
-        *   [Notes about version 0.05](#Notes_about_version_0.05)
-        *   [Notes about version 0.04-1](#Notes_about_version_0.04-1)
-        *   [Notes about version 0.04](#Notes_about_version_0.04)
+        * [Notes about version 0.05](#Notes_about_version_0.05)
+        * [Notes about version 0.04-1](#Notes_about_version_0.04-1)
+        * [Notes about version 0.04](#Notes_about_version_0.04)
 
-Update & upgrade
-================
+# Update & upgrade
 
-Before update/upgrade (>=0.03)
-------------------------------
+## Before update/upgrade (>=0.03)
 
-Even if I do my best to avoid any regression, you might want to test that the new release fits to your environment. To test it, you can follow the instructions available [here](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Annexes&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05#Install_in_testing_mode_for_beta_testers)![ ](img/icons/external_link.gif " ").
+Even if I do my best to avoid any regression, you might want to test that the new release fits to your environment. To test it, you can follow the instructions available in the page [Annexes](10-annexes.md) section *Install_in_testing_mode_for_beta_testers*.
 
 This step-by-step procedure explains how to install the plugin in test-mode (separate installation, avoid any modification of a previous running installation)
 
-Update
-------
+## Update
 
-The update of a 0.05-x version (from 0.05-x to 0.05-y) works (nearly) the same way as an installation. Please look at the [installation instructions](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05)![ ](img/icons/external_link.gif " ") to install the new requirements if any. Please note that you have to call ./configure with the same options you used during the installation of the previous release. If you still have the installation directory of the previous plugin release, you can check which options have been used by looking at the top of the config.log file. You can generally skip make install-apache-config and make install-sudo-config as nothing should change in the apache and sudo configurations.
+The update of a 0.05-x version (from 0.05-x to 0.05-y) works (nearly) the same way as an installation. Please look at the page [installation instructions](03-installation.md) to install the new requirements if any. Please note that you have to call ./configure with the same options you used during the installation of the previous release. If you still have the installation directory of the previous plugin release, you can check which options have been used by looking at the top of the config.log file. You can generally skip make install-apache-config and make install-sudo-config as nothing should change in the apache and sudo configurations.
 
 Also, the plugin itself performs some version checks when it runs, avoiding any post installation tasks (i.e. cleaning). Consequently, when launched, the script will automatically detect a version change and clean any cached information. Then, it will continue to run as if it was an initial run.
 
-Upgrade
--------
+## Upgrade
 
 Interfacetable\_v3t release 0.05 introduces some important changes in the way traffic statistics are calculated and reported. In previous versions, the statistics were collected from counters and were written as counters in the performance data. The graphing solution, in charge of processing the performance data, had to insert counters in the rrd files. During this rrd update, the traffic rate (in bits/octets per second) was calculated. With this method, there is no way to avoid abnormal statistics to be inserted in the rrd files. In this new 0.05 release, the statistics are still collected from counters, but the rates (usually bps) are calculated and transmitted to performance data (no more as counters). The graphing solution, in charge of processing the performance data, have to insert bps values in the rrd files. With this method, abnormal statistics are not transmitted to the graphing solution, leaving the rrd files only with consistent statistics. This new method is now default one in this new release of the plugin. The old method is still available but should be removed in future versions of the plugin.
 
@@ -51,87 +44,93 @@ Please KEEP IN MIND that the old method returning counters as performance data w
 
 #### From 0.03-x and 0.04-x to 0.05-x
 
-The upgrade to the 0.05-x version works (nearly) the same way as an installation. Please look at the [installation instructions](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05)![ ](img/icons/external_link.gif " ") to install the new requirements if any. Please note that you have to call ./configure with the same options you used during the installation of the previous release. If you still have the installation directory of the previous plugin release, you can check which options have been used by looking at the top of the .config.log file. You can skip make install-apache-config and make install-sudo-config as nothing changed in the apache and sudo configurations.
+The upgrade to the 0.05-x version works (nearly) the same way as an installation. Please look at the page [installation instructions](03-installation.md) to install the new requirements if any. Please note that you have to call ./configure with the same options you used during the installation of the previous release. If you still have the installation directory of the previous plugin release, you can check which options have been used by looking at the top of the .config.log file. You can skip make install-apache-config and make install-sudo-config as nothing changed in the apache and sudo configurations.
 
 Also, the plugin performs some version checks when it runs, avoiding any post installation tasks. Consequently, when launched, the script will automatically detect a version change and clean any cached information. Then, it will continue to run as if it was an initial run.
 
 #### From <=0.02-x to 0.05-x
 
-Before the 0.03 release, the plugin was in the form of a single perl script. This is not the case of the 0.03 and higher releases, which are more complex and are packaged with some other resources. To upgrade from a version prior to 0.03, just do a normal new installation of the plugin (see the [installation instructions](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05)![ ](img/icons/external_link.gif " ")). It will overwrite the previous plugin script.
+Before the 0.03 release, the plugin was in the form of a single perl script. This is not the case of the 0.03 and higher releases, which are more complex and are packaged with some other resources. To upgrade from a version prior to 0.03, just do a normal new installation of the plugin (see the page [installation instructions](03-installation.md)). It will overwrite the previous plugin script.
 
 ### Upgrade switching to the new method
 
 Hereunder the step to switch to this new method.
 
-  
-Conversion scenario requirements
+1. Conversion scenario requirements
 
-The conversion process has been written for a specific environment, which should be the most wide-spread one. Check that you are in this situation before going through the next steps.
+  The conversion process has been written for a specific environment, which should be the most wide-spread one. Check that you are in this situation before going through the next steps.
 
-*   Graphing solution: pnp4nagios  
+  *   Graphing solution: pnp4nagios  
     Indeed, the conversion script has been written for rrd files generated by pnp4nagios. If you use another graphing solution and you want to keep your historical data, please [contact me](mailto:tontonitch-pro@yahoo.fr).
-*   Pnp4nagios configured with RRD\_STORAGE\_TYPE = MULTIPLE  
-    Also, it assumes that one rrd file is generated per performance data. So if you are still using pnp4nagios with RRD\_STORAGE\_TYPE = SINGLE (not recommended at all), please look at the pnp4nagios website and see the benefits of switching to RRD\_STORAGE\_TYPE = MULTIPLE and the [conversion steps](http://docs.pnp4nagios.org/pnp-0.6/rrd_convert)![ ](img/icons/external_link.gif " ").
 
-  
-Disable the performance data
+  *   Pnp4nagios configured with RRD\_STORAGE\_TYPE = MULTIPLE  
+    Also, it assumes that one rrd file is generated per performance data. So if you are still using pnp4nagios with RRD\_STORAGE\_TYPE = SINGLE (not recommended at all), please look at the pnp4nagios website and see the benefits of switching to RRD\_STORAGE\_TYPE = MULTIPLE and the [conversion steps](http://docs.pnp4nagios.org/pnp-0.6/rrd_convert).
 
-Performance data generation can be disabled
+2. Disable the performance data
 
-*   via the cgis  
-     [![Image](tiki-download_file.php?fileId=189&display&x=300&y=177)](tiki-download_file.php?fileId=189&display) 
-*   or by stopping nagios/icinga
+  Performance data generation can be disabled
 
-  
-Backup of the perfdata rrd files
+  *   via the cgis  
+     ![Image](images/upgrade/cgis_perfdata_disable.png)
 
-Take a backup of your pnp4nagios rrd directory. Even if the conversion script keeps a backup of the processed rrd files, it is anymay more secure to keep a full backup of the rrd directory before anything. IMHO, creating a tar archive or doing a cp copy (keeping the mtime, cp -Rp) are 2 solutions to achive this backup.  
-Check the free space requirement Be sure that you will have some extra space in the mountpoint / filesystem hosting the rrd files. Indeed, the the script keeps a backup of each converted rrd file, and it can take a certain amount of space. Of course, after the conversion, and if everything is okay, you will certainly remove these backup files (\*.bak)  
-RRD files conversion A conversion script is located in /contrib/utilities
+  *   or by stopping nagios/icinga
 
-Launch the conversion script to convert the rrd and xml files:
+3. Backup of the perfdata rrd files
 
-./convert\_rrd\_gauge.sh PNP4NAGIOS\_RRD\_DIRECTORY
+  Take a backup of your pnp4nagios rrd directory. Even if the conversion script keeps a backup of the processed rrd files, it is anymay more secure to keep a full backup of the rrd directory before anything. IMHO, creating a tar archive or doing a cp copy (keeping the mtime, cp -Rp) are 2 solutions to achive this backup.  
 
-* * *
+4. Check the free space requirement
 
-Script: convert\_rrd\_gauge.sh, script to convert the rrd files generated by interfacetable\_v3t in mode portperfunit=bit (previously the default) to mode portperfunit=bps (default since interfacetable\_v3t 0.05)
+  Be sure that you will have some extra space in the mountpoint / filesystem hosting the rrd files. Indeed, the the script keeps a backup of each converted rrd file, and it can take a certain amount of space. Of course, after the conversion, and if everything is okay, you will certainly remove these backup files (\*.bak)  
 
-Usage:
+5. RRD files conversion
 
-./convert\_rrd\_gauge.sh PNP4NAGIOS\_RRD\_DIRECTORY
+  A conversion script is located in /contrib/utilities
 
-Example:
+  Launch the conversion script to convert the rrd and xml files:
 
-\[icinga@server\]$ ./convert\_rrd\_gauge.sh /usr/local/pnp4nagios/perfdata/rrd
+  ```
+  ./convert_rrd_gauge.sh PNP4NAGIOS_RRD_DIRECTORY
+  ```
 
-What this script does:
+  Script: convert\_rrd\_gauge.sh, script to convert the rrd files generated by interfacetable\_v3t in mode portperfunit=bit (previously the default) to mode portperfunit=bps (default since interfacetable\_v3t 0.05)
 
-*   Scan the subdirectories of the directory given to the script as argument, for rrd and xml files to be converted  
-    \=> a list of files to be converted is reported, to let you check that the list is okay
+  Usage:
 
-*   For each rrd file of the list
+  ```
+  ./convert_rrd_gauge.sh PNP4NAGIOS_RRD_DIRECTORY
+  ```
+
+  Example:
+
+  ```
+  [icinga@server]$ ./convert_rrd_gauge.sh /usr/local/pnp4nagios/perfdata/rrd
+  ```
+
+  What this script does:
+
+  *   Scan the subdirectories of the directory given to the script as argument, for   rrd and xml files to be converted  
+      => a list of files to be converted is reported, to let you check that the list is okay
+
+  *   For each rrd file of the list
     *   the file mtime is gathered,
     *   a backup of the file is created (.bak)
     *   the RRD DST is converted from COUNTER to GAUGE
     *   the file is renamed with the corresponding "bps perfdata file name"
     *   mtime is reapplied to the file
 
-*   For each xml file of the list
-    
+  *   For each xml file of the list
     *   the file mtime is gathered,
     *   a backup of the file is created (.bak)
     *   the labels and units are adapted to bps mode
     *   mtime is reapplied to the file
-    
-      
+
     Note: the xml files are automatically updated/replaced by pnp4nagios after some (each?) perfdata insertions, so this part is not needed but allows to not wait and directly see the graphs after the conversion.
 
-* * *
+  Example:
 
-Example:
-
-\[root@snoopy\]# cd 
+  ``
+\[root@snoopy\]# cd
 /var/tmp/install/Icinga/plugins/interfacetable\_v3t/interfacetable\_v3t-0.05-rc2/contrib/utilities
 \[root@snoopy utilities\]#
 \[root@snoopy utilities\]# chmod a+x convert\_rrd\_gauge.sh
@@ -154,40 +153,48 @@ Do you want to proceed with the conversion? \[y|N\] y
 \[...\]
 \[root@snoopy utilities\]#
 
-  
-(Re-)install the plugin
+
+6. (Re-)install the plugin
 
 (Re-)install the plugin without specifying the --with-portperfunit option. It will install by default the plugin with portperfunit = bps.
 
 *   From 0.03-x and 0.04-x to 0.05-x  
-    The upgrade to the 0.05-x version works (nearly) the same way as an installation. +Please look at the [installation instructions](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05)![ ](img/icons/external_link.gif " ") to install the new requirements if any.  
+    The upgrade to the 0.05-x version works (nearly) the same way as an installation. +Please look at the page [installation instructions](03-installation.md) to install the new requirements if any.  
     Please note that you have to call ./configure with the same options you used during the installation of the previous release.  
     Please note that you have to call ./configure with the same options you used during the installation of the previous release. If you still have the installation directory of the previous plugin release, you can check which options have been used by looking at the top of the .config.log file.  
     You can skip make install-apache-config and make install-sudo-config as nothing changed in the apache and sudo configurations.  
     Also, the plugin performs some version checks when it runs, avoiding any post installation tasks. Consequently, when launched, the script will automatically detect a version change and clean any cached information. Then, it will continue to run as if it was an initial run.
 *   From <=0.02-x to 0.05-x  
     Before the 0.03 release, the plugin was in the form of a single perl script. This is not the case of the 0.03 and higher releases, which are more complex and are packaged with some other resources.  
-    To upgrade from a version prior to 0.03, just do a normal new installation of the plugin (see the [installation instructions](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Installation&structure=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05)![ ](img/icons/external_link.gif " ")). It will overwrite the previous plugin script.
+    To upgrade from a version prior to 0.03, just do a normal new installation of the plugin (see the page [installation instructions](03-installation.md)). It will overwrite the previous plugin script.
 
-  
-Enable the performance data and check the graphs
 
-Performance data generation can be enabled
+7. Enable the performance data and check the graphs
 
-*   via the cgis  
-     [![Image](tiki-download_file.php?fileId=190&display&x=300&y=178)](tiki-download_file.php?fileId=190&display) 
-*   or if you stopped nagios/icinga, just restart it
+  Performance data generation can be enabled
 
-Then, check that the graphs can be well generated [![Image](tiki-download_file.php?fileId=191&display&x=400&y=427)](tiki-download_file.php?fileId=191&display)   
-Cleaning Remove the backup files:
+  *   via the cgis  
+      ![Image](images/upgrade/cgis_perfdata_enable.png)
 
-List the files:
+  *   or if you stopped nagios/icinga, just restart it
 
-find /rrd\_directory -name "\*\\.bak" -type f -exec ls -larth {} \\;
+  Then, check that the graphs can be well generated ![Image](images/upgrade/generated_graphs.png)
 
-Remove the files:
+8. Cleaning
 
-find /rrd\_directory -name "\*\\.bak" -type f -exec rm {} \\;
+  Remove the backup files:
+
+  List the files:
+
+  ```
+  find /rrd\_directory -name "\*\\.bak" -type f -exec ls -larth {} \\;
+  ```
+
+  Remove the files:
+
+  ```
+  find /rrd\_directory -name "\*\\.bak" -type f -exec rm {} \\;
+  ```
 
 Important release notes
 -----------------------
@@ -219,8 +226,3 @@ Please note the following changes introduced by version 0.04. It changes the way
 *   netsnmp perl bindings is now used by default. In case of problem, you can still use the old way, via the use of linux-unix binaries (default in versions <=0.03x), by using the --unixsnmp option
 *   plugin timeout security is now in place, so you may need to extend it with the --timeout option(default is inherited from nagios plugin global timeout)
 *   inclusions/exclusions now only try to match the interface names (~= description). In <= v0.03, inclusions/exclusions also try to match the alias. To have the previous behavior back, use the new option --alias-matching
-
-* * *
-
-  
-The original document is available at [http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable\_v3t+-+documentation+-+0.05+-+Upgrade](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Upgrade)
