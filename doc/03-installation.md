@@ -358,7 +358,6 @@ Notes:
 *   without specifying any options, the plugin will be configured as following:  
 
     ```
-
     Global installation directories:
      --------------------------------
                                ${prefix}:  /usr/local/interfacetable_v3t
@@ -395,9 +394,9 @@ Notes:
      ----------------------
               Port performance data unit:  bps
                 MAX_PLUGIN_OUTPUT_LENGTH:  8192
-   ```
+    ```
 
-    Hereunder are the available option for ./configure:  
+Hereunder are the available option for ./configure:  
 
 | Keyword | Description | Default value |
 | ------- | ----------- | ------------- |
