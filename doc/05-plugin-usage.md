@@ -207,7 +207,7 @@ nagios$ ./check_interface_table_v3t.pl --help
 *   Print the default option values
 
 ```
-snoopy:/usr/local/nagios/libexec# ./check\_interface\_table\_v3t.pl -D
+snoopy:/usr/local/nagios/libexec# ./check_interface_table_v3t.pl -D
 
 Default option values:
 ----------------------
@@ -235,8 +235,8 @@ $VAR1 = {
           'help' => 0,
           'hostdisplay' => '',
           'hostquery' => '',
-          'htmltabledir' => '/Monitoring/icinga-addons/interfacetable\_v3t/share/tables',
-          'htmltableurl' => 'http://snoopy/interfacetable\_v3t/tables',
+          'htmltabledir' => '/Monitoring/icinga-addons/interfacetable_v3t/share/tables',
+          'htmltableurl' => 'http://snoopy/interfacetable_v3t/tables',
           'human' => 1,
           'ifdetails' => 0,
           'ifloadgradient' => 1,
@@ -250,15 +250,15 @@ $VAR1 = {
           'perfdataformat' => 'full',
           'portperfunit' => 'bit',
           'regexp' => 0,
-          'reseturl' => '/interfacetable\_v3t/cgi-bin',
+          'reseturl' => '/interfacetable_v3t/cgi-bin',
           'showdefaults' => 0,
           'snapshot' => 0,
           'statedir' => '/tmp/.ifState',
           'stp' => 0,
           'timeout' => 15,
-          'track-property' => \[
+          'track-property' => [
                                 'ifOperStatus'
-                              \],
+                              ],
           'usemacaddr' => 0,
           'verbose' => 0,
           'vlan' => 0,
@@ -288,31 +288,30 @@ $VAR1 = {
 
 ### Basis
 
-*   Simple local test using default option values
+* Simple local test using default option values
 
 ```
-nagios$ ./check\_interface\_table\_v3t.pl -H localhost -2 -C public
-Initial run... <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|
+nagios$ ./check_interface_table_v3t.pl -H localhost -2 -C public
+Initial run... <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|
 nagios$
 ```
 
 Wait a couple of seconds...
 
 ```
-nagios$ ./check\_interface\_table\_v3t.pl -H localhost -2 -C public
-1 interface(s), 0 free <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|
+nagios$ ./check_interface_table_v3t.pl -H localhost -2 -C public
+1 interface(s), 0 free <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|
+nagios$
+```
+* With performance data
+
+```
+nagios$ ./check_interface_table_v3t.pl -H localhost -2 -C public -f
+1 interface(s), 0 free, 4 graphed <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|Interface_global::check_interface_table_global::time=1s;;;; uptime=1296910s;;;; watched=4;;;; useddelta=248s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If_lo::check_interface_table_port_bit::OperStatus=1;;;0; BitsIn=169424c;;;0; BitsOut=169424c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If_eth0::check_interface_table_port_bit::OperStatus=1;;;0; BitsIn=110180152c;;;0; BitsOut=8776488c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If_vboxnet0::check_interface_table_port_bit::OperStatus=2;;;0; BitsIn=0c;;;0; BitsOut=0c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If_pan0::check_interface_table_port_bit::OperStatus=2;;;0; BitsIn=0c;;;0; BitsOut=0c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
 nagios$
 ```
 
-*   With performance data
-
-```
-nagios$ ./check\_interface\_table\_v3t.pl -H localhost -2 -C public -f
-1 interface(s), 0 free, 4 graphed <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|Interface\_global::check\_interface\_table\_global::time=1s;;;; uptime=1296910s;;;; watched=4;;;; useddelta=248s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If\_lo::check\_interface\_table\_port\_bit::OperStatus=1;;;0; BitsIn=169424c;;;0; BitsOut=169424c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If\_eth0::check\_interface\_table\_port\_bit::OperStatus=1;;;0; BitsIn=110180152c;;;0; BitsOut=8776488c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If\_vboxnet0::check\_interface\_table\_port\_bit::OperStatus=2;;;0; BitsIn=0c;;;0; BitsOut=0c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;  If\_pan0::check\_interface\_table\_port\_bit::OperStatus=2;;;0; BitsIn=0c;;;0; BitsOut=0c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
-nagios$
-```
-
-*   Look at generated html pages
+* Look at generated html pages
 
 Open your browser and test the access to the generated interface page: [http://myserver/interfacetable\_v3t/tables/localhost-Interfacetable.html](http://myserver/interfacetable_v3t/tables/localhost-Interfacetable.html)
 
@@ -320,15 +319,15 @@ An index page is available, to switch easily between interface tables: [http://m
 
 ### Common
 
-*   Simple check using default option values
+* Simple check using default option values
 
 ```
-icinga$ ./check\_interface\_table\_v3t.pl -H localhost -C public
-1 interface(s), 1 free, 1 AdminUp and free <a href="/interfacetable\_v3t\_testing/tables/localhost-Interfacetable.html">\[details\]</a>|
+icinga$ ./check_interface_table_v3t.pl -H localhost -C public
+1 interface(s), 1 free, 1 AdminUp and free <a href="/interfacetable_v3t_testing/tables/localhost-Interfacetable.html">[details]</a>|
 icinga$
 ```
 
-*   Selecting some interfaces for the property checks
+* Selecting some interfaces for the property checks
 
 Target: localhost SNMP version: 2c SNMP community: public Excluded interfaces: lo Only include following interfaces in property tracking: eth0, eth6 and eth7 Activate performance data
 
@@ -336,62 +335,62 @@ Target: localhost SNMP version: 2c SNMP community: public Excluded interfaces: l
 icinga$ ./check\_interface\_table\_v3t.pl -H localhost -C public -2 -f --exclude lo --exclude-property ALL --include-property eth0,eth5,eth6
 ```
 
-*   Define traffic thresholes
+* Define traffic thresholes
 
 Target: localhost SNMP version: 2c SNMP community: public Excluded interfaces (regexp): lo, vbox\*, pan\* Traffic warning thresholds: 50% bandwidth usage, 10pkts/s erroneous/discared Traffic critical thresholds: 80% bandwidth usage, 100pkts/s erroneous/discared No interface property changes will be tracked Performance data activated
 
 ```
-icinga@snoopy:/usr/local/nagios/libexec$ ./check\_interface\_table\_v3t.pl -H localhost -C public -2 -r --exclude lo,vbox\*,pan\* --warning 50,10,10 --critical 80,100,100 -f --track-property ''
-1 interface(s), 0 free, 1 graphed <a href="/interfacetable\_v3t\_testing/tables/localhost-Interfacetable.html">\[details\]</a>|Interface\_global::check\_interface\_table\_global::time=1s;;;; uptime=1461028s;;;; watched=1;;;; useddelta=712s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If\_eth0::check\_interface\_table\_port\_bit::OperStatus=1;;;0; BitsIn=62358712c;;;0; BitsOut=4500696c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
+icinga@snoopy:/usr/local/nagios/libexec$ ./check_interface_table_v3t.pl -H localhost -C public -2 -r --exclude lo,vbox*,pan* --warning 50,10,10 --critical 80,100,100 -f --track-property ''
+1 interface(s), 0 free, 1 graphed <a href="/interfacetable_v3t_testing/tables/localhost-Interfacetable.html">[details]</a>|Interface_global::check_interface_table_global::time=1s;;;; uptime=1461028s;;;; watched=1;;;; useddelta=712s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If_eth0::check_interface_table_port_bit::OperStatus=1;;;0; BitsIn=62358712c;;;0; BitsOut=4500696c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
 icinga@snoopy:/usr/local/nagios/libexec$
 ```
 
-*   64 bits counters (support of >= 10Gbps interfaces)
+* 64 bits counters (support of >= 10Gbps interfaces)
 
 Target: localhost SNMP version: 2c SNMP community: public Included interfaces: eth7 only Operstatus interface property changes will be tracked (default) 64bits counters activated Performance data activated
 
 ```
-\[icinga@agrid libexec\]$ ./check\_interface\_table\_v3t.pl -H localhost -2 -C public --64bits --exclude ALL --include eth7 -f
-1 interface(s), 0 free, 1 graphed, 1 critical load(s) (>101%): eth7 <a href="/interfacetable\_v3t\_testing/tables/localhost-Interfacetable.html">\[details\]</a>|Interface\_global::check\_interface\_table\_global::time=1s;;;; uptime=144779s;;;; watched=1;;;; useddelta=217s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If\_eth7::check\_interface\_table\_port\_bit::OperStatus=1;;;0; BitsIn=10638480367760c;;;0; BitsOut=16818905928968c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
-\[icinga@agrid libexec\]$
+[icinga@agrid libexec]$ ./check_interface_table_v3t.pl -H localhost -2 -C public --64bits --exclude ALL --include eth7 -f
+1 interface(s), 0 free, 1 graphed, 1 critical load(s) (>101%): eth7 <a href="/interfacetable_v3t_testing/tables/localhost-Interfacetable.html">[details]</a>|Interface_global::check_interface_table_global::time=1s;;;; uptime=144779s;;;; watched=1;;;; useddelta=217s;;;; ports=1;;;; freeports=0;;;; adminupfree=0;;;;  If_eth7::check_interface_table_port_bit::OperStatus=1;;;0; BitsIn=10638480367760c;;;0; BitsOut=16818905928968c;;;0; PktsInErr=0c;;;0; PktsOutErr=0c;;;0; PktsInDiscard=0c;;;0; PktsOutDiscard=0c;;;0;
+[icinga@agrid libexec]$
 ```
 
 Note: in case you already used the plugin without the --64bits option, the load calculation will be wrong for a short period (as in the previous exemple). Indeed, non 64 bits oids are still in cache.
 
 ### Different snmp versions
 
-*   Snmp **v1** (as default)
+* Snmp **v1** (as default)
 
 ```
-\[icinga@myserver libexec\]$ ./check\_interface\_table\_v3t.pl -H localhost
-6 interface(s), 5 free <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|\[icinga@myserver libexec\]$
-\[icinga@myserver libexec\]$
+[icinga@myserver libexec]$ ./check_interface_table_v3t.pl -H localhost
+6 interface(s), 5 free <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|[icinga@myserver libexec]$
+[icinga@myserver libexec]$
 ```
 
-*   Snmp **v2c**
+* Snmp **v2c**
 
 ```
-\[icinga@myserver libexec\]$ ./check\_interface\_table\_v3t.pl -H localhost -l user2 -x user2password -L md5
-6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|
-\[icinga@myserver libexec\]$
+[icinga@myserver libexec]$ ./check_interface_table_v3t.pl -H localhost -l user2 -x user2password -L md5
+6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|
+[icinga@myserver libexec]$
 ```
 
-*   Snmp **v3**
+* Snmp **v3**
 
-    *   securityLevel authNoPriv (authorisation is required but collected data sent over the network is not encrypted)
+    * securityLevel authNoPriv (authorisation is required but collected data sent over the network is not encrypted)
 
     ```
-    \[icinga@myserver libexec\]$ ./check\_interface\_table\_v3t.pl -H localhost -l user3 -x user3password -L md5
-    6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|
-    \[icinga@myserver libexec\]$
+    [icinga@myserver libexec]$ ./check_interface_table_v3t.pl -H localhost -l user3 -x user3password -L md5
+    6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|
+    [icinga@myserver libexec]$
     ```
 
-    *   securityLevel authPriv (authorisation is required and everthing sent over the network is encrypted)
+    * securityLevel authPriv (authorisation is required and everthing sent over the network is encrypted)
 
     ```
-    \[icinga@myserver libexec\]$ ./check\_interface\_table\_v3t.pl -H localhost -l user3 -x user3password -X user3encryption -L md5,des
-    6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable\_v3t/tables/localhost-Interfacetable.html">\[details\]</a>|
-    \[icinga@myserver libexec\]$
+    [icinga@myserver libexec]$ ./check_interface_table_v3t.pl -H localhost -l user3 -x user3password -X user3encryption -L md5,des
+    6 interface(s), 5 free, 1 change(s): ifOperStatus - eth4 <a href="/interfacetable_v3t/tables/localhost-Interfacetable.html">[details]</a>|
+    [icinga@myserver libexec]$
     ```
 
     Note: as non-secure, the securityLevel noAuthNoPriv is not supported
