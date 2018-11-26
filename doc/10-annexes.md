@@ -1,67 +1,67 @@
-**Annexes**
-===========
+# **Annexes**
 
 ### Table of contents
-
-[\[Show/Hide\]](javascript:toggleToc())
 
 *   [Annexes](#Annexes)
     *   [Testing the plugin](#Testing_the_plugin)
     *   [Taking a MIB snapshot](#Taking_a_MIB_snapshot)
     *   [Screenshots](#Screenshots)
 
-Annexes
-=======
+# Annexes
 
-Testing the plugin
-------------------
+## Testing the plugin
 
 To be able to test non stable released of the plugin (alpha, beta, release candidate versions), you may want to use a special installation type: "testing". Installing in such a way create a separate directory tree for the plugin, and avoid the replacement of an existing one. After such an installation, you will be able to test **in command line** the plugin against your different node types. In command line only because you certainly don't want to process the generated performance data.
 
-  
-Installation in testing mode
 
-Upload the interface\_table\_XXX archive to your server and uncompress it in a temporary directory (ex: /var/tmp/install/icinga/plugins/it-0.05-rc2)
+1. Installation in testing mode
 
-Make the configure file executable:
+  Upload the interface\_table\_XXX archive to your server and uncompress it in a temporary directory (ex: /var/tmp/install/icinga/plugins/it-0.05-rc2)
 
-\# cd /var/tmp/install/icinga/plugins/it-0.05-rc2
-# chmod a+x ./configure
+  Make the configure file executable:
 
-Note: all options descriptions are available via
+  ```
+  # cd /var/tmp/install/icinga/plugins/it-0.05-rc2
+  # chmod a+x ./configure
+  ```
 
-./configure --help
+  Note: all options descriptions are available via
 
-Install the software in testing mode with the option **\--enable-testing**. This mode is simply a shortcut for installing everything in a selected directory (specified with the **\--prefix** option). In this way, there will be no impact on a running installation of this addon.
+  ```
+  ./configure --help
+  ```
 
-\[root@snoopy it\_v3t-0.05-rc2\]# ./configure --prefix /var/tmp/tests/it\_v3t-0.05-rc2 --enable-testing
-\[...\]
-\*\*\* Configuration summary for interfacetable\_v3t 0.05-rc2 XX-XX-2013 \*\*\*:
+  Install the software in testing mode with the option **\--enable-testing**. This mode is simply a shortcut for installing everything in a selected directory (specified with the **\--prefix** option). In this way, there will be no impact on a running installation of this addon.
+
+```
+[root@snoopy it_v3t-0.05-rc2]# ./configure --prefix /var/tmp/tests/it_v3t-0.05-rc2 --enable-testing
+[...]
+*** Configuration summary for interfacetable_v3t 0.05-rc2 XX-XX-2013 ***:
 
                                --- TESTING MODE ENABLED ---
  Note: due to the testing mode, you will need to
-    \* copy the generated interfacetable\_v3t.conf httpd config file from the testing apache conf.d dir to the httpd configuration directory on the system, renamed as you want
+    * copy the generated interfacetable_v3t.conf httpd config file from the testing apache conf.d dir to the httpd configuration directory on the system, renamed as you want
 
 
  Global installation directories:
  --------------------------------
-                           ${prefix}:  /var/tmp/tests/it\_v3t-0.05-rc2
-                      ${exec\_prefix}:  /var/tmp/tests/it\_v3t-0.05-rc2
-         libdir (for perl libraries):  ${exec\_prefix}/lib
+                           ${prefix}:  /var/tmp/tests/it_v3t-0.05-rc2
+                      ${exec_prefix}:  /var/tmp/tests/it_v3t-0.05-rc2
+         libdir (for perl libraries):  ${exec_prefix}/lib
         sysconfdir (for config file):  ${prefix}/etc
  datarootdir (for html, css, js,...):  ${prefix}/share
- Note: exec\_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations
+ Note: exec_prefix, libdir, sysconfdir and datadir can be changed for fine tuned installations
 
  Nagios & related options:
  -------------------------
                   Install user/group:  nagios,nagios
-                     Nagios base dir:  /var/tmp/tests/it\_v3t-0.05-rc2/nagios
-                  Nagios libexec dir:  /var/tmp/tests/it\_v3t-0.05-rc2/nagios/libexec
-    InterfaceTable\_v3t addon CGI dir:  /var/tmp/tests/it\_v3t-0.05-rc2/nagios/sbin
-    InterfaceTable\_v3t addon CGI url:  /interfacetable\_v3t\_testing/cgi-bin
-   InterfaceTable\_v3t addon HTML url:  /interfacetable\_v3t\_testing
-                     Cache files dir:  /var/tmp/tests/it\_v3t-0.05-rc2/tmp/.ifCache
-                     State files dir:  /var/tmp/tests/it\_v3t-0.05-rc2/tmp/.ifState
+                     Nagios base dir:  /var/tmp/tests/it_v3t-0.05-rc2/nagios
+                  Nagios libexec dir:  /var/tmp/tests/it_v3t-0.05-rc2/nagios/libexec
+    InterfaceTable_v3t addon CGI dir:  /var/tmp/tests/it_v3t-0.05-rc2/nagios/sbin
+    InterfaceTable_v3t addon CGI url:  /interfacetable_v3t_testing/cgi-bin
+   InterfaceTable_v3t addon HTML url:  /interfacetable_v3t_testing
+                     Cache files dir:  /var/tmp/tests/it_v3t-0.05-rc2/tmp/.ifCache
+                     State files dir:  /var/tmp/tests/it_v3t-0.05-rc2/tmp/.ifState
 
  Graphing options:
  -----------------
@@ -70,7 +70,7 @@ Install the software in testing mode with the option **\--enable-testing**. This
 
  Apache & sudo options:
  ----------------------
-                   Apache conf.d dir:  /var/tmp/tests/it\_v3t-0.05-rc2/httpd/conf.d
+                   Apache conf.d dir:  /var/tmp/tests/it_v3t-0.05-rc2/httpd/conf.d
                          Apache User:  apache
                      Apache AuthName:  Nagios Access
                         Sudoers file:  /etc/sudoers
@@ -78,74 +78,99 @@ Install the software in testing mode with the option **\--enable-testing**. This
  Other options:
  ----------------------
           Port performance data unit:  bps
-            MAX\_PLUGIN\_OUTPUT\_LENGTH:  8192
-\[...\]
-\[root@snoopy it\_v3t-0.05-rc2\]#
+            MAX_PLUGIN_OUTPUT_LENGTH:  8192
+[...]
+[root@snoopy it_v3t-0.05-rc2]#
+```
 
-Install the files
+  Install the files
 
-\# make install
+  ```
+  # make install
+  ```
 
-  
-Apache configuration
 
-Install the apache config file
+2. Apache configuration
 
-\# make install-apache-config
+  Install the apache config file
 
-The generated config file will be located in the test directory tree, in this case in /var/tmp/tests/it-0.05-rc2/httpd/conf.d
+  ```
+  # make install-apache-config
+  ```
 
-\# ls /var/tmp/tests/it-0.03b1/httpd/conf.d
-interfacetable\_v3t.conf
+  The generated config file will be located in the test directory tree, in this case in /var/tmp/tests/it-0.05-rc2/httpd/conf.d
 
-Copy and rename it to the correct http conf dir:
+  ```
+  # ls /var/tmp/tests/it-0.03b1/httpd/conf.d
+  interfacetable_v3t.conf
+  ```
 
-\# \[debian flavor\] # cp /var/tmp/tests/it-0.03b1/httpd/conf.d/interfacetable\_v3t.conf /etc/apache2/conf.d/interfacetable\_v3t\_testing.conf
+  Copy and rename it to the correct http conf dir:
 
-or
+  ```
+  # [debian flavor] # cp /var/tmp/tests/it-0.03b1/httpd/conf.d/interfacetable_v3t.conf /etc/apache2/conf.d/interfacetable_v3t_testing.conf
+  ```
 
-\# \[redhat flavor\] # cp /var/tmp/tests/it-0.03b1/httpd/conf.d/interfacetable\_v3t.conf /etc/httpd/conf.d/interfacetable\_v3t\_testing.conf
+  or
 
-Then edit the file and comment all the following lines:
+  ```
+  # [redhat flavor] # cp /var/tmp/tests/it-0.03b1/httpd/conf.d/interfacetable_v3t.conf /etc/httpd/conf.d/interfacetable_v3t_testing.conf
+  ```
 
-AuthType ...
-AuthUserFile ...
-Require ...
+  Then edit the file and comment all the following lines:
 
-Reload the apache configuration
+  ```
+  AuthType ...
+  AuthUserFile ...
+  Require ...
+  ```
 
-\# /etc/init.d/apache2 reload
-Reloading web server config: apache2.
-#
+  Reload the apache configuration
 
-  
-Sudo configuration
+  ```
+  # /etc/init.d/apache2 reload
+  Reloading web server config: apache2.
+  #
+  ```
 
-This is like the normal installation:
+3. Sudo configuration
 
-\# make install-sudo-config
-\[...\]
-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
-Sudo configuration updated.
-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
+  This is like the normal installation:
 
-The addon is now ready for testing ![biggrin](img/smiles/icon_biggrin.gif)  
-Test that the plugin works
+  ```
+  # make install-sudo-config
+  [...]
+  ***************************
+  Sudo configuration updated.
+  ***************************
+  ```
 
-Check that all the requirements are well installed by launching the script as the nagios/icinga user:
+  The addon is now ready for testing !
+  Test that the plugin works
 
-\[icinga@snoopy libexec\]$ ./check\_interface\_table\_v3t.pl -V
-./check\_interface\_table\_v3t.pl (0.05-rc2)
-This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute
-copies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).
-\[icinga@snoopy libexec\]$
+  Check that all the requirements are well installed by launching the script as the nagios/icinga user:
 
-Taking a MIB snapshot
----------------------
+  ```
+  [icinga@snoopy libexec]$ ./check_interface_table_v3t.pl -V
+  ./check_interface_table_v3t.pl (0.05-rc2)
+  This nagios plugin comes with ABSOLUTELY NO WARRANTY. You may redistribute
+  copies of this plugin under the terms of the GNU General Public License version 3 (GPLv3).
+  [icinga@snoopy libexec]$
+  ```
 
-Procedure to take a MIB snapshot: On a windows workstation, 1. download and uncompress the snmpsim recorder package from the "other downloads" part at the [plugin page](tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t "Nagios plugins - interfacetable_v3t"). 2. in command line, go to the "snmpsim recorder" directory, and execute the take\_full\_record.bat as following:
+## Taking a MIB snapshot
 
-take\_full\_record.bat <agent\_address> <agent\_port> <snmp\_version> <snmp\_community> <device\_name>
+Procedure to take a MIB snapshot:
+
+On a windows workstation,
+
+1. download the [snmpsim_recorder](https://github.com/Tontonitch/interfacetable_v3t/blob/tools-sim-recorder/tools/snmpsim_recorder-v1.00.zip) and uncompress it.
+
+2. in command line, go to the "snmpsim recorder" directory, and execute the take_full_record.bat as following:
+
+```
+take_full_record.bat <agent_address> <agent_port> <snmp_version> <snmp_community> <device_name>
+```
 
 where
 
@@ -157,10 +182,4 @@ where
 
 This will generate a .snmprec file in devices. This is a snapshot of the snmp mib of the device. This file can be used to simulate the device and speedup any development/troubleshooting.
 
-Screenshots
------------
-
-* * *
-
-  
-The original document is available at [http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable\_v3t+-+documentation+-+0.05+-+Annexes](http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+documentation+-+0.05+-+Annexes)
+## Screenshots
