@@ -39,4 +39,4 @@ documentation
 
 Complete documentation: [here](doc/00-toc.md)
 
-Changelog: [here](CHANGELOG)
+Changelog: [here](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/documentation/CHANGELOG)

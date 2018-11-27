@@ -1,4 +1,4 @@
-# **[Interfacetable_v3t documentation]( "refresh" )**
+# **Interfacetable_v3t documentation**
 
 Table of Content
 
@@ -21,3 +21,8 @@ Table of Content
   * [Troubleshooting](09-troubleshooting.md)
 
   * [Annexes](10-annexes.md)
+
+  * [Supported/unsupported devices](20-supported-devices.md)
+
+  * [Changelog](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/documentation/CHANGELOG)
+  
