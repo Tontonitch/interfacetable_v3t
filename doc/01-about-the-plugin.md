@@ -6,9 +6,7 @@
     * Overview
     * History
     * Features
-    * Supported/unsupported target devices
     * System requirements
-    * Changelog
     * Download
     * Support
     * License
@@ -46,7 +44,7 @@ then interfacetable_v3t, brings lots of enhancements and new features to the
 v2 version. See the README and CHANGELOG files for more information.
 
 Copyright (C) 2007 ITdesign Software Projects & Consulting GmbH
-Copyright (C) 2009 Netways GmbH 
+Copyright (C) 2009 Netways GmbH
 Copyright (C) 2011-2017 Yannick Charton
 
 ## Features
@@ -56,28 +54,26 @@ kind of nodes. It has been tested on various node types such as Brocade fiber
 channel switches (Fabric OS >= 5.3), Cisco routers/switches, Juniper Netscreen
 firewalls, Solaris/Sun SPARC hosts, Netapp filers, ...
 
-  * Linux & Windows hosts on various hardware (HP, DELL,...) or virtualized (VMware) 
+  * Linux & Windows hosts on various hardware (HP, DELL,...) or virtualized (VMware)
 
 It should run correctly for any node types for which the main interface/port
 information are available via snmp queries on the standard MIB-II
 (RFC1213-MIB)
 
-List of devices reported as supported: [link](tiki-
-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+supported+devices "Nagios
-plugins - interfacetable_v3t - supported devices" )
+List of devices reported as supported: [here](20-supported-devices.md)
 
 This v3t plug-in version brings lots of enhancements:
 
-  * a unique service for monitoring the interfaces is configured for the monitored node. No needs to add/manage/remove interfaces from the monitoring system configuration in case of changes on the interfaces of the node. 
-  * generation of an interface table which gathers lots of information on the interface states and usages. This table can be easily accessed via a web browser. 
-  * permit customization with the externalization of the html page design in css stylesheets and js files 
-  * a flexible tracking with an extended interface inclusion/exclusion system 
-  * full documentation 
-  * code review and cleaned, following the nagios plugin development guidelines 
-  * an installer 
-  * snmp v2c/v3 and 64bits counters support 
-  * error/discard packet tracking, duplex status tracking 
-  * and much more ! (see changelogs) 
+  * a unique service for monitoring the interfaces is configured for the monitored node. No needs to add/manage/remove interfaces from the monitoring system configuration in case of changes on the interfaces of the node.
+  * generation of an interface table which gathers lots of information on the interface states and usages. This table can be easily accessed via a web browser.
+  * permit customization with the externalization of the html page design in css stylesheets and js files
+  * a flexible tracking with an extended interface inclusion/exclusion system
+  * full documentation
+  * code review and cleaned, following the nagios plugin development guidelines
+  * an installer
+  * snmp v2c/v3 and 64bits counters support
+  * error/discard packet tracking, duplex status tracking
+  * and much more ! (see changelogs)
 
 The new interface inclusion/exclusion system distinguing properties and
 traffic load. 3 levels of inclusion/exclusion:
@@ -91,7 +87,7 @@ traffic load. 3 levels of inclusion/exclusion:
   * traffic tracking (exclude-traffic/include-traffic)   
   include/exclude interfaces from traffic tracking  
   traffic tracking consists in a check of the bandwidth usage of the
-  interface,and the error/discard packets.  
+  interface, and the error/discard packets.  
   by default, all the interfaces are included in this tracking. Excluding an
   interface from that tracking is usually done for the interfaces known as
   problematic (high traffic load) and consequently for which we don't want load
@@ -138,238 +134,37 @@ So, to summarize:
 
 Notes:
 
-  * index and description are not trackable, as commonly changed. 
-
-## Supported/unsupported target devices
-
-Supported target devices
-
-
-The plugin has been successfully tested on the following devices.  
-This is a _non-exhaustive_ list which will be completed with user feedbacks.  
-You can contribute to this list by posting on the forum a list of your device
-targets, for which the interfacetable_v3t plugin is working or not.
-
-**Allied Telesis**
-
-| Device   | Notes                   |
-| -------- | ----------------------- |
-| AT-8000S | AT-S94 Version 3.0.0.35 |
-
-**BlueCoat**
-
-| Device      | Notes                                    |
-| ----------- | ---------------------------------------- |
-| Version 5.x |                                          |
-| Version 6.x | seems to have an IP-address/Interface mapping issue ? |
-
-**Brocade**
-
-| Device               | Notes                                    |
-| -------------------- | ---------------------------------------- |
-| Fiber Channel Switch | tested with FabricOS v6.1.1a, 6.2.2.e, 6.4.1.a |
-
-**Cisco**
-
-| Device         | Notes    |
-| -------------- | -------- |
-| Catalyst 4000  | IOS 12.2 |
-| Catalyst 4500  | IOS 12.2 |
-| Catalyst 6506  | IOS 12.2 |
-| C2800          | IOS 12.4 |
-| C3825          | IOS 12.4 |
-| C3845          | IOS 12.4 |
-| Cisco ASR 1002 | IOS 12.2 |
-| C1812          | IOS 12.4 |
-| C3560          | IOS 12.2 |
-| C2950          | IOS 12.1 |
-| C2960S         | IOS 12.2 |
-| Catalyst 6509  | IOS 12.2 |
-| C3560          | IOS 12.2 |
-| C2970          | IOS 12.2 |
-| C2950          | IOS 12.1 |
-| C2900XL        | IOS 12.0 |
-| C2940          | IOS 12.1 |
-
-**Citrix**
-
-| Device    | Notes  |
-| --------- | ------ |
-| NetScaler | NS10.1 |
-
-**Dell**
-
-| Device  | Notes        |
-| ------- | ------------ |
-| Force10 | (10Gb) - 1.0 |
-
-**HP**
-
-| Device                                   | Notes                              |
-| ---------------------------------------- | ---------------------------------- |
-| ProLiant ML570 G3                        |                                    |
-| ProLiant DL580 G7                        |                                    |
-| ProCurve Switch 5406                     |                                    |
-| ProCurve Switch 2910                     |                                    |
-| ProCurve Switch 6410                     |                                    |
-| ProCurve Switch 2900-48G (J9050A)        | revision T.13.71                   |
-| ProCurve Switch 5412zl Intelligent Edge (J8698A) | revision K.15.08.0013, ROM K.15.28 |
-**Juniper**
-
-| Device             | Notes               |
-| ------------------ | ------------------- |
-| Netscreen SSG-350M | firmware 6.3.0r10.0 |
-| Netscreen SSG-550  | firmware 6.3.0r9.0  |
-| Netscreen SSG-5    |                     |
-| Netscreen 5400     |                     |
-| NetScreen ISG-2000 |                     |
-| SRX-240            | JunOS ver 10.x/9.x  |
-| M10i               | JunOS ver 10.x/9.x  |
-| MX80               | JunOS ver 10.x/9.x  |
-| SRX-650            | JunOS ver 10.x/9.x  |
-| M120               | JunOS ver 10.x/9.x  |
-| J2320              | JunOS 9.0R1.10      |
-
-**Netapp**
-
-| Device        | Notes                                |
-| ------------- | ------------------------------------ |
-| FAS 3140      | tested with NetApp release 7.3.5.1P2 |
-| FAS 3240      | tested with NetApp release 7.3.5.1P2 |
-| NearStore VTL |                                      |
-
-**SUN-Oracle**
-
-| Device                 | Notes                                    |
-| ---------------------- | ---------------------------------------- |
-| SPARC Sunfire V890     | tested on solaris 10 u8/u9/u10 and ce interfaces |
-| SPARC Enterprise M5000 | tested on solaris 10 u8/u9/u10 and bge, sppp interfaces |
-| SPARC Enterprise T5120 | tested on solaris 10 u8/u9/u10 and e1000g interfaces |
-| SPARC Enterprise T3-1  | tested on solaris 10 u8/u9/u10 and igb interfaces |
-**Vmware guests**
-
-| Device                                   | Notes |
-| ---------------------------------------- | ----- |
-| On esx 3.5 (Windows Server 2000/2003/2008, CentOS, Debian) |       |
-| On esx 4 (Windows Server 2000/2003/2008, CentOS, Debian) |       |
-
-Unsupported target devices
-
-
-The plugin has been recognized as not working with the following devices:
-
-**Cisco**
-
-| Device | Notes |
-| ------ | ----- |
-| xxx    | xxx   |
-| xxx    | xxx   |
-
-_TO UPDATE WHEN DATA AVAILABLE_
+  * index and description are not trackable, as commonly changed.
 
 ## System requirements
 
-Hereunder are listed the operating system prerequisits to get the plugin
-running:
+Hereunder are listed the operating system prerequisits to get the plugin running:
 
   * Nagios >= 2.x or any fork (Icinga,...)   
-  Note on Icinga: >= 1.9.3 recommended in case you use ido2db, as in previous
-  versions there is a small non-critical bug affecting the very long plugin
-  outputs during icinga database inserts.
+  Note on Icinga: >= 1.9.3 recommended in case you use ido2db, as in previous versions there is a small non-critical bug affecting the very long plugin outputs during icinga database inserts.
 
   * Pnp4Nagios >= 0.6.12 or NagiosGrapherV1 (might work with NetwaysGrapherV2 but not tested)   
   _note: for pnp4nagios, some problems appeared with old rrdtool versions, so keep it up-to-date (no problem with >=1.4.7)_
 
-  * Net-Snmp 
-  * Perl >= 5.x 
-  * Perl additional modules: 
-    * Net::SNMP library 
-    * Config::General library 
-    * Data::Dumper library 
-    * Getopt::Long library 
-    * CGI library 
+  * Net-Snmp
+  * Perl >= 5.x
+  * Perl additional modules:
+    * Net::SNMP library
+    * Config::General library
+    * Data::Dumper library
+    * Getopt::Long library
+    * CGI library
     * Sort::Naturally
     * Exception::Class
     * Time::HiRes
     * Encode
-  * Sudo 
+  * Sudo
 
-Note: most of these requirements are checked during the ./configure step of the intaller.
-
-## Changelog
-
-0.05-1
-
-  * [feature] nagios 4.x support 
-  * [feature] added more variants of the pps graph(s) 
-  * [bugfix] fix for vlan on hp switches 
-  * [bugfix] some other code fixes 
-  * [enhancement] looking at other oids for cisco model/serial info when the common ones don't provide the info 
-
-0.05
-
-  * [enhancement] support of ifDescr in HEX-String (i.e. ifDescr used by Windows SNMP-Service in case of umlauts) (by Enfileyb) 
-  * [enhancement] snmpsim recorder reorg and update 
-  * [enhancement] more tolerancy for unaccessible oids 
-  * [enhancement] config table enhancements (exclusions reviewed: no repetitions in non global exclusion for globally excluded interfaces, other messages not displayed for excluded interfaces) 
-  * [enhancement] snmp functions merge and standardization: now 2 functions (get and walk), returning a hash of oids and values 
-  * [enhancement] snmp functions enhancement: 
-    * can receive multiple oids as arguments, 
-    * new cache storage methods (based on Storable library), 
-    * exceptions (errors) handling, including oid details on error 
-    * unixsnmp now use exclusively snmpget/snmpbulkget instead of perl bindings 
-    * result hash can be built with indexes as keys (outputhashkeyidx param) 
-    * result hash empty check (checkempty param) 
-    * results concatened by key when querying multiple oids 
-  * [enhancement] link to html table now persistent when exist, even in case of an UNKNOWN error (ex: when target not accessible) 
-  * [enhancement] switched to a cleaner and more standard exception handling system (based on the Exception::Class perl library) 
-  * [enhancement] lots of functions revamped and cleaned 
-  * [enhancement] new option --(no)ipinfo, to enable/disable the ipinfo. Enabled by default 
-  * [enhancement] protection against interface descriptions including double-quotes. 
-  * [enhancement] extended support of the following nodetypes: 
-    * extended netscreen nodetype: ipinfo, nsrp state and corresponding operstatus alarm rule 
-  * [enhancement] easier device support extension 
-  * [enhancement] nodetype change protection (changing the nodetype will reset the table) 
-  * [enhancement] don't use utils.pm anymore (utils.pm deprecated soon) 
-  * [enhancement] oids in a hash format with related info (mib, conversion, ...) + renamed lots of oids for quick understanding 
-  * [enhancement] most of the properties are now optional (to select only the wanted columns, and also reduce snmp queries). Use the following options: --alias, --ipinfo, --stp, --duplex, --vlan. Note that the use of the option --alias-matching automatically enable the --alias option. 
-  * [enhancement] settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades 
-  * [feature] option to sort on Name column at first page load (--default-table-sorting) 
-  * [feature] option to write the debug in a file (--debugfile=/aaa/bbb/ccc) 
-  * [feature] information tooltips to describe some columns (i.e. oper and admin status) 
-  * [feature] added interface type property (--type option) 
-  * [feature] the interface table can be splitted by interface type (--table-split option) 
-  * [feature] add the graph popups directly on the interface tables. 
-  * [feature] new support of the following nodetypes: 
-    * new bigip nodetype: support of "BIG-IP Local Traffic Manager" (and maybe other devices of that vendor) 
-    * new netapp nodetype: support of Netapp filers (model/product node info + 64-bit counters + extended 32-bit counters (low/high)) 
-    * new bluecoat nodetype 
-    * new brocade nodetype: firmware model, serial, portnames (~ interface alias) (incl/excl possible) 
-    * new brocade-nos nodetype 
-    * new nortel nodetype: model, serial, vlan ids per port 
-  * [feature] notes, recommendations and warnings in the config table 
-  * [feature] new option snmp v3 contextname 
-  * [feature] convert sysLocation from hex to string when needed 
-  * [feature] max bandwidth monitoring capacity, recommendation on switching to 32/64 counters and delta 
-  * [feature] added total bytes to graph in pnp4nagios templates 
-  * [bugfix] missing snmp session close 
-  * [bugfix] speed detection works when having ifHighSpeed only 
-  * [bugfix] remove problematic '#' char from perfdata servicename 
-  * [bugfix] fix on ipinfo gathering function to garantee correct ip (mainly for Bluecoat device) 
-  * [bugfix] pipe removed from snmp results via unixsnmp 
-  * [bugfix] fix nodenames with " " (idroj) 
-  * [bugfix] fix servicename with "." (idroj) 
-  * [bugfix] fix for unixsnmp when object not available 
-  * [bugfix] fix when pkt errors/discards not all available 
-  * [bugfix] fix wrong old variable in settings.cfg 
-  * [bugfix] fixing an issue with the speed info and related calculations 
-
-Full changelog including previous versions: link
+Note: most of these requirements are checked during the ./configure step of the installer.
 
 ## Download
 
-The last stable and the archived versions are available in the related plugin
-page on this website: link
+The last stable and the archived versions are available on GitHub at: [https://github.com/Tontonitch/interfacetable_v3t/releases](https://github.com/Tontonitch/interfacetable_v3t/releases)
 
 The current development can be viewed anytime at https://github.com/Tontonitch/interfacetable_v3t. Clicking on the following links will download an archive containing the lastest snapshot. _Please note that the snapshots of the repository may be not fuctional, and is available for testing purposes. Always use the stable releases on your production monitoring systems!_
 
@@ -378,17 +173,9 @@ The current development can be viewed anytime at https://github.com/Tontonitch/i
 
 ## Support
 
-If you have questions regarding the use of this plugin, a dedicated forum is
-in place at: [forum](http://www.tontonitch.com/phpbb/viewforum.php?f=1). Please read the [Support Policy and Forum
-Rules](http://www.tontonitch.com/phpbb/viewtopic.php?f=2&t=1683).
-
-Please also include the version information with your questions (when
-possible, use output from the -V option of the plugin itself).
-
-For any confidential communications, you can email me at [tontonitch-pro at
-yahoo.fr].
-
-PLEASE PREFER POSTING YOUR QUESTION ON THE FORUM.
+If you have questions regarding the use of this plugin, please open an issue on GitHub.
+Please also include the version information with your questions (when possible, use output from the -V option of the plugin itself).
+For any confidential communications, you can email me at [tontonitch-pro at yahoo.fr].
 
 ## License
 
