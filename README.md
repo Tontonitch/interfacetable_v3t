@@ -30,7 +30,7 @@ This new version, called `Interfacetable_v3t`, provides some enhancements:
 * error/discard packet tracking, duplex status tracking
 * and much more ! (see changelogs)
 
-See the [TODO](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/documentation/TODO) file for future features.
+See the [TODO](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/master/TODO) file for future features.
 
 Support the check of the following node types: Brocade fiberchannel switches, Cisco routers and switches, Linux hosts, Windows hosts, Solaris hosts, Netapp filers
 
@@ -39,4 +39,4 @@ documentation
 
 Complete documentation: [here](doc/00-toc.md)
 
-Changelog: [here](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/documentation/CHANGELOG)
+Changelog: [here](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/master/CHANGELOG)
