@@ -1,6 +1,13 @@
 <html>
+<head>
+<script>
+    $(document).ready(function(){
+        $("#nodeselect").submit();
+    });
+</script>
+</head>
 <body>
-<form action=>
+<form id="nodeselect" action=>
 <select name="nodename" size="1">
 <option value="">-- select a node --</option>
 <?php
