@@ -1,5 +1,6 @@
 <html>
 <head>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 <script>
     $(document).ready(function(){
         $("#nodeselect").submit();
@@ -39,13 +40,16 @@ function nodename( $filename ) {
 
 $dirname = './';
 $dir = opendir($dirname);
+$array_files = array();
 while($file = readdir($dir)) {
     if($file != '.' && $file != 'index.php' && $file != '.index.php.swp' && $file != '..' && !is_dir($dirname.$file)) {
         #echo '<option value='.$file.'>'.nodename($file).'</option>';
         $array_files[$file] = nodename($file);
     }
 }
-asort($array_files);
+if (!empty($array_files)) {
+    asort($array_files);
+}
 foreach ($array_files as $key => $val) {
     echo '<option value='.$key.'>'.$val.'</option>';
 }
@@ -58,7 +62,7 @@ closedir($dir);
 </form><br>
 
 <?php
-if (isset($_GET['nodename'])) {
+if (isset($_GET['nodename']) and !empty($_GET['nodename'])) {
     $nodename=$_GET['nodename'];
     include("$nodename");
 }
