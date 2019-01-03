@@ -641,7 +641,7 @@ sub GetTableDataWithSnmp {
             defined $refhArgs->{'max-repetitions'} and $snmpQueryOptions .= "-Cr$refhArgs->{'max-repetitions'} ";
         } else {
             $snmpQueryCommand = "snmpwalk";
-            $snmpQueryOptions .= "-c $refhArgs->{'community'} ";
+            $snmpQueryOptions .= "-Cc -c $refhArgs->{'community'} ";
         }
         foreach my $singleoid (@{$refhArgs->{'oids'}}) {
             ($refaCommandResult) = ExecuteCommand ({
