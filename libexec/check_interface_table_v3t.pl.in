@@ -5394,6 +5394,7 @@ sub Get_Speed_Netapp {
                 #$grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = undef;
                 #$grefhCurrent->{If}->{"$ifName"}->{ifSpeedReadable} = undef;
                 logger(2, "Index=$Index ($ifName): Speed not found");
+                $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} = -1;
             }
         } else {
             logger (1, "  Index not found in NameToNetPortIndex");
