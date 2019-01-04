@@ -5555,6 +5555,13 @@ sub WriteConfigFileNew {
 
     umask "$UMASK";
     $refhStruct->{Version} = $REVISION;
+    logger(2, "Cleaning refhStruct (workaround)...");
+    for my $entry (keys %{$refhStruct->{If}}) {
+      if ($entry =~ /[<>\n\r]/) {
+        delete $refhStruct->{If}->{$entry};
+        logger(2, "Deleted hash entry: \'$entry\'");
+      }
+    }
     logger(5, "Structure to save to file: " . Dumper($refhStruct));
     $refoConfig->save_file("$ConfigFile", $refhStruct);
     logger(1, "Wrote interface data to file: $ConfigFile");
