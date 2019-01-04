@@ -5,18 +5,31 @@
 # Possible change types: enhancement, feature, bugfix, add
 #
 #   ----------------------------------------------------------------------
-# * 0.06
+# * 1.00
+#   ----------------------------------------------------------------------
+#    - feature: added EMC Datadomain support (new nodetype "datadomain")
+#    - bugfix: fix for non allowed special chars with Config-General perl module >= 2.57
+#    - bugfix: fix empty node list at first page load
+#    - bugfix: fix some php warnings when the variables are empty (thanks lxf1992521)
+#    - bugfix: fix perl regex warning (thanks lxf1992521)
+#    - bugfix: fix unixsnmp when use of snmpwalk may fail in case of out-of-order OIDs
+#    - enhancement: better support of NetApp cDOT OnTAP 9.3+
+#    - enhancement: use Perl from env instead of a fixed path
+#    - enhancement: favicon.ico requests prevention (thanks lxf1992521)
+#    - extra: documentation and tools now on github as markdown pages (allowing PR for example)
+#
+#   ----------------------------------------------------------------------
+# * 0.06 (not published)
 #   ----------------------------------------------------------------------
 #    - feature: use ifname instead of ifdesc (thanks freneticf)
-#    - feature: added netapp-cdot nodetype 
-#    - feature: added hpux nodetype
+#    - feature: added Netapp cDOT support (new nodetype "netapp-cdot")
+#    - feature: added HPUX support (new nodetype "hpux")
 #    - feature: added --trafficwithpkts option
 #    - feature: added --snmp-maxmsgsize option
 #    - feature: added nagiosxi as grapher solution
 #    - feature: added graphite support (thanks Israel Ochoa)
-#    - feature: added --exclude-but-calculate option, allowing calculation of interface data for excluded 
+#    - feature: added --exclude-but-calculate option, allowing calculation of interface data for excluded
 #               interfaces and showing them in the interfacetable. (thanks lazyfrosch)
-#    - bugfix: error returned by Config::General: current key contains invalid characters
 #    - bugfix: filter special characters for grapher compatibility
 #    - enhancement: added support of HP NC522SFP Dual Port 10GbE Server Adapter (speed info problem)
 #    - enhancement: inGraph grapher now use serviceDescription for parentService (thanks mxhash)
@@ -24,10 +37,10 @@
 #    - enhancement: added support of HP NC522SFP Dual Port 10GbE Server Adapters
 #    - enhancement: remove port change on SNMP domain specification (thanks lazyfrosch)
 #    - enhancement: more snmp error messages handled
-#    - enhancement: fix ifSpeed when aggregated interfaces (faced on Netapp filers when multiple 10Gbps 
+#    - enhancement: fix ifSpeed when aggregated interfaces (faced on Netapp filers when multiple 10Gbps
 #                   interfaces)
-#    - enhancement: added another way of calculation, extending traffic load tracking limit for 32-bits 
-#                   counters. Calculation of the octet traffic based on interface MTU config and Pkt counters. 
+#    - enhancement: added another way of calculation, extending traffic load tracking limit for 32-bits
+#                   counters. Calculation of the octet traffic based on interface MTU config and Pkt counters.
 #                   Allow traffic calculation for high speed interfaces get all interface mtu + in/out traffic pkt counters (Unicast and Non-Unicast counters)
 #    - extra: adjusted build for packaging and added example spec for use with icinga (thanks Martin Hauke, Dirk Götz)
 #
@@ -36,7 +49,7 @@
 #   ----------------------------------------------------------------------
 #
 #    - feature: nagios 4.x support
-#    - feature: added more variants of the pps graph(s) 
+#    - feature: added more variants of the pps graph(s)
 #    - bugfix: fix for vlan on hp switches
 #    - bugfix: fix on StandardizeSNMPOutputBehaviour for unixsnmp mode where the oid was cleaned of the output
 #    - bugfix: denormalize func fix when text empty
@@ -46,41 +59,41 @@
 # * 0.05
 #   ----------------------------------------------------------------------
 #
-#    - enhancement: support of ifDescr in HEX-String (i.e. ifDescr used by Windows SNMP-Service in case 
+#    - enhancement: support of ifDescr in HEX-String (i.e. ifDescr used by Windows SNMP-Service in case
 #                   of umlauts) (by Enfileyb)
 #    - enhancement: snmpsim recorder reorg and update
 #    - enhancement: more tolerancy for unaccessible oids
-#    - enhancement: config table enhancements (exclusions reviewed: no repetitions in non global 
-#                   exclusion for globally excluded interfaces, other messages not displayed for 
+#    - enhancement: config table enhancements (exclusions reviewed: no repetitions in non global
+#                   exclusion for globally excluded interfaces, other messages not displayed for
 #                   excluded interfaces)
-#    - enhancement: snmp functions merge and standardization: now 2 functions (get and walk), 
+#    - enhancement: snmp functions merge and standardization: now 2 functions (get and walk),
 #                   returning a hash of oids and values
-#    - enhancement: snmp functions enhancement: 
-#                      * can receive multiple oids as arguments, 
-#                      * new cache storage methods (based on Storable library), 
+#    - enhancement: snmp functions enhancement:
+#                      * can receive multiple oids as arguments,
+#                      * new cache storage methods (based on Storable library),
 #                      * exceptions (errors) handling, including oid details on error
 #                      * unixsnmp now use exclusively snmpget/snmpbulkget instead of perl bindings
 #                      * result hash can be built with indexes as keys (outputhashkeyidx param)
 #                      * result hash empty check (checkempty param)
 #                      * results concatened by key when querying multiple oids
-#    - enhancement: link to html table now persistent when exist, even in case of an UNKNOWN 
+#    - enhancement: link to html table now persistent when exist, even in case of an UNKNOWN
 #                   error (ex: when target not accessible)
-#    - enhancement: switched to a cleaner and more standard exception handling system (based on 
+#    - enhancement: switched to a cleaner and more standard exception handling system (based on
 #                   the Exception::Class perl library)
 #    - enhancement: lots of functions revamped and cleaned
 #    - enhancement: new option --(no)ipinfo, to enable/disable the ipinfo. Enabled by default
 #    - enhancement: protection against interface descriptions including double-quotes.
 #    - enhancement: extended support of the following nodetypes:
-#                       * extended netscreen nodetype: ipinfo, nsrp state and corresponding operstatus alarm 
+#                       * extended netscreen nodetype: ipinfo, nsrp state and corresponding operstatus alarm
 #                         rule
 #    - enhancement: easier device support extension
 #    - enhancement: nodetype change protection (changing the nodetype will reset the table)
 #    - enhancement: don't use utils.pm anymore (utils.pm deprecated soon)
-#    - enhancement: oids in a hash format with related info (mib, conversion, ...) + renamed lots of 
+#    - enhancement: oids in a hash format with related info (mib, conversion, ...) + renamed lots of
 #                   oids for quick understanding
-#    - enhancement: most of the properties are now optional (to select only the wanted columns, and also 
-#                   reduce snmp queries). Use the following options: --alias, --ipinfo, --stp, --duplex, 
-#                   --vlan. Note that the use of the option --alias-matching automatically enable the 
+#    - enhancement: most of the properties are now optional (to select only the wanted columns, and also
+#                   reduce snmp queries). Use the following options: --alias, --ipinfo, --stp, --duplex,
+#                   --vlan. Note that the use of the option --alias-matching automatically enable the
 #                   --alias option.
 #    - enhancement: settings.cfg renamed settings.cfg-sample to avoid settings overwrite during upgrades
 #    - feature: option to sort on Name column at first page load (--default-table-sorting)
@@ -90,19 +103,19 @@
 #    - feature: the interface table can be splitted by interface type (--table-split option)
 #    - feature: add the graph popups directly on the interface tables.
 #    - feature: new support of the following nodetypes:
-#               * new bigip nodetype: support of "BIG-IP Local Traffic Manager" (and maybe other 
+#               * new bigip nodetype: support of "BIG-IP Local Traffic Manager" (and maybe other
 #                 devices of that vendor)
-#               * new netapp nodetype: support of Netapp filers (model/product node info + 64-bit 
+#               * new netapp nodetype: support of Netapp filers (model/product node info + 64-bit
 #                 counters + extended 32-bit counters (low/high))
 #               * new bluecoat nodetype
-#               * new brocade nodetype: firmware model, serial, portnames (~ interface alias) 
+#               * new brocade nodetype: firmware model, serial, portnames (~ interface alias)
 #                 (incl/excl possible)
 #               * new brocade-nos nodetype
 #               * new nortel nodetype: model, serial, vlan ids per port
 #    - feature: notes, recommendations and warnings in the config table
 #    - feature: new option snmp v3 contextname
 #    - feature: convert sysLocation from hex to string when needed
-#    - feature: max bandwidth monitoring capacity, recommendation on switching to 32/64 counters 
+#    - feature: max bandwidth monitoring capacity, recommendation on switching to 32/64 counters
 #               and delta
 #    - feature: added total bytes to graph in pnp4nagios templates
 #    - bugfix: missing snmp session close
@@ -122,70 +135,70 @@
 #   ----------------------------------------------------------------------
 #
 #    - enhancement: history stats reset if node restart
-#    - enhancement: revamped table sorting feature: new design, all column sortable even with 
+#    - enhancement: revamped table sorting feature: new design, all column sortable even with
 #      unusual data types
 #    - enhancement: new ifOperstatus status rules, preventing unexpected alarms:
 #       * no ifOperstatus alarms when ifAdminstatus is down
 #       * no ifOperstatus alarms when ifOperstatus is changing from down to anything
 #    - enhancement: added directory perm check, debug option, always back button
 #    - enhancement: added ifAlias in plugin output
-#    - feature: installer reviewed to support tuned installation via the following ./configure 
+#    - feature: installer reviewed to support tuned installation via the following ./configure
 #      options: --exec_prefix, --libdir, --sysconfdir, --datarootdir
-#    - feature: nagios/icinga environment macros automatically used as default values for some 
+#    - feature: nagios/icinga environment macros automatically used as default values for some
 #      options:
 #       * hostdisplay can take the NAGIOS_HOSTNAME macro value
 #       * perfdataservicedesc can take the NAGIOS_SERVICEDESC macro value
-#    - feature: when using pnp4nagios as graphing solution, performance data can now be written 
-#      in a spool directory directly without going throught nagios/icinga. It could be used in 
+#    - feature: when using pnp4nagios as graphing solution, performance data can now be written
+#      in a spool directory directly without going throught nagios/icinga. It could be used in
 #      case of monitored nodes with huge number of interfaces. Thanks to Markus Frosch
-#    - feature: option --htmltablelinktarget to specify the target (new page, current frame,...) 
+#    - feature: option --htmltablelinktarget to specify the target (new page, current frame,...)
 #      for opening the html table page. Thanks to Markus Frosch
 #    - bugfix: correction on icinga-alternate1 for firefox web browser
-#    - bugfix: installer options --with-htmlurl and --with-cgiurl (for apache config file) now 
+#    - bugfix: installer options --with-htmlurl and --with-cgiurl (for apache config file) now
 #      accept correctly all kind of url
 #
 #   ----------------------------------------------------------------------
 # * 0.04
 #   ----------------------------------------------------------------------
 #    - enhancement: extended info on used delta for bw calculations
-#    - enhancement: long interface description reformatting for: Firewall Services Module 
-#      in Cisco Catalyst 6500 Series Switch or Cisco 7600 Internet Router, Nokia firewall 
+#    - enhancement: long interface description reformatting for: Firewall Services Module
+#      in Cisco Catalyst 6500 Series Switch or Cisco 7600 Internet Router, Nokia firewall
 #      (Checkpoint IPSO Firewall)
 #    - enhancement: delta extension for dataset cleaning is now dynamic (before static at 200s)
 #    - enhancement: now handle devices for which max Counter32 for ifSpeed is 4294967294
 #    - enhancement: better caching
 #    - enhancement: extended accessmethod (buttons, multiple and custom links)
-#    - enhancement: multiple interfaces with same descr/physical address handling 
-#    - enhancement: unified the GetTablexxx snmp functions 
-#    - enhancement: code simplification 
-#    - enhancement: revamped generated html structure, introduced buttons, all styles in css 
-#    - enhancement: better node reboot handling 
-#    - enhancement: new plugin version detection 
-#    - enhancement: new state file format 
-#    - enhancement: logic now based on a generated ifName instead of index 
-#    - enhancement: improved vlan property checks 
-#    - enhancement: code restructuration and cleaning 
-#    - enhancement: interface duplex mode collect now more robust 
-#    - enhancement: 32/64bits counter change detection, 
+#    - enhancement: multiple interfaces with same descr/physical address handling
+#    - enhancement: unified the GetTablexxx snmp functions
+#    - enhancement: code simplification
+#    - enhancement: revamped generated html structure, introduced buttons, all styles in css
+#    - enhancement: better node reboot handling
+#    - enhancement: new plugin version detection
+#    - enhancement: new state file format
+#    - enhancement: logic now based on a generated ifName instead of index
+#    - enhancement: improved vlan property checks
+#    - enhancement: code restructuration and cleaning
+#    - enhancement: interface duplex mode collect now more robust
+#    - enhancement: 32/64bits counter change detection,
 #    - enhancement: 5 debug levels, reworked to be more readable
 #    - feature: sortable columns on interface tables
 #    - feature: added max-repetitions, timeout and retries snmp options
-#    - feature: added a snmp oid recorder for device simulation purpose (for testing phase). 
-#      win32 precompiled for easy use, and howto 
+#    - feature: added a snmp oid recorder for device simulation purpose (for testing phase).
+#      win32 precompiled for easy use, and howto
 #    - feature: new option --alias-matching (alias incl/excl matching now separated)
-#    - feature: netmask conversion from quad to dec notation 
+#    - feature: netmask conversion from quad to dec notation
 #    - feature: added spanning tree state tracking (cistp only)
-#    - feature: much better performances by retrieving tables/bulks instead of single values 
-#    - feature: batch files to simplify taking device snapshot for simulation 
-#    - feature: nodetype option handling cisco, hp, and netscreen node types 
-#    - feature: Juniper Netscreen support (zone,vsys,mng,IPs) 
-#    - feature: support of snmp transport domain udp, tcp, udp6 and tcp6 
+#    - feature: much better performances by retrieving tables/bulks instead of single values
+#    - feature: batch files to simplify taking device snapshot for simulation
+#    - feature: nodetype option handling cisco, hp, and netscreen node types
+#    - feature: Juniper Netscreen support (zone,vsys,mng,IPs)
+#    - feature: support of snmp transport domain udp, tcp, udp6 and tcp6
 #    - bugfix: added php denormalization for Q5F
 #    - bugfix: fix for cache duration not honored correctly
-#    - bugfix: fix problem where empty snmp query result from cache was not used and overwritten 
+#    - bugfix: fix problem where empty snmp query result from cache was not used and overwritten
 #      every time
 #    - bugfix: ifAlias undef fix
-#    - bugfix: fixed space problem in action column on ie/opera 
+#    - bugfix: fixed space problem in action column on ie/opera
 #    - bugfix: undef speed fix
 #
 #   ----------------------------------------------------------------------
@@ -197,16 +210,16 @@
 #   ----------------------------------------------------------------------
 # * 0.03-1
 #   ----------------------------------------------------------------------
-#    - enhancement: interface coming from 'empty' operstatus to another operstatus does not 
-#      trigger an alert of operstatus change (ex: newly added interface) 
-#    - feature: introducing ifdescr preformating, applied to Cisco ASA specific interfaces 
-#    - bugfix: remove single quote from perfdata names and url to pnp 
-#    - bugfix: fixed major bug - config option -wp and -cp now honored (Birger Schmidt) 
-#    - enhancement: negative value for err/disc pkt tracking disable the specific tracking. 
-#    - ex: --warning 50,0,-1 --critical 80,100,-1 disable discard packet tracking 
-#    - enhancement: better support of graphing solutions 
+#    - enhancement: interface coming from 'empty' operstatus to another operstatus does not
+#      trigger an alert of operstatus change (ex: newly added interface)
+#    - feature: introducing ifdescr preformating, applied to Cisco ASA specific interfaces
+#    - bugfix: remove single quote from perfdata names and url to pnp
+#    - bugfix: fixed major bug - config option -wp and -cp now honored (Birger Schmidt)
+#    - enhancement: negative value for err/disc pkt tracking disable the specific tracking.
+#    - ex: --warning 50,0,-1 --critical 80,100,-1 disable discard packet tracking
+#    - enhancement: better support of graphing solutions
 #    - add: new nagiosgrapher templates
-#    
+#
 #   ----------------------------------------------------------------------
 # * 0.03
 #   ----------------------------------------------------------------------
@@ -216,7 +229,7 @@
 #    - add/enhancement: changes to support netways grapher v1 (nagiosgrapher) again
 #    - add: new alternate css, more adapted to multiple properties tracking. Also to give
 #      an example of custom css.
-#    - bugfix: blanks removed from property comparaison only from current value (from 
+#    - bugfix: blanks removed from property comparaison only from current value (from
 #      bugfix release 0.02-4)
 #
 #   ----------------------------------------------------------------------
@@ -226,39 +239,39 @@
 #    - enhancement: extended the non-tracking of ifoperstatusr: now from "xxx" to "up"
 #    - change: pkt err thresholds now high by default
 #    - change: one digit precision for pkt err rates
-#    - add/enhancement: full use of perl's netsnmp and avoid use of Unix snmp 
+#    - add/enhancement: full use of perl's netsnmp and avoid use of Unix snmp
 #      utils. Need more testing in real environment, so still EXPERIMENTAL.
 #    - add: plugin version on html page
-#    - change: now 3 levels of inclusion/exclusion and a new traffic 
-#      tracking logic: 
+#    - change: now 3 levels of inclusion/exclusion and a new traffic
+#      tracking logic:
 #       * global
 #          + globally include/exclude interfaces to be monitored
-#          + excluded interfaces are represented by black overlayed rows in the  
-#            interface table 
+#          + excluded interfaces are represented by black overlayed rows in the
+#            interface table
 #       * traffic tracking
-#          + include/exclude interfaces for which the load and the packet 
+#          + include/exclude interfaces for which the load and the packet
 #            errors/discards will be tracked
-#          + excluded interfaces are represented by a dark grey (css dependent) 
+#          + excluded interfaces are represented by a dark grey (css dependent)
 #            cell style in the interface table
 #       * property tracking
-#          + include/exclude interfaces for which the property changes will be 
+#          + include/exclude interfaces for which the property changes will be
 #            tracked
-#          + excluded interfaces are represented by a dark grey (css dependent) 
+#          + excluded interfaces are represented by a dark grey (css dependent)
 #            cell style in the interface table
-#    - change: option perfdatashort moved to perfdataformat which permit 
+#    - change: option perfdatashort moved to perfdataformat which permit
 #      to choose the perfdata types to return
-#       * full (default) : generated performance data include plugin related stats, 
-#                          interface status, interface load stats, and packet error 
-#                          stats 
-#       * loadonly       : generated performance data include plugin related stats, 
-#                          interface status, and interface load stats 
-#       * globalonly     : generated performance data include only plugin related 
+#       * full (default) : generated performance data include plugin related stats,
+#                          interface status, interface load stats, and packet error
 #                          stats
-#      'loadonly' should be used in case of too many interfaces and consequently 
-#      too much performance data which cannot fit in the nagios plugin output buffer. 
-#      By default, its size is 8k and can be extended by modifying 
+#       * loadonly       : generated performance data include plugin related stats,
+#                          interface status, and interface load stats
+#       * globalonly     : generated performance data include only plugin related
+#                          stats
+#      'loadonly' should be used in case of too many interfaces and consequently
+#      too much performance data which cannot fit in the nagios plugin output buffer.
+#      By default, its size is 8k and can be extended by modifying
 #      MAX_PLUGIN_OUTPUT_LENGTH in the nagios sources (icinga.h/nagios/h).
-#    - enhancement: detect incoherent load > if speed (in case of node restart, 
+#    - enhancement: detect incoherent load > if speed (in case of node restart,
 #      switch from v1 to v2c,...) and avoid bad performance data
 #
 #   ----------------------------------------------------------------------
@@ -266,68 +279,68 @@
 #   ----------------------------------------------------------------------
 #    - bugfix: fixed badly-used options warning/critical
 #    - enhancement: added checks of undefined variables
-#    - enhancement: reviewed debug/verbose mode to be clearer and better 
+#    - enhancement: reviewed debug/verbose mode to be clearer and better
 #      understandable
 #    - enhancement: SnmpUtils.pm now more robust and verbose in case of problem
 #    - bugfix: port option (-P) now working
-#    - bugfix: fixed some snmpv3 authentication problems 
-#    - feature: config file. Using the --config option, a config file can be 
+#    - bugfix: fixed some snmpv3 authentication problems
+#    - feature: config file. Using the --config option, a config file can be
 #      loaded. (really useful? lets see...)
-#    - bugfix: now "noSuchObject" response is handled correctly for all snmp 
-#      versions. By default, v1 always returns an empty string, and v2c/v3 return 
+#    - bugfix: now "noSuchObject" response is handled correctly for all snmp
+#      versions. By default, v1 always returns an empty string, and v2c/v3 return
 #      "noSuchObject". Now all the modes translate noSuchObject to an empty string,
 #      and some extra debug info in case of v2c/v3
-#    - feature: new property tracked ifDuplexStatus, which is the operation mode 
-#      of the interface (duplex mode) (kudos Oliver Windt for the idea) 
+#    - feature: new property tracked ifDuplexStatus, which is the operation mode
+#      of the interface (duplex mode) (kudos Oliver Windt for the idea)
 #    - enhancement/bugfix: reviewed the way config::general is used to be more
 #      robust and compatible with last versions of the module
 #
 #   ----------------------------------------------------------------------
 # * 0.03b1
 #   ----------------------------------------------------------------------
-#    - feature: all styles are now handled in an external css stylesheet. 
-#      3 stylesheets currently available: 
+#    - feature: all styles are now handled in an external css stylesheet.
+#      3 stylesheets currently available:
 #       * classic.css: follow the style of previous versions of the plugin
 #       * icinga.css: follow the style of the icinga classic ui
 #       * nagiosxi.css: follow the style of the nagiosxi ui
-#    - change: moved javascript to external file & reviewed to not generate conflicts 
+#    - change: moved javascript to external file & reviewed to not generate conflicts
 #      with styles defined in css stylesheets
-#    - feature: new interface inclusion/exclusion system distinguing properties and 
+#    - feature: new interface inclusion/exclusion system distinguing properties and
 #      traffic load:
-#       * include/exclude interface from load tracking. Load tracking consists 
-#         in a check of the bandwidth usage of the interface. By default, all 
-#         the interfaces are included in this tracking. Excluding an interface 
-#         from that tracking is usually done for interfaces that we don't want 
+#       * include/exclude interface from load tracking. Load tracking consists
+#         in a check of the bandwidth usage of the interface. By default, all
+#         the interfaces are included in this tracking. Excluding an interface
+#         from that tracking is usually done for interfaces that we don't want
 #         any tracking (e.g. loopback interfaces)
-#       * include/exclude interface from property tracking. Property tracking 
-#         consists in the check of any changes in the properties of an interface, 
-#         properties listed via the --track option. By default, only the 
-#         "operstatus" property is tracked. You have the ability to exclude/include 
-#         some interfaces from that check. This would be done for exemple for 
-#         ports on which printers are connected (indeed, some printers going in 
-#         standby mode has also their network interface going done, generating 
+#       * include/exclude interface from property tracking. Property tracking
+#         consists in the check of any changes in the properties of an interface,
+#         properties listed via the --track option. By default, only the
+#         "operstatus" property is tracked. You have the ability to exclude/include
+#         some interfaces from that check. This would be done for exemple for
+#         ports on which printers are connected (indeed, some printers going in
+#         standby mode has also their network interface going done, generating
 #         an non-wanted alert)
-#    - feature: new "Action" column, which currently contains a graph icon link, replacement 
-#      of the "link on row" in previous versions of the plugin. This field allows 
+#    - feature: new "Action" column, which currently contains a graph icon link, replacement
+#      of the "link on row" in previous versions of the plugin. This field allows
 #      other actions to be added in future.
-#    - feature: installer (./configure; make; makeinstall...) for an easier install. It 
+#    - feature: installer (./configure; make; makeinstall...) for an easier install. It
 #      includes:
 #       * the check of all required softwares / perl libraries.
 #       * automatic sudo and apache/httpd configuration
-#    - change: extracted snmp related and more general functions from the scripts and 
-#      created libraries of functions, for better maintenance and to be used in 
+#    - change: extracted snmp related and more general functions from the scripts and
+#      created libraries of functions, for better maintenance and to be used in
 #      other future plugins
 #    - change: commonly used options are now default.
-#    - change: detailed output and performance data (if enabled) are now default (use 
+#    - change: detailed output and performance data (if enabled) are now default (use
 #      of outputshort/perfdatashort options to reduce them).
 #    - feature: error/discard packets:
 #      * checked against thresholds (rates)
-#      * presented via a specific column in the interface table. Cell background color 
+#      * presented via a specific column in the interface table. Cell background color
 #        changes in case of warning/critical state
-#    - change: new format for warning & critical commandline options for more simplicity: 
+#    - change: new format for warning & critical commandline options for more simplicity:
 #      --warning/--critical <load%>,<pkterr/s>,<pktdiscard/s>
 #       1. unique threshold for in/out statistics (ex: loadin/loadout)
-#       2. one option for all traffic checks (load, pkt errors, pkt discards) to avoid 
+#       2. one option for all traffic checks (load, pkt errors, pkt discards) to avoid
 #          too many options
 #      ex: --warning 50,0,0 --critical 80,100,100
 #    - enhancement: colorcode function standardized for other use (not only for load statistics)
@@ -335,14 +348,14 @@
 #    - enhancement: check and remove the % character if any in some commandline arguments
 #    - feature: snmp v2c & v3 support
 #    - feature: 64bit counters support (octets in/out & speed) for interfaces >=10Gbps
-#    - bugfix: colorcode rewritten for correctly handle colors between a warning and a 
+#    - bugfix: colorcode rewritten for correctly handle colors between a warning and a
 #      critical threshold
 #    - feature: testing install option
 #
 #   ----------------------------------------------------------------------
 # * 0.02-3 (bugfix release)
 #   ----------------------------------------------------------------------
-#    - bugfix: exclude/include options now behave correctly on plugin 
+#    - bugfix: exclude/include options now behave correctly on plugin
 #      output, not only on html file and performance data
 #
 #   ----------------------------------------------------------------------
@@ -357,16 +370,16 @@
 #    - bugfix: fixed redondant short options
 #    - bugfix: forcing conversion of oper/admin status from integer to string
 #    - bugfix: fixed a variable substitution in interface evaluation
-# 
+#
 #   ----------------------------------------------------------------------
 # * 0.02
 #   ----------------------------------------------------------------------
 #    - enhancement: cleaner and step-by-step output when resetting stats
-#    - feature: finished option 'track', replacement of nochange, which 
+#    - feature: finished option 'track', replacement of nochange, which
 #      list the field concerned by tracking. Default: only ifOperStatus.
-#    - enhancement: replaced column name/field notations from csv style to 
+#    - enhancement: replaced column name/field notations from csv style to
 #      arrays
-#    - enhancement: clearly referenced html tables in variable names for 
+#    - enhancement: clearly referenced html tables in variable names for
 #      better maintenance
 #    - bugfix: some typo fixes
 #    - bugfix: readded 'human' option (previously missed)
@@ -375,15 +388,15 @@
 #    - enhancement: don't alert for interfaces OperStatus going to "up"
 #    - bugfix: vlan column moved to the correct place
 #    - bugfix: avoid global perfdata to be returned in case of initial
-#      run or no history, as the perfdata are wrong and produce drops on 
+#      run or no history, as the perfdata are wrong and produce drops on
 #      graphs
-#    - enhancement: rewrite the plugin to follow the nagios plugin development 
+#    - enhancement: rewrite the plugin to follow the nagios plugin development
 #      guidelines:
 # 	   * use of "use warnings"
 #         => multiple reviews and finally done
-#    - enhancement: added excludeportperf and includeportperf, allowing 
+#    - enhancement: added excludeportperf and includeportperf, allowing
 #      to filter which tracked interfaces generates performance data
-#    - bugfix: port performance data now depend on what data are 
+#    - bugfix: port performance data now depend on what data are
 #      available. ex: unrouted vlans doesn't have ifOctetIn statistics on catalyst
 #    - enhancement: last traffic calculation a bit cleaned and commented for
 #      better maintenance
@@ -392,31 +405,31 @@
 #    - bugfix: readded 'regexp' option (previously missed)
 #    - bugfix: cachedir/statedir naming including hostquery
 #    - bugfix: never ignore case in options
-#    - enhancement: reviewed the way the ports are counted. based on the 
-#      speed property availability, this seems to permit a correct counting 
+#    - enhancement: reviewed the way the ports are counted. based on the
+#      speed property availability, this seems to permit a correct counting
 #      for most of the possible nodes (cisco, windows, linux, ...)
 #    - feature: option "cisco" for specific cisco info requests and printing
 #    - bugfix: fixed some options no properly interpreted
-#    - bugfix: now checking the IP info <-> interface mapping  
-#    - feature: 2 new output cases, reflecting the leak of data for 
+#    - bugfix: now checking the IP info <-> interface mapping
+#    - feature: 2 new output cases, reflecting the leak of data for
 #      calculation. For initial run and for no valid historical dataset
-#    - feature: operstatus in pnp4nagios port templates, for easier  
+#    - feature: operstatus in pnp4nagios port templates, for easier
 #      interface status tracking.
 #    - enhancement: normal plugin output includes now load thresholds
 #    - feature: --grapher and --grapherurl options to specify which grapher
-#      solution is used. And alternative url can be specified. 
-#    - feature: --short or --long options for less or more detailed plugin 
+#      solution is used. And alternative url can be specified.
+#    - feature: --short or --long options for less or more detailed plugin
 #      outputs. Using --long allow to clearly identify problematic interfaces
 #      directly in the output of the plugin
 #    - enhancement: some options can now be specified multiple times and are
-#      concatenated. Exemple: --exclude 'pat1' --exclude 'pat2,pat3'. 
-#      Concerned options: track, exclude, include, excludeportperf, 
+#      concatenated. Exemple: --exclude 'pat1' --exclude 'pat2,pat3'.
+#      Concerned options: track, exclude, include, excludeportperf,
 #      includeportperf
 #    - feature: added an option to print the default values of the options
 #    - enhancement: updated the pod doc and moved to end for better reading.
 #    - enhancement: data::dumper sorting
 #    - enhancement: removed man option (prefered perldoc reading)
-#    - enhancement: reviewed the way the operstatus is presented for 
+#    - enhancement: reviewed the way the operstatus is presented for
 #      $display_operstatus = 1 (separate graph for operstatus)
 #   ----------------------------------------------------------------------
 # * 0.01
@@ -425,22 +438,22 @@
 # 	 - enhancement: better documentation on usage
 # 	 - enhancement: parameters treatment block code, for easier maintenance
 # 	 - enhancement: debug mode review
-# 	 - enhancement: arrays in option hash to avoid reformating in sub 
-#      functions 
-# 	 - enhancement: cleaning of unused blocks of code. might be reviewed 
+# 	 - enhancement: arrays in option hash to avoid reformating in sub
+#      functions
+# 	 - enhancement: cleaning of unused blocks of code. might be reviewed
 #      in the future
 # 	 - enhancement: added comments
 # 	 - feature: added bits output feature for performance data
-# 	 - enhancement: check_multi perfdata output type with interface name. 
+# 	 - enhancement: check_multi perfdata output type with interface name.
 #      Global and Port perfdata types
-# 	 - enhancement: rewrite the plugin to follow the nagios plugin development 
+# 	 - enhancement: rewrite the plugin to follow the nagios plugin development
 #      guidelines:
 # 	   * use of "use warnings"
 # 	 - feature: pnp6 templates
-# 	 - enhancement: separate history cleaning and dataset selection from bps 
+# 	 - enhancement: separate history cleaning and dataset selection from bps
 #      calculation
-#    - enhancement: restricted the html link generated as the pluging output 
-#      to "[detail]", for better integration in third party tools such as 
+#    - enhancement: restricted the html link generated as the pluging output
+#      to "[detail]", for better integration in third party tools such as
 #      nagstamon,...
 #
 # ========================================================================
