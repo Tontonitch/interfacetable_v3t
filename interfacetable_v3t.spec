@@ -1,13 +1,12 @@
 Name:		interfacetable_v3t
-Version:	0.05.1
+Version:	1.00
 Release:	1%{?dist}
 Summary:	Interfacetable_v3t allows you to monitor the network interfaces of a node
 
 Group:		Applications/System	
 License:	GPLv2 and GPLv3
-URL:		http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v3t
-#https://github.com/Tontonitch/interfacetable_v3t/archive/v0.05-1.tar.gz	
-Source0:	interfacetable_v3t-0.05-1.tar.gz	
+URL:		https://github.com/Tontonitch/interfacetable_v3t/archive/v1.00.tar.gz
+Source0:	v1.00.tar.gz	
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
 
@@ -91,7 +90,7 @@ This package contains the templates for pnp4nagios for %{name}
 
 
 %prep
-%setup -q -n interfacetable_v3t-0.05-1
+%setup -q -n interfacetable_v3t-1.00
 
 
 %build
@@ -138,5 +137,7 @@ cp contrib/pnp4nagios/* %{buildroot}%{pnp4nagiostemplates}/
 %{pnp4nagiostemplates}/*
 
 %changelog
+* Fri Jan 04 2019 Yannick Charton <tontonitch-pro@yahoo.fr> - 1.00
+- update to 1.00
 * Fri May 23 2014 Dirk Goetz <dirk.goetz@netways.de> - 0.05.1-1
 - inital build
