@@ -76,6 +76,7 @@
 | ProCurve Switch 6410                     |                                    |
 | ProCurve Switch 2900-48G (J9050A)        | revision T.13.71                   |
 | ProCurve Switch 5412zl Intelligent Edge (J8698A) | revision K.15.08.0013, ROM K.15.28 |
+
 **Juniper**
 
 | Device             | Notes               |
@@ -108,6 +109,16 @@
 | SPARC Enterprise M5000 | tested on solaris 10 u8/u9/u10 and bge, sppp interfaces |
 | SPARC Enterprise T5120 | tested on solaris 10 u8/u9/u10 and e1000g interfaces |
 | SPARC Enterprise T3-1  | tested on solaris 10 u8/u9/u10 and igb interfaces |
+
+**Linux-Unix**
+
+| Device                                   | Notes |
+| ---------------------------------------- | ----- |
+| RedHat flavors |       |
+| Debian flavors |       |
+| Solaris        |       |
+| HPUX 11.31     |       |
+
 **Vmware guests**
 
 | Device                                   | Notes |

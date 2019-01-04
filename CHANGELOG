@@ -2,7 +2,7 @@
 # CHANGELOG
 # ========================================================================
 #
-# Possible change types: enhancement, feature, bugfix, add
+# Possible change types: enhancement, feature, bugfix, add, extra
 #
 #   ----------------------------------------------------------------------
 # * 1.00
@@ -24,7 +24,7 @@
 #    - feature: use ifname instead of ifdesc (thanks freneticf)
 #    - feature: added Netapp cDOT support (new nodetype "netapp-cdot")
 #    - feature: added HPUX support (new nodetype "hpux")
-#    - feature: added --trafficwithpkts option
+#    - feature: added --trafficwithpkt option
 #    - feature: added --snmp-maxmsgsize option
 #    - feature: added nagiosxi as grapher solution
 #    - feature: added graphite support (thanks Israel Ochoa)

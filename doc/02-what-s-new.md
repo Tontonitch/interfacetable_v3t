@@ -6,7 +6,7 @@
 
 # What's new
 
-  * New & enhanced supported node types: cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel.   
+  * New & enhanced supported node types: Cisco, HP, Netscreen, Netapp (7-mode, cDOT), F5 BigIP, Bluecoat, Brocade, Brocade-NOS, Nortel, EMC Datadomain, Linux/UNIX/Windows/...   
 
   ![Vendors](images/what-s-new/Vendors.png)
 
@@ -47,6 +47,4 @@
 
 
 
-Complete list of changes in the 0.05 release [here](tiki-
-index.php?page=Nagios+plugins+-+interfacetable_v3t+-+changelog+-+0.05 "Nagios
-plugins - interfacetable_v3t - changelog - 0.05" )
+Complete list of changes available [here](https://raw.githubusercontent.com/Tontonitch/interfacetable_v3t/master/CHANGELOG)
