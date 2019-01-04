@@ -45,7 +45,6 @@ use Settings;
 use SnmpUtils;
 
 
-
 # ========================================================================
 # VARIABLES
 # ========================================================================
@@ -57,7 +56,7 @@ use vars qw($TIMEOUT %ERRORS $PROGNAME $REVISION $CONTACT);
 $TIMEOUT = 15;
 %ERRORS = ('OK'=>0,'WARNING'=>1,'CRITICAL'=>2,'UNKNOWN'=>3,'DEPENDENT'=>4);
 $PROGNAME        = $0;
-$REVISION        = '0.05-2c';
+$REVISION        = '0.05-2d';
 $CONTACT         = 'tontonitch-pro@yahoo.fr';
 my %ERRORCODES   = (0=>'OK',1=>'WARNING',2=>'CRITICAL',3=>'UNKNOWN',4=>'DEPENDENT');
 my %COLORS       = ('HighLight' => '#81BEF7');
@@ -65,9 +64,9 @@ my $UMASK        = "0000";
 my $TMPDIR       = File::Spec->tmpdir();          # define cache directory or use /tmp  -- not used yet
 my $STARTTIME_HR = Time::HiRes::time();           # time of program start, high res
 my $STARTTIME    = sprintf("%.0f",$STARTTIME_HR); # time of program start
-my $MAX_PLUGIN_OUTPUT_LENGTH = @max_plugin_output_length@;              # change it to reflect any change of the corresponding 
-                                                  # variable MAX_PLUGIN_OUTPUT_LENGTH in the sources of nagios 
-                                                  # (nagios.h) or icinga (icinga.h) 
+my $MAX_PLUGIN_OUTPUT_LENGTH = @max_plugin_output_length@;              # change it to reflect any change of the corresponding
+                                                  # variable MAX_PLUGIN_OUTPUT_LENGTH in the sources of nagios
+                                                  # (nagios.h) or icinga (icinga.h)
 
 # ------------------------------------------------------------------------
 # OIDs definitions
@@ -98,7 +97,7 @@ my %oid_ifType          = ( name => "ifType",        mib => "IF-MIB", oid => "1.
    1=>'other',                        2=>'regular1822',                     3=>'hdh1822',                     4=>'ddnX25',
    5=>'rfc877x25',                    6=>'ethernetCsmacd',                  7=>'iso88023Csmacd',              8=>'iso88024TokenBus',
    9=>'iso88025TokenRing',           10=>'iso88026Man',                    11=>'starLan',                    12=>'proteon10Mbit',
-  13=>'proteon80Mbit',               14=>'hyperchannel',                   15=>'fddi',                       16=>'lapb', 
+  13=>'proteon80Mbit',               14=>'hyperchannel',                   15=>'fddi',                       16=>'lapb',
   17=>'sdlc',                        18=>'ds1',                            19=>'e1',                         20=>'basicISDN',
   21=>'primaryISDN',                 22=>'propPointToPointSerial',         23=>'ppp',                        24=>'softwareLoopback',
   25=>'eon',                         26=>'ethernet3Mbit',                  27=>'nsip',                       28=>'slip',
@@ -345,7 +344,7 @@ my %oid_netapp_netportAutonegOper      = ( name => "netportAutonegOper",     mib
 my %oid_netapp_netportDuplexAdmin      = ( name => "netportDuplexAdmin",     mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.8" );
 my %oid_netapp_netportDuplexOper       = ( name => "netportDuplexOper",      mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.9" );
 my %oid_netapp_netportSpeedAdmin       = ( name => "netportSpeedAdmin",      mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.10" );
-my %oid_netapp_netportSpeedOper        = ( name => "netportSpeedOper",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.11", convertToReadable => {0=>'undef',1=>'auto',2=>'10',3=>'100',4=>'1000',5=>'10000'}); 
+my %oid_netapp_netportSpeedOper        = ( name => "netportSpeedOper",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.11", convertToReadable => {0=>'undef',1=>'auto',2=>'10',3=>'100',4=>'1000',5=>'10000'});
 my %oid_netapp_netportSpeed            = ( name => "netportSpeed",           mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.12" );
 my %oid_netapp_netportMac              = ( name => "netportMac",             mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.13" );
 my %oid_netapp_netportUpAdmin          = ( name => "netportUpAdmin",         mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.14", convertToReadable => {1=>'up', 0=>'down'});
@@ -489,8 +488,8 @@ my %quadmask2dec = (
     '255.255.255.224' => 27, '255.255.255.240' => 28, '255.255.255.248' => 29,
     '255.255.255.252' => 30, '255.255.255.254' => 31, '255.255.255.255' => 32,
 );
-my %convhex2dec = qw(	0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 
-				                        a 10 b 11 c 12 d 13 e 14 f 15 
+my %convhex2dec = qw(	0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9
+				                        a 10 b 11 c 12 d 13 e 14 f 15
 				                        A 10 B 11 C 12 D 13 E 14 F 15 );
 my %ifTypeDescriptions = (
     1=>'Other types (other)',                                       137=>'Layer 3 Virtual LAN using IPX (l3ipxvlan)',
@@ -741,36 +740,36 @@ my $grefAoHInfoTableData;                                # Contents of the Info 
 # ------------------------------------------------------------------------
 my $gInterfaceTableHTML;                                 # Html code of the interface table
 my $grefAoHInterfaceTableHeader = [                      # Header for the cols of the html table
-    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => 1 },
+    { Title => 'Index',                Dataname => 'index',           Datatype => 'other',    Tablesort => 'sortable-numeric',            Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => 1 },
     { Title => 'Name',                 Dataname => 'ifName',          Datatype => 'other',    Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Alias',                Dataname => 'ifAlias',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'alias'} },
     { Title => 'Actions',              Dataname => 'actions',         Datatype => 'other',    Tablesort => '',                            Nodetype => 'ALL',                                                        Enabled => ($ghOptions{'enableperfdata'} or $ghOptions{'ifdetails'}) },
     { Title => 'Enabled',              Dataname => 'ifEnabled',       Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1 },
-    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1, 
+    { Title => 'Status',               Dataname => 'ifStatus',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'bigip',                                                      Enabled => 1,
         Tooltip => "The current state of the interface.<br> up - has link and is initialized<br> down - has no link and is initialized<br> disabled - has been forced down<br> uninitialized - has not been initialized<br> loopback - in loopback mode<br> unpopulated - interface not physically populated" },
-    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => 1,
+    { Title => 'Admin status',         Dataname => 'ifAdminStatus',   Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => 1,
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR></TABLE>' },
-    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => 1, 
+    { Title => 'Oper status',          Dataname => 'ifOperStatus',    Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => 1,
         Tooltip => '<TABLE><TR><TH>Value</TH><TH>Meaning</TH></TR><TR><TD>up</TD><TD>ready to pass packets</TD></TR><TR><TD>down</TD><TD></TD></TR><TR><TD>testing</TD><TD>in some test mode</TD></TR><TR><TD>unknown</TD><TD>status can not be determined for some reason</TD></TR><TR><TD>dormant</TD><TD></TD></TR><TR><TD>notPresent</TD><TD>some component are missing</TD></TR><TR><TD>lowerLayerDown</TD><TD>down due to state of lower-layer interface(s)</TD></TR></TABLE>' },
     { Title => 'Type',                 Dataname => 'ifType',          Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'type'},
         Tooltip => 'The type of interface. <br>Values for ifType are assigned by the Internet Assigned Numbers Authority (IANA), <br>and available in the IANAifType textual convention.' },
     { Title => 'Speed',                Dataname => 'ifSpeedReadable', Datatype => 'property', Tablesort => 'sortable-sortNetworkSpeed',   Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Duplex',               Dataname => 'ifDuplexStatus',  Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'ALL',                                                        Enabled => $ghOptions{'duplex'} },
-    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => $ghOptions{'stp'} },
+    { Title => 'Stp',                  Dataname => 'ifStpState',      Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => $ghOptions{'stp'} },
     { Title => 'Vlan',                 Dataname => 'ifVlanNames',     Datatype => 'property', Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => $ghOptions{'vlan'} },
     { Title => 'Zone',                 Dataname => 'nsIfZone',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Vsys',                 Dataname => 'nsIfVsys',        Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Permitted management', Dataname => 'nsIfMng',         Datatype => 'property', Tablesort => 'sortable-text',               Nodetype => 'netscreen',                                                  Enabled => 1 },
     { Title => 'Load In',              Dataname => 'ifLoadIn',        Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'Load Out',             Dataname => 'ifLoadOut',       Datatype => 'load',     Tablesort => 'sortable-numeric',            Nodetype => 'ALL',                                                        Enabled => 1 },
-    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => $ghOptions{'ipinfo'} },
+    { Title => 'IP',                   Dataname => 'ifIpInfo',        Datatype => 'property', Tablesort => 'sortable-sortIPAddress',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => $ghOptions{'ipinfo'} },
     { Title => 'bpsIn',                Dataname => 'bpsInReadable',   Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
     { Title => 'bpsOut',               Dataname => 'bpsOutReadable',  Datatype => 'load',     Tablesort => 'sortable-sortNetworkTraffic', Nodetype => 'ALL',                                                        Enabled => 1 },
-    { Title => 'Pkt err/disc',         Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => 1, 
+    { Title => 'Pkt err/disc',         Dataname => 'pktErrDiscard',   Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => 1,
         Tooltip => 'Number of error/discard packets per sec.<br>Format:<br>error in / error out / discard in / discard out' },
-    { Title => 'Pkt err/drop',         Dataname => 'pktErrDrop',      Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'bigip', Enabled => 1, 
+    { Title => 'Pkt err/drop',         Dataname => 'pktErrDrop',      Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'bigip', Enabled => 1,
         Tooltip => 'Number of error/drop packets per sec.<br>Format:<br>error in / error out / drop in / drop out' },
-    { Title => 'Pkt load',             Dataname => 'pktUcastNUcast',  Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot', Enabled => $ghOptions{'pkt'}, 
+    { Title => 'Pkt load',             Dataname => 'pktUcastNUcast',  Datatype => 'load',     Tablesort => 'sortable-sortPktErrors',      Nodetype => 'standard,cisco,hp,netscreen,netapp,bluecoat,brocade,brocade-nos,nortel,hpux,netapp-cdot,datadomain', Enabled => $ghOptions{'pkt'},
         Tooltip => 'Number of unicast/non-unicast packets per sec.<br>Format:<br>Ucast in / Ucast out / NUcast in / NUcast out' },
     { Title => 'Last traffic',         Dataname => 'ifLastTraffic',   Datatype => 'other',    Tablesort => 'sortable-sortDuration',       Nodetype => 'ALL',                                                        Enabled => 1 },
 ];
@@ -830,10 +829,10 @@ if ($ghOptions{'nodetype-auto'}) {
         $refhSNMPResult = GetDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_sysObjectID ])) if ($@);
-    
+
     # keep a trace of the retrieved value
     $grefhCurrent->{MD}->{Node}->{sysObjectID} = $refhSNMPResult->{$oid_sysObjectID{'oid'}};
-    
+
     # try to map the id retrieved to a known vendor id corresponing to a nodetype
     my @identify_array = split ('\.', $refhSNMPResult->{$oid_sysObjectID{'oid'}});
     my $vendor_code = (defined $identify_array[6]) ? $identify_array[6] : -1;
@@ -844,7 +843,7 @@ if ($ghOptions{'nodetype-auto'}) {
     } else {
         logger(1, "  -> vendor code \"$vendor_code\", nodetype not identified");
     }
-    
+
     # set the nodetype
     $ghOptions{'nodetype'} = "$identity";
 }
@@ -1046,7 +1045,7 @@ elsif ($ghOptions{'nodetype'} eq "netscreen") {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
     }
     Get_Error_Discard('32', \%oid_ifInErrors, \%oid_ifOutErrors, \%oid_ifInDiscards, \%oid_ifOutDiscards);
     if ($ghOptions{'pkt'}) {  # Gather interface packet traffic
@@ -1084,7 +1083,7 @@ elsif ($ghOptions{'nodetype'} eq "bluecoat") {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets); 
+        Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
     }
     Get_Error_Discard('32', \%oid_ifInErrors, \%oid_ifOutErrors, \%oid_ifInDiscards, \%oid_ifOutDiscards);
     ###Get_Vlan (); # Gather interface vlans
@@ -1184,7 +1183,7 @@ elsif ($ghOptions{'nodetype'} eq "hpux") {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        if ($ghOptions{'trafficwithpkt'}) { 
+        if ($ghOptions{'trafficwithpkt'}) {
 			Get_Traffic ('PktCalc', \%oid_ifMtu);
         } else {
 			Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
@@ -1202,7 +1201,7 @@ elsif ($ghOptions{'nodetype'} eq "hpux") {
 }
 # +++++ Standard device +++++
 else {
-    if ($ghOptions{'ifname'}) { 
+    if ($ghOptions{'ifname'}) {
         Get_InterfaceNames (\%oid_ifName, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
     } else {
         Get_InterfaceNames (\%oid_ifDescr, \%oid_ifPhysAddress); # Gather interface indexes, descriptions, and mac addresses, to generate unique and reformatted interface names.
@@ -1217,7 +1216,7 @@ else {
     if ($ghSNMPOptions{'64bits'}) {  # Gather interface traffics (in/out and packet errors/discards)
         Get_Traffic ('64', \%oid_ifHCInOctets, \%oid_ifHCOutOctets);
     } else {
-        if ($ghOptions{'trafficwithpkt'}) { 
+        if ($ghOptions{'trafficwithpkt'}) {
 			Get_Traffic ('PktCalc', \%oid_ifMtu);
         } else {
 			Get_Traffic ('32', \%oid_ifInOctets, \%oid_ifOutOctets);
@@ -1310,7 +1309,7 @@ if (defined $gBasetime) {
         Calculate_Error_Discard();
         Calculate_Packets() if ($ghOptions{'pkt'});
     }
-} 
+}
 
 # ------------------------------------------------------------------------------
 # write interface information file
@@ -1455,7 +1454,7 @@ if ($ghOptions{'table-split'}) {
     my $InterfaceTypes;
     logger(2, "Looping through all the interfaces");
     for my $InterfaceIndex (@$grefaAllIndizes) {
-        
+
         # Get normalized interface name (key for If data structure)
         my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
         # Skip the interface if config table enabled and interface excluded
@@ -1474,7 +1473,7 @@ if ($ghOptions{'table-split'}) {
             }
         }
     }
-    
+
     while ( my ($Type, $Indexes) = each(%{$InterfaceTypes}) ) {
         logger(3, "   * type: \"$Type\", interface indexes: ". join(", ", @{$Indexes}));
         $grefAoHInterfaceTableData->{"$Type"} = GenerateInterfaceTableData ($Indexes, $grefAoHInterfaceTableHeader, $ghOptions{'track-property'});
@@ -1818,7 +1817,7 @@ sub Get_InterfaceNames {
             $Name = "Port $Index";
             logger(2, "  Interface with index $Index has no description.\nName is set to $Name");
         } else {
-            
+
             # 2. Convert HEX names to ASCII (mod by Enfileyb)
             if ($Name =~ /^0x([a-fA-F0-9]{2})*00$/) {
                 chomp($Name);
@@ -1826,14 +1825,14 @@ sub Get_InterfaceNames {
                 $Name =~ s/^0x(.*)00$/$1/;
                 # Convert HEX to Char
                 $Name = pack("H*",$Name);
-                # Because Windows SNMP-service uses different codepages (Win2k3 uses CP125x, Win2k8 uses CP85x) encode 
+                # Because Windows SNMP-service uses different codepages (Win2k3 uses CP125x, Win2k8 uses CP85x) encode
                 # to ascii (there should be no chars, that disturb PNP4Nagios)
                 $Name = encode('ascii', $Name);
                 # Any Non-Ascii-Chars have been replaced by '?', now replace them with '_' (could be another char).
                 $Name =~ s/\?/_/g;
                 logger(2, "  Interface with index $Index has HEX-description. Name converted to \"$Name\"");
             }
-         
+
             # 3. append the index to duplicate interface descriptions. Index is better than mac address as in lots of cases the
             # same mac address can be used for multiples interfaces (if there is a mac address...)
             # Example of nodes in that case: Dell Powerconnect Switches 53xx, 54xx, 60xx and 62xx: same interface name 'Ethernet Interface'
@@ -1899,21 +1898,21 @@ sub Get_InterfaceNames {
                 }
             }
             elsif ($ghOptions{'nodetype'} eq "hpux") {
-                $Name =~ s/Hewlett-Packard/HP/g; 
+                $Name =~ s/Hewlett-Packard/HP/g;
 				if ($Name =~ /^(lan\d+) HP .*$/) {
                     #HP-UX standard interfaces
                     $Name="$1";
                     logger(2, "  Interface name matching a HP-UX standard interfaces, renamed to \"$Name\"");
                 }
             }
-            
+
 			# Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
                 $grefhCurrent->{MD}->{If}->{normalize($Name)}->{MsgInfo} .= "<div class=\"information\">Interface name quite long! (\> $name_warning_length char.). Name: \"$Name\"</div>";
             }
-            
+
             # 5. Known problematic interface
             if ($Name =~ /^FCIP GIGE port .*$/) {
                 logger(1, "  Interface \"$Name\" is not supported, due to some inconsistent traffic counters. You may want to exclude them using --exclude '^FCIP GIGE port'");
@@ -1963,7 +1962,14 @@ sub Get_InterfaceType {
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
         my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-        if (defined $refhSNMPResult->{$Index}) {
+        if ($ifName =~ m/^veth/ and $ghOptions{'nodetype'} eq 'datadomain') {
+             # Virtual interfaces on EMC DataDomain
+             $grefhCurrent->{If}->{"$ifName"}->{ifTypeNumber} = 53;
+             $grefhCurrent->{If}->{"$ifName"}->{ifType} = (defined $refhOID->{'convertToReadable'}->{"53"})
+                 ? $refhOID->{'convertToReadable'}->{"53"} : 53;
+             logger(1, "Index=$Index ($ifName): Type=".$grefhCurrent->{If}->{"$ifName"}->{ifType}." (forced)");
+             $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface type should be virtual. Forcing the type.</div>";
+        } elsif (defined $refhSNMPResult->{$Index}) {
             my $Type = $refhSNMPResult->{$Index};
             $grefhCurrent->{If}->{"$ifName"}->{ifTypeNumber} = "$Type";
             $grefhCurrent->{If}->{"$ifName"}->{ifType} = (defined $refhOID->{'convertToReadable'}->{"$Type"})
@@ -2216,15 +2222,21 @@ sub Get_Speed {
                     $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
                         "where speed is incorrect and should be 10Gbps. Forcing the speed.</div>";
                     $IfSpeed = 10000000000;
-                } elsif ($IfSpeed <  1000000 and $ifName =~ m/^veth/) {
-                    # Problem with virtual interfaces on EMC DataDomain (Data Domain OS 5.6.1.0-513706). Seems to be an ifHighSpeed value on the ifSpeed oid. Forcing the speed (workaround)
-                    # Problem found for HP NC522SFP Dual Port 10GbE Server Adapter
-                    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
-                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed, $oid_ifHighSpeed{'oid'}.$Index: $refhSNMPResultIfHighSpeed->{$Index}). Forcing the speed.");
-                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
-                        "where speed is incorrect. Forcing the speed value to the expected one.</div>";
-                    $IfSpeed = $IfSpeed * 1000000000;
-		} elsif ($IfSpeed >= 4294967294) {
+                } elsif ($ifName =~ m/^veth/ and $ghOptions{'nodetype'} eq 'datadomain') {
+                      # Problem with virtual interfaces on EMC DataDomain (Data Domain OS 5.6.1.0-513706, 6.0.2.20-587212). ifHighSpeed / ifSpeed values wrong. Moreover, veth are virtual interfaces.
+                      logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect. Removing the value.");
+                      $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
+                          "where speed is incorrect. Removing the value.</div>";
+                      $IfSpeed = -1;
+#                } elsif ($IfSpeed <  1000000 and $ifName =~ m/^veth/) {
+#                    # Problem with virtual interfaces on EMC DataDomain (Data Domain OS 5.6.1.0-513706). Seems to be an ifHighSpeed value on the ifSpeed oid. Forcing the speed (workaround)
+#                    # Problem found for HP NC522SFP Dual Port 10GbE Server Adapter
+#                    logger(1, " $ifName($Index) -> interface speed matching a situation where speed is incorrect and should be ".
+#                        "10Gbps ($oid_ifSpeed{'oid'}.$Index: $IfSpeed, $oid_ifHighSpeed{'oid'}.$Index: $refhSNMPResultIfHighSpeed->{$Index}). Forcing the speed.");
+#                    $grefhCurrent->{MD}->{If}->{$ifName}->{MsgCrit} .= "<div class=\"warning\">".denormalize($ifName)." ($Index): interface speed matching a situation ".
+#                        "where speed is incorrect. Forcing the speed value to the expected one.</div>";
+#                    $IfSpeed = $IfSpeed * 1000000000;
+		            } elsif ($IfSpeed >= 4294967294) {
                     # Too high for this counter (cf IF-MIB)
                     # get ifHighSpeed table (units of 1,000,000 bits per second)
                     if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} ne "" and $refhSNMPResultIfHighSpeed->{"$Index"} != 0) {
@@ -2512,10 +2524,10 @@ sub Get_IpInfo {
 
         # Check that the index match a known interface. skip if not
         next unless (defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"});
-        
+
         # Be sure that it's only an ip (ipv4)
         $IpAddress =~ s/^.*\(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\)$/$1/;
-        
+
         # Example of refhSNMPResultNetMask info:
         #  10.1.1.4 255.255.0.0
         #  10.2.1.4 255.255.0.0
@@ -2626,7 +2638,7 @@ sub Get_Traffic {
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
         #    "Can monitor a bandwidth of ".format_volume_decimal((2**64-1 )/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
         #    "If not enough, consider decreasing delta";
-        
+
         # post-processing interface octet counters
         Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "64");
         Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "64");
@@ -2693,7 +2705,7 @@ sub Get_Traffic {
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit low and high counters, with delta $ghOptions{'delta'}. " .
         #    "Can monitor a bandwidth of ".format_volume_decimal((2**(32+32)-1 )/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
         #    "If not enough, consider decreasing delta";
-        
+
         # post-processing interface octet counters
         Process_IfCounter ($refhSNMPResultOctetsIn, "OctetsIn", "64");
         Process_IfCounter ($refhSNMPResultOctetsOut, "OctetsOut", "64");
@@ -2703,7 +2715,7 @@ sub Get_Traffic {
         my $refhOIDoctetsOut64 = shift;
         my $refhSNMPResultOctetsIn64;   # Lines returned from snmpwalk storing ifXOctetsIn
         my $refhSNMPResultOctetsOut64;  # Lines returned from snmpwalk storing ifXOctetsIn
-        
+
         my $refhOIDoctetsIn32 = shift;
         my $refhOIDoctetsOut32 = shift;
         my $refhSNMPResultOctetsIn32;   # Lines returned from snmpwalk storing ifOctetsIn
@@ -2732,11 +2744,11 @@ sub Get_Traffic {
         #$grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 64-bit counters, with delta $ghOptions{'delta'}. " .
         #    "Can monitor a bandwidth of ".format_volume_decimal((2**64-1 )/($ghOptions{'delta'}*4/3),"bps")." maximum. " .
         #    "If not enough, consider decreasing delta";
-        
+
         # post-processing interface octet counters
         Process_IfCounter ($refhSNMPResultOctetsIn64, "OctetsIn", "64");
         Process_IfCounter ($refhSNMPResultOctetsOut64, "OctetsOut", "64");
-        
+
         ### Then retrieve the 32bit counters if needed
         # loop through all found interfaces
         my @aListIfLowSpeedNoCounter;
@@ -2745,7 +2757,7 @@ sub Get_Traffic {
         for my $ifName (keys %{$grefhCurrent->{If}}) {
             # Extract the index out of the MetaData
             my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
-            if (not defined $refhSNMPResultOctetsIn64->{$Index} and defined $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} 
+            if (not defined $refhSNMPResultOctetsIn64->{$Index} and defined $grefhCurrent->{If}->{"$ifName"}->{ifSpeed}
               and $grefhCurrent->{If}->{"$ifName"}->{ifSpeed} <= 20000000) {
                 push(@aListIfLowSpeedNoCounter, $Index);
             }
@@ -2762,7 +2774,7 @@ sub Get_Traffic {
                 $refhSNMPResultOctetsOut32 = GetTableDataWithSnmp (\%hOptions);
             };
             ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDoctetsOut32 ])) if ($@);
-            
+
             for my $idx (@aListIfLowSpeedNoCounter) {
                 if (defined $refhSNMPResultOctetsIn32->{$idx} and defined $refhSNMPResultOctetsOut32->{$idx} ){
                     $refhSNMPResultOctetsIn32Filtered->{$idx} = $refhSNMPResultOctetsIn32->{$idx};
@@ -2790,7 +2802,7 @@ sub Get_Traffic {
     } elsif ("$counterType" eq "PktCalc") {
         # Calculation of the octet traffic based on interface MTU config and Pkt counters. Allow traffic calculation for high speed interfaces
         # get all interface mtu + in/out traffic pkt counters (Unicast and Non-Unicast counters) - no caching !
-        
+
         # MTU first
         my $refhOIDmtu = shift;
         my $refhSNMPResultMtu;
@@ -2799,7 +2811,7 @@ sub Get_Traffic {
             $refhSNMPResultMtu = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ $refhOIDmtu ])) if ($@);
-        
+
         for my $ifName (keys %{$grefhCurrent->{If}}) {
             # Extract the index out of the MetaData
             my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
@@ -2812,26 +2824,26 @@ sub Get_Traffic {
                 logger(2, "Index=$Index ($ifName): ifMtu not found for the interface");
             }
         }
-        
+
         # Packet counters
         Get_Packets ('32', \%oid_ifInUcastPkts, \%oid_ifOutUcastPkts, \%oid_ifInNUcastPkts, \%oid_ifOutNUcastPkts);
-        
+
         # build a hashs gathering in octets, from packet counters and mtu
         for my $ifName (keys %{$grefhCurrent->{If}}) {
             # Extract the index out of the MetaData
             my $Index = $grefhCurrent->{MD}->{Map}->{NameToIndex}->{"$ifName"};
             if (defined $refhSNMPResultMtu->{$Index}) {
-                if (defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInUcast"} 
+                if (defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInUcast"}
                         and defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInNUcast"}
                         and defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsOutUcast"}
                         and defined $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsOutNUcast"}) {
                     # Calculate in & out octets/s
-                    $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"OctetsIn"} = 
-                        ( $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInUcast"} 
+                    $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"OctetsIn"} =
+                        ( $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInUcast"}
                         + $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsInNUcast"} )
                         * $refhSNMPResultMtu->{$Index};
-                    $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"OctetsOut"} = 
-                        ( $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsOutUcast"} 
+                    $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"OctetsOut"} =
+                        ( $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsOutUcast"}
                         + $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"PktsOutNUcast"} )
                         * $refhSNMPResultMtu->{$Index};
                     logger(2, "Index=$Index ($ifName): calculated in traffic = " . $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{"OctetsIn"}
@@ -2842,7 +2854,7 @@ sub Get_Traffic {
                 logger(2, "Index=$Index ($ifName): ifMtu not defined for the interface, calculation not possible");
             }
         }
-        
+
         # traffic monitoring capacity advice
         # based on rfc2233 for Ethernet (http://www.ietf.org/rfc/rfc2233.txt)
         $grefAoHConfigTableData->[7]->[1]->{Value} .= "Using 32-bit packet counters and mtu, with delta $ghOptions{'delta'}. " .
@@ -2995,7 +3007,7 @@ sub Get_Packets {
 
         # post-processing interface pkts counters
         #------------------------------------------
-    
+
         Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast", "64");
         Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast", "64");
         Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast", "64");
@@ -3031,7 +3043,7 @@ sub Get_Packets {
 
         # post-processing interface pkts counters
         #------------------------------------------
-    
+
         Process_IfCounter ($refhSNMPResultPktsInUcast, "PktsInUcast", "32");
         Process_IfCounter ($refhSNMPResultPktsOutUcast, "PktsOutUcast", "32");
         Process_IfCounter ($refhSNMPResultPktsInNUcast, "PktsInNUcast", "32");
@@ -3061,7 +3073,7 @@ sub Process_IfCounter {
     my $refhCounter = shift;
     my $WhatCounter = shift;
     my $TypeCounter = shift;
-    
+
     # check if the counter is back to 0 after 2^32 / 2^64.
     # First set the modulus depending on highperf counters or not
     my $overfl_mod = ($ghSNMPOptions{'64bits'} and "$TypeCounter" ne "32") ? 18446744073709551616 : 4294967296;
@@ -3465,7 +3477,7 @@ sub Calculate_Bps {
                     $grefhCurrent->{If}->{$ifName}->{ifLoadOutOutOfRange} = Colorcode($ifLoadOut, $ghOptions{'warning-load'}, $ghOptions{'critical-load'});
                 }
             }
-            
+
             # Calculate warn, crit & max limits
             $grefhCurrent->{If}->{$ifName}->{bpsWarn} = sprintf("%.0f", $grefhCurrent->{If}->{$ifName}->{ifSpeed} * $ghOptions{'warning-load'} / 100);
             $grefhCurrent->{If}->{$ifName}->{bpsCrit} = sprintf("%.0f", $grefhCurrent->{If}->{$ifName}->{ifSpeed} * $ghOptions{'critical-load'} / 100);
@@ -3474,7 +3486,7 @@ sub Calculate_Bps {
         } else {
             $grefhCurrent->{If}->{$ifName}->{ifLoadIn} = 0;
             $grefhCurrent->{If}->{$ifName}->{ifLoadOut} = 0;
-            
+
             # Calculate warn, crit & max limits
             $grefhCurrent->{If}->{$ifName}->{bpsWarn} = '';
             $grefhCurrent->{If}->{$ifName}->{bpsCrit} = '';
@@ -3594,7 +3606,7 @@ sub Calculate_Bps {
 # Description: evaluate packet errors and discards within a specified period
 # ------------------------------------------------------------------------
 sub Calculate_Error_Discard {
-    
+
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     logger(2, "x"x50);
     logger(2, "Packet errors and discards calculations");
@@ -3618,9 +3630,9 @@ sub Calculate_Error_Discard {
                 logger(2, "  -> no pkts statistics, skipping");
                 next;
         }
-        
+
         # ---------- Bandwidth calculation -----------
-        
+
         my $ppsErrIn      = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInErr};
         my $ppsErrOut     = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutErr};
         my $ppsDiscardIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInDiscard};
@@ -3688,7 +3700,7 @@ sub Calculate_Error_Discard {
 # Description: evaluate packet load within a specified period
 # ------------------------------------------------------------------------
 sub Calculate_Packets {
-    
+
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     logger(2, "x"x50);
     logger(2, "Packet load calculations");
@@ -3712,9 +3724,9 @@ sub Calculate_Packets {
                 logger(2, "  -> no pkts statistics, skipping");
                 next;
         }
-        
+
         # ---------- Bandwidth calculation -----------
-        
+
         my $ppsUcastIn   = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInUcast};
         my $ppsUcastOut  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutUcast};
         my $ppsNUcastIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInNUcast};
@@ -3831,7 +3843,7 @@ sub Get_Vlan_Cisco {
         # get the interface ifName stored before from the index table
         my $ifName = $grefhCurrent->{MD}->{Map}->{IndexToName}->{"$Index"};
         logger(2, "IfName=\"$ifName\", Vlan=\"$Vlan\"");
-        
+
         # separate multiple IP Adresses with a blank
         # blank is good because the WEB browser can break lines
         $grefhCurrent->{If}->{"$ifName"}->{ifVlanNames} .= ", " if ($grefhCurrent->{If}->{"$ifName"}->{ifVlanNames});
@@ -3876,7 +3888,7 @@ sub Get_Vlan_Hp {
             chomp($refhSNMPResultHPVlanPort->{$oid});
             my @oids = split('\.', $oid);
             my $vlan = $oids[-2];
-            
+
             # store ifVlanNames
             if((defined $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}})
               and ( $grefhCurrent->{MD}->{Map}->{IndexToName}->{$refhSNMPResultHPVlanPort->{$oid}} ne '')) {
@@ -3911,7 +3923,7 @@ sub Get_Vlan_Nortel {
     #   1 => "00 01 00 04 00 05 00 06 00 0C",
     #   2 => "00 01 00 0C",
     #   3 => "00 01 00 02 00 05 00 06 00 07 00 08 00 0B 00 0C",
-    
+
     # loop through all found interfaces
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
@@ -4329,7 +4341,7 @@ sub Get_Error_Drop_Bigip {
 # Description: evaluate packet errors and drops within a specified period
 # ------------------------------------------------------------------------
 sub Calculate_Error_Drop_Bigip {
-    
+
     # $grefaAllIndizes is a indexed and sorted list of all interfaces
     logger(2, "x"x50);
     logger(2, "Packet errors and drops calculations");
@@ -4353,9 +4365,9 @@ sub Calculate_Error_Drop_Bigip {
                 logger(2, "  -> no pkts statistics, skipping");
                 next;
         }
-        
+
         # ---------- Bandwidth calculation -----------
-        
+
         my $ppsErrIn   = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInErr};
         my $ppsErrOut  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsOutErr};
         my $ppsDropIn  = $grefhCurrent->{MD}->{IfStats}->{"$ifName"}->{PktsInDrop};
@@ -4730,7 +4742,7 @@ sub Get_Specific_Netscreen {
     #  '1' => 'Untrust',
     #  '10' => 'Global',
     #  '1000' => 'VPN_END_POINT',
-          
+
     ## get netscreen zone id for all interfaces
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => ["$oid_juniper_nsIfZone{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
@@ -4742,8 +4754,8 @@ sub Get_Specific_Netscreen {
     #  '1' => 1004,
     #  '10' => 1006,
     #  '11' => 1007,
-    #  '12' => 3,   
-    
+    #  '12' => 3,
+
     for my $ifName (keys %{$grefhCurrent->{If}}) {
         # Extract the index out of the MetaData
         if (defined $grefhCurrent->{MD}->{Map}->{Netscreen}->{NameToNsIfIndex}->{"$ifName"}) {
@@ -4810,8 +4822,8 @@ sub Get_Specific_Netscreen {
             "$oid_juniper_nsIfMngPing{'oid'}","$oid_juniper_nsIfMngIdentReset{'oid'}"], cachetimer => 0, outputhashkeyidx => 1, checkempty => 1));
         $refhSNMPResultNsIfMng = GetTableDataWithSnmp (\%hOptions);
     };
-    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_juniper_nsIfMngTelnet, \%oid_juniper_nsIfMngSCS, \%oid_juniper_nsIfMngWEB, 
-            \%oid_juniper_nsIfMngSSL, \%oid_juniper_nsIfMngSNMP, \%oid_juniper_nsIfMngGlobal, \%oid_juniper_nsIfMngGlobalPro, 
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_juniper_nsIfMngTelnet, \%oid_juniper_nsIfMngSCS, \%oid_juniper_nsIfMngWEB,
+            \%oid_juniper_nsIfMngSSL, \%oid_juniper_nsIfMngSNMP, \%oid_juniper_nsIfMngGlobal, \%oid_juniper_nsIfMngGlobalPro,
             \%oid_juniper_nsIfMngPing, \%oid_juniper_nsIfMngIdentReset ])) if ($@);
     # Example of content of $refhSNMPResultNsIfMng:
     #  '0' => '1|1|1|1|1|0|1|1|0',
@@ -4908,7 +4920,7 @@ sub Get_Alias_Brocade {
             logger(2, "IfName=\"$ifName\", FCPortIndex not found for the interface");
         }
     }
-    
+
     return 0;
 }
 
@@ -4950,7 +4962,7 @@ sub Get_InterfaceType_Hpux {
         }
     }
     return 0;
-}		
+}
 
 # ------------------------------------------------------------------------------
 # Get_InterfaceNames_Netapp
@@ -5023,13 +5035,13 @@ sub Get_InterfaceNames_Netapp {
             $Name = "Port $Index";
             logger(2, "  Interface with index $Index has no description.\nName is set to $Name");
         } else {
-                     
+
             # 2. append the index to duplicate interface descriptions.
             if ($refhIfDescriptionCounts->{"$Name"} > 1) {
                 $Name = "$Desc ($Index)";
                 logger(2, "  Duplicate interface description detected. Appending the index. Name will be now \"$Name\"");
             }
-			
+
             # 3. remove interface description of standard interfaces
             if ($Name =~ /^.*:.*$/) {
                 $Desc="";
@@ -5041,9 +5053,9 @@ sub Get_InterfaceNames_Netapp {
                 $Desc="MGMT_PORT_ONLY";
                 logger(2, "  Interface name matching MGMT_PORT_ONLY pattern, name reduced to \"$Name\"");
             }
-            
+
         }
- 
+
         logger(2, "  ifName=\"$Name\" (normalized: \"".normalize ($Name)."\")");
 
         # normalize the interface name and description to not get into trouble
@@ -5092,7 +5104,7 @@ sub Get_InterfaceType_Netapp {
             $refhSNMPResultIfNode = GetTableDataWithSnmp (\%hOptions);
         };
         ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_netapp_netportNode ])) if ($@);
-    
+
         logger (2, "Looping through all the interfaces");
         logger (2, "NameToDescr=".Dumper($grefhCurrent->{MD}->{Map}->{NameToDescr}));
         while ( my ($Index,$IfPort) = each(%$refhSNMPResultIfPort) ) {
@@ -5205,17 +5217,17 @@ sub Get_OperStatus_Netapp {
         logger(1, "- ifname=".$ifName);
         if (defined $grefhCurrent->{MD}->{Map}->{NetPort}->{NameToNetPortIndex}->{"$ifName"}) {
             my $Index = $grefhCurrent->{MD}->{Map}->{NetPort}->{NameToNetPortIndex}->{"$ifName"};
-    
+
             if (defined $refhSNMPResult->{$Index}) {
                 my $OperStatusNow = $refhSNMPResult->{$Index};
                 # Store the oper status as property of the current interface
                 $grefhCurrent->{If}->{"$ifName"}->{ifOperStatusNumber} = $refhOID->{'convertToOperStatus'}->{"$OperStatusNow"};
                 defined $refhOID->{'convertToReadable'}->{"$OperStatusNow"} and $OperStatusNow = $refhOID->{'convertToReadable'}->{"$OperStatusNow"};
                 $grefhCurrent->{If}->{"$ifName"}->{ifOperStatus} = "$OperStatusNow";
-    
+
                 # Retrieve adminstatus for special rules
                 my $AdminStatusNow = $grefhCurrent->{If}->{"$ifName"}->{ifAdminStatus};
-    
+
                 #
                 # Store a CacheTimer (seconds) where we cache the next
                 # reads from the net - we have the following possibilities
@@ -5248,7 +5260,7 @@ sub Get_OperStatus_Netapp {
                         "Old = \"$OperStatusFile\", Current = \"$OperStatusNow\" ";
                 }
                 logger(2, "  Index=$Index ($ifName): Operstatus was \"$OperStatusFile\" and is now \"$OperStatusNow\" (cachetimer=".$grefhCurrent->{MD}->{If}->{"$ifName"}->{CacheTimer}.")");
-    
+
                 # remember change time of the interface property
                 if ($grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime}) {
                     $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} =
@@ -5256,7 +5268,7 @@ sub Get_OperStatus_Netapp {
                 } else {
                     $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
                 }
-    
+
                 #
                 # Some rules with ifOperStatus
                 #
@@ -5271,7 +5283,7 @@ sub Get_OperStatus_Netapp {
                 # ---------------------------------------------------------------------
                 # down                 | *                     | no alarm and update ifOperStatus initial state
                 #
-    
+
                 # track changes of the oper status
                 if ("$OperStatusNow" eq "$OperStatusFile") {   # no changes to its first state
                     # delete the changed flag and reset the time when it was changed
@@ -5319,7 +5331,7 @@ sub Get_OperStatus_Netapp {
                     if (not $grefhFile->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText}) {
                         $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeTime} = time;
                     }
-    
+
                     # remember the change every run of this program, this is useful if the
                     # ifOperStatus changes from "up" to "testing" to "down"
                     $grefhCurrent->{MD}->{If}->{"$ifName"}->{ifOperStatusChangeText} =
@@ -5359,7 +5371,7 @@ sub Get_Speed_Netapp {
         # Extract the index out of the MetaData
         if (defined $grefhCurrent->{MD}->{Map}->{NetPort}->{NameToNetPortIndex}->{"$ifName"}) {
             my $Index = $grefhCurrent->{MD}->{Map}->{NetPort}->{NameToNetPortIndex}->{"$ifName"};
-    
+
             if (defined $refhSNMPResultIfHighSpeed->{"$Index"} and $refhSNMPResultIfHighSpeed->{"$Index"} >= 2) {
                 # Get the speed from highperf speed counters
                 my $IfSpeed = $refhOIDIfHighSpeed->{'convertToReadable'}->{"$refhSNMPResultIfHighSpeed->{$Index}"} * 1000000;
@@ -5574,13 +5586,13 @@ sub CleanAndSelectHistoricalDataset {
             last;
         }
     }
-    
+
     if (not defined $firsttime) {
         # no dataset (left) to compare with
         # no further calculations if we run for the first time.
         logger(1, " no dataset (left) to compare with, bandwitdh calculations will not be done");
     }
-    
+
     return $firsttime;
 }
 
@@ -5742,7 +5754,7 @@ sub GenerateInterfaceTableData {
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
                             $CellContent .= '<a href="' .
-                                #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . 
+                                #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                 #'&page_act=[1]+Interface+traffic' .
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
@@ -6154,7 +6166,7 @@ sub Perfdataout {
             for my $InterfaceIndex (@$grefaAllIndizes) {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
-                
+
                 # using portperfunit "bit" : bit counters
                 if ($ghOptions{'portperfunit'} eq "bit") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
@@ -6247,13 +6259,13 @@ sub Perfdataout {
                                     $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
                                     $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
                                 }
-                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; " 
+                                $perfdata .= "PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop});
-                                $perfdata .= "PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; " 
+                                $perfdata .= "PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop});
                             }
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -6276,13 +6288,13 @@ sub Perfdataout {
                                     $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
                                     $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
                                 }
-                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; " 
+                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
-                                $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; " 
+                                $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
                                 if ($ghOptions{'pkt'}) {
                                     $perfdata .= "PpsInUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast}*1 .";;;0; "
@@ -6369,7 +6381,7 @@ sub Perfdataout {
             for my $InterfaceIndex (@$grefaAllIndizes) {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
-                    
+
                 if ($ghOptions{'portperfunit'} eq "bit") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
                       and defined $grefhCurrent->{MD}->{IfCounters}->{$Name}->{OctetsIn}
@@ -6436,7 +6448,7 @@ sub Perfdataout {
                         print OUT "$perfdata";                         # performancedata
                         print OUT "\t$STARTTIME\n";                    # unix timestamp
                     }
-                    
+
                 } elsif ($ghOptions{'portperfunit'} eq "bps") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
                       and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}
@@ -6468,13 +6480,13 @@ sub Perfdataout {
                                     $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
                                     $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
                                 }
-                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; " 
+                                $perfdata .= "PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop});
-                                $perfdata .= "PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; " 
+                                $perfdata .= "PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .";$warning_pktdrop;$critical_pktdrop;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop});
                             }
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -6497,11 +6509,11 @@ sub Perfdataout {
                                     $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
                                     $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
                                 }
-                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; " 
+                                $perfdata .= "PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .";$warning_pkterr;$critical_pkterr;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; " 
+                                $perfdata .= "PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
                                 $perfdata .= "PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .";$warning_pktdiscard;$critical_pktdiscard;0; "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
@@ -6556,7 +6568,7 @@ sub Perfdataout {
             for my $InterfaceIndex (@$grefaAllIndizes) {
                 # Get normalized interface name (key for If data structure)
                 my $Name = $grefhCurrent->{MD}->{Map}->{IndexToName}->{$InterfaceIndex};
-                
+
                 # using portperfunit "bit" : bit counters
                 if ($ghOptions{'portperfunit'} eq "bit") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
@@ -6615,7 +6627,7 @@ sub Perfdataout {
                         $gPerfdata .= "$perfdata";
                     }
                 # using portperfunit "bps" : calculated bit per second
-                } 
+                }
 				elsif ($ghOptions{'portperfunit'} eq "bps") {
                     if ($grefhCurrent->{MD}->{If}->{$Name}->{ExcludedTrack} eq "false"
                       and defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{OctetsIn}
@@ -6648,13 +6660,13 @@ sub Perfdataout {
                                     $warning_pktdrop = ($ghOptions{'warning-pktdrop'} >= 0) ? $ghOptions{'warning-pktdrop'} : '';
                                     $critical_pktdrop = ($ghOptions{'critical-pktdrop'} >= 0) ? $ghOptions{'critical-pktdrop'} : '';
                                 }
-                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", " 
+                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", " 
+                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "${servicename}_PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .", " 
+                                $perfdata .= "${servicename}_PpsInDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDrop});
-                                $perfdata .= "${servicename}_PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .", " 
+                                $perfdata .= "${servicename}_PpsOutDrop=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDrop});
                             }
                         } elsif (defined $grefhCurrent->{If}->{$Name}->{ifOperStatus}) {
@@ -6676,13 +6688,13 @@ sub Perfdataout {
                                     $warning_pktdiscard = ($ghOptions{'warning-pktdiscard'} >= 0) ? $ghOptions{'warning-pktdiscard'} : '';
                                     $critical_pktdiscard = ($ghOptions{'critical-pktdiscard'} >= 0) ? $ghOptions{'critical-pktdiscard'} : '';
                                 }
-                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", " 
+                                $perfdata .= "${servicename}_PpsInErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInErr});
-                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", " 
+                                $perfdata .= "${servicename}_PpsOutErr=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutErr});
-                                $perfdata .= "${servicename}_PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .", " 
+                                $perfdata .= "${servicename}_PpsInDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInDiscard});
-                                $perfdata .= "${servicename}_PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .", " 
+                                $perfdata .= "${servicename}_PpsOutDiscard=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard}*1 .", "
                                     if (defined $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsOutDiscard});
                                 if ($ghOptions{'pkt'}) {
                                     $perfdata .= "${servicename}_PpsInUcast=". $grefhCurrent->{MD}->{IfStats}->{$Name}->{PktsInUcast}*1 .", "
@@ -6837,7 +6849,7 @@ sub ExitPlugin {
     my $output = shift;
     my $htmltablefile = $ghOptions{'htmltabledir'} . "/" . $gFile . ".html";
     chomp($output);
-    
+
     # Append errorcode string prefix to text
     if (defined $ERRORCODES{"$code"}) {
         $output = $ERRORCODES{"$code"}." - ".$output;
@@ -6859,14 +6871,14 @@ sub ExitPlugin {
     # Troubleshooting
     #print "grefhCurrent: \n".Dumper($grefhCurrent);
     #print "\n";
-    
+
     exit $code;
 }
 
 # ------------------------------------------------------------------------------
 # add_oid_details
 # ------------------------------------------------------------------------------
-# Description: check a string and add the object name and the mib corresponding 
+# Description: check a string and add the object name and the mib corresponding
 # to an oid if this one is found
 # ------------------------------------------------------------------------------
 sub add_oid_details {
@@ -7004,10 +7016,10 @@ sub print_usage () {
            --critical-traffic <load%>,<pkterr/s>,<pktdiscard/s>
            ex: --critical-traffic 95,1000,1000
     --(no)pkt (optional)
-        Add unicast/non-unicast pkt stats for each interface. No tracking, just for statistics 
+        Add unicast/non-unicast pkt stats for each interface. No tracking, just for statistics
         and graphs
 	--(no)trafficwithpkt (optional)
-		Enable traffic calculation using pkt counters instead of octet counters. Useful when 
+		Enable traffic calculation using pkt counters instead of octet counters. Useful when
 		using 32-bit counters to track the load on > 1GbE interfaces.
 
   Property checks (interface property changes)
@@ -7066,7 +7078,7 @@ sub print_usage () {
     -P, --port=PORT
         SNMP port (Default 161)
     --64bits
-        Use SNMP 64-bits counters. Use it when your target device support it, to be able to 
+        Use SNMP 64-bits counters. Use it when your target device support it, to be able to
         monitor high (>=1Gbps) bandwidth usage.
     --max-repetitions=integer
         Available only for snmp v2c/v3. Increasing this value may enhance snmp query performances
@@ -7079,7 +7091,7 @@ sub print_usage () {
         from 0 to 20.
     --snmp-maxmsgsize
          max size of the SNMP message in octets, usefull in case of too Long responses.
-         Be carefull with network filters. Range 484 - 65535. The default is 1472 octets for UDP/IPv4, 
+         Be carefull with network filters. Range 484 - 65535. The default is 1472 octets for UDP/IPv4,
          1452 octets for UDP/IPv6, 1460 octets for TCP/IPv4, and 1440 octets for TCP/IPv6.
          Apply only to netsnmp perl bindings.
     --(no)unixsnmp
@@ -7104,13 +7116,13 @@ sub print_usage () {
     --perfdatathreshold (optional)
         Define which thresholds are printed in the generated performance data.
         Can be:
-         * full : thresholds in the generated performance data are generated for include plugin 
+         * full : thresholds in the generated performance data are generated for include plugin
                   related stats, interface load stats, and packet error stats
-         * loadonly : thresholds in the generated performance data include plugin related stats 
+         * loadonly : thresholds in the generated performance data include plugin related stats
                   and interface load stats
          * globalonly : thresholds in the generated performance data include only plugin related stats
         Default is full.
-        'loadonly' or 'globalonly' could be used in case of a too long plugin output producing problems 
+        'loadonly' or 'globalonly' could be used in case of a too long plugin output producing problems
         with nagios/icinga's buffers.
     --perfdatadir (optional)
         When specified, the performance data are also written directly to a file, in the specified
@@ -7129,7 +7141,7 @@ sub print_usage () {
         In/out traffic in perfdata could be reported in bits (counters) or in bps (calculated value).
         Using bps avoid abnormal load values to be plotted on the graphs.
         !!! WARNING !!!
-        switching from one mode to the other require the change of the Data Source Type (DST) in the rrd 
+        switching from one mode to the other require the change of the Data Source Type (DST) in the rrd
         files already generated by pnp4nagios (or similar action for the other graphing solutions)
         !!! WARNING !!!
         Possible values: bit or bps (default)
@@ -7141,8 +7153,8 @@ sub print_usage () {
         Sets the directory where the interface states are stored.
     --nodetype (optional)
         Specify the node type, for specific information to be printed / specific oids to be used
-        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, netap-cdot, bigip, 
-        bluecoat, brocade, brocade-nos, nortel, hpux.
+        Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, netap-cdot, bigip,
+        bluecoat, brocade, brocade-nos, nortel, hpux, datadomain.
     --(no)duplex (optional)
         Add the duplex mode property for each interface in the interface table.
     --(no)stp (optional)
@@ -7289,7 +7301,7 @@ sub check_options () {
         'type!',                                # Add interface type for each interface
         'pkt!',                                 # Add unicast/non-unicast pkt stats for each interface
         'nodetype=s',                           # Specify the node type, for specific information to be printed / specific oids to be used
-                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, netapp-cdot, bigip, 
+                                                #  Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, netapp-cdot, bigip,
 												#  bluecoat, brocade, brocade-nos, nortel, hpux
         'ifloadgradient!',                      # color gradient from green over yellow to red representing the load percentage
         'human!',                               # translate bandwidth usage in human readable format (G/M/K bps)
@@ -7603,10 +7615,10 @@ sub check_options () {
         $ghOptions{'human'} = $commandline{human};
     }
     if (exists $commandline{nodetype}) {
-        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$/i) {
+        if ($commandline{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bigip$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$|^datadomain$/i) {
             $ghOptions{'nodetype'} = $commandline{nodetype};
         } else {
-            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel, hpux.\n";
+            print "Specified nodetype \"$commandline{nodetype}\" is not valid. Valid nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel, hpux, netapp-cdot, datadomain.\n";
             exit $ERRORS{"UNKNOWN"};
         }
     }
@@ -7628,7 +7640,7 @@ sub check_options () {
         }
     }
     if (exists $commandline{'type'}) {
-        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$/i) {
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$|^datadomain$/i) {
             $ghOptions{'type'} = $commandline{'type'};
         } else {
             print "Option \"--type\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";
@@ -7702,7 +7714,7 @@ sub check_options () {
     $ghOptions{'warning-load'} =~ s/%$//;
     $ghOptions{'warning-pkterr'} = $tmparray2[1];
     if ($ghOptions{'nodetype'} eq 'bigip') {
-        $ghOptions{'warning-pktdrop'} = $tmparray2[2];    
+        $ghOptions{'warning-pktdrop'} = $tmparray2[2];
     } else {
         $ghOptions{'warning-pktdiscard'} = $tmparray2[2];
     }
@@ -7718,11 +7730,11 @@ sub check_options () {
     $ghOptions{'critical-load'} =~ s/%$//;
     $ghOptions{'critical-pkterr'} = $tmparray3[1];
     if ($ghOptions{'nodetype'} eq 'bigip') {
-        $ghOptions{'critical-pktdrop'} = $tmparray3[2];    
+        $ghOptions{'critical-pktdrop'} = $tmparray3[2];
     } else {
         $ghOptions{'critical-pktdiscard'} = $tmparray3[2];
     }
-    
+
     #------- performance data -------#
     if (exists $commandline{grapher}) {
         if ($commandline{grapher} =~ /^pnp4nagios$|^nagiosgrapher$|^netwaysgrapherv2$|^ingraph$|^graphite$|^nagiosxi$/i) {
@@ -7810,7 +7822,7 @@ sub check_options () {
         }
     }
     if (exists $commandline{'table-split'}) {
-        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$/i) {
+        if ($ghOptions{nodetype} =~ /^standard$|^cisco$|^hp$|^netscreen$|^netapp$|^bluecoat$|^brocade$|^brocade-nos$|^nortel$|^hpux$|^netapp-cdot$|^datadomain$/i) {
             $ghOptions{'table-split'} = $commandline{'table-split'};
         } else {
             print "Option \"--table-split\" not supported for the nodetype \"$ghOptions{nodetype}\".\n";

@@ -156,7 +156,7 @@
 | ------- | ----------- | ------------- |
 | --cachedir | Sets the directory where snmp responses are cached. | _Installation related_ |
 | --statedir | Sets the directory where the interface states are stored. | _Installation related_ |
-| --nodetype="type" | Specify the node type, for specific information to be printed / specific oids to be used. <br>Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, bigip, bluecoat, brocade, brocade-nos, nortel. | standard |
+| --nodetype="type" | Specify the node type, for specific information to be printed / specific oids to be used. <br>Possible nodetypes are: standard (default), cisco, hp, netscreen, netapp, netapp-cdot, bigip, bluecoat, brocade, brocade-nos, nortel, hpux, datadomain | standard |
 | --(no)duplex | Add the duplex mode property for each interface in the interface table. | _disabled_ |
 | --(no)stp | Add the stp state property for each interface in the interface table. <br>BE AWARE that it based on the dot1base mib, which is incomplete in specific cases: <br>\* Cisco device using pvst / multiple vlan stp | _disabled_ |
 | --(no)vlan | Add the vlan attribution property for each interface in the interface table. This option is available only for the following nodetypes: cisco, hp, nortel | _disabled_ |
