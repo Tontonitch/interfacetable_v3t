@@ -4,12 +4,26 @@ ScriptAlias @cgiurlrel@ "@cgidir@"
     #SSLRequireSSL
     Options ExecCGI
     AllowOverride None
-    Order allow,deny
-    Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
     AuthUserFile @apache_authfile@
-    Require valid-user
+    <IfModule mod_authz_core.c>
+      # Apache 2.4
+      <RequireAll>
+         Require all granted
+         # Require local
+         Require valid-user
+      </RequireAll>
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+      # Apache 2.2
+      Order allow,deny
+      Allow from all
+      #  Order deny,allow
+      #  Deny from all
+      #  Allow from 127.0.0.1
+      Require valid-user
+    </IfModule>
 </Directory>
 
 Alias @htmlurlrel@ "@sharedir@"
@@ -18,10 +32,24 @@ Alias @htmlurlrel@ "@sharedir@"
     #SSLRequireSSL
     Options None
     AllowOverride None
-    Order allow,deny
-    Allow from all
     AuthName "@apache_authname@"
     AuthType Basic
     AuthUserFile @apache_authfile@
-    Require valid-user
+    <IfModule mod_authz_core.c>
+      # Apache 2.4
+      <RequireAll>
+         Require all granted
+         # Require local
+         Require valid-user
+      </RequireAll>
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+      # Apache 2.2
+      Order allow,deny
+      Allow from all
+      #  Order deny,allow
+      #  Deny from all
+      #  Allow from 127.0.0.1
+      Require valid-user
+    </IfModule>
 </Directory>
