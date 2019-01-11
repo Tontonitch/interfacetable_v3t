@@ -107,9 +107,9 @@ while ($f = shift @ARGV) {
     open(OUT,">$TEMP") || die 'Cannot make temporary file $TEMP';
 
     while (<IN>) {
-        s|\@{prefix}\@|$prefix|g;
-        s|\@{exec_prefix}\@|$exec_prefix|g;
-#        s|\@{datarootdir}\@|$datarootdir|g;
+        s|\@\{prefix\}\@|$prefix|g;
+        s|\@\{exec_prefix\}\@|$exec_prefix|g;
+#        s|\@\{datarootdir\}\@|$datarootdir|g;
         s|\@host_os\@|$host_os|g;
         s|\@PKG_NAME\@|$PKG_NAME|g;
         s|\@PKG_VERSION\@|$PKG_VERSION|g;
