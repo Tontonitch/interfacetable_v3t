@@ -63,7 +63,7 @@ $for_check_command="check_interface_table_v2tX.pl";
 #
 
 $ds_name[1] = "Interface status";
-$opt[1] = '--vertical-label "Status" -X0 --title "Interface status" --rigid --lower=0';
+$opt[1] = '--vertical-label "Status" -X0 --title "Interface status" --rigid --lower-limit=0';
 $opt[1] .= ' --watermark="Template for '.$for_check_command.' by Yannick Charton"';
 $def[1] = "";
 
@@ -80,7 +80,7 @@ $def[1] .= rrd::area    ("adminupfree", '#90EE90', "free (admin up)   ", 'STACK'
 $def[1] .= rrd::gprint  ("adminupfree", array("LAST","MAX","AVERAGE"), "%5.1lf");
 
 $ds_name[2] = "Interface statistics gathering time";
-$opt[2] = '--vertical-label "seconds" -X0 --title "Interface statistics gathering time" --rigid --lower=0';
+$opt[2] = '--vertical-label "seconds" -X0 --title "Interface statistics gathering time" --rigid --lower-limit=0';
 $opt[2] .= ' --watermark="Template for '.$for_check_command.' by Yannick Charton"';
 $def[2] = "";
 
