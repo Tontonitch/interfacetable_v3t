@@ -344,7 +344,7 @@ my %oid_netapp_netportAutonegOper      = ( name => "netportAutonegOper",     mib
 my %oid_netapp_netportDuplexAdmin      = ( name => "netportDuplexAdmin",     mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.8" );
 my %oid_netapp_netportDuplexOper       = ( name => "netportDuplexOper",      mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.9" );
 my %oid_netapp_netportSpeedAdmin       = ( name => "netportSpeedAdmin",      mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.10" );
-my %oid_netapp_netportSpeedOper        = ( name => "netportSpeedOper",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.11", convertToReadable => {0=>'undef',1=>'auto',2=>'10',3=>'100',4=>'1000',5=>'10000'});
+my %oid_netapp_netportSpeedOper        = ( name => "netportSpeedOper",       mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.11", convertToReadable => {0=>'undef',1=>'auto',2=>'10',3=>'100',4=>'1000',5=>'10000',6=>'40000',7=>'100000',8=>'25000'});
 my %oid_netapp_netportSpeed            = ( name => "netportSpeed",           mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.12" );
 my %oid_netapp_netportMac              = ( name => "netportMac",             mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.13" );
 my %oid_netapp_netportUpAdmin          = ( name => "netportUpAdmin",         mib => "NETAPP-MIB", oid => "1.3.6.1.4.1.789.1.22.2.1.14", convertToReadable => {1=>'up', 0=>'down'});
