@@ -20,7 +20,7 @@ When launched with the parameter --short, the plugin reacts as in previous versi
 
 When launched with the parameter --long, the plugin outputs detailed information when a problem occurs.
 
-Exemple of output whith --long: ![Image](tiki-download_file.php?fileId=7&display)
+Exemple of output whith --long: ![image](https://user-images.githubusercontent.com/600025/232100581-025761e7-0e02-4390-8a32-8131f4ea6759.png)
 
 The parts of the output are explaned hereunder:
 
@@ -37,7 +37,7 @@ Real time alerting
 
 You can keep an eye on your monitoring system via various nagios addons. 2 famous ones are nagioschecker (firefox extension) and nagstamon (floating bar on desktop).
 
-Hereunder is an exemple of alert concerning check\_interface\_table\_v3t on nagstamon: ![image](https://user-images.githubusercontent.com/600025/232099742-589eaca9-8554-4b9e-ae3d-e6137f4b6af6.png)
+Hereunder is an exemple of alert concerning check\_interface\_table\_v3t on nagstamon: ![image](https://user-images.githubusercontent.com/600025/232100495-60c75736-b9c3-478c-93d3-71e7c018364c.png)
 
 Zoom on 'Status Information' ![image](https://user-images.githubusercontent.com/600025/232099833-355614f7-cc62-4c94-8bf8-6e2b443f195a.png)
 
