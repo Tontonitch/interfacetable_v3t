@@ -61,7 +61,7 @@ else
 fi
 
 dnl Figure out how to invoke "install" and what install options to use.
-AC_PROG_INSTALL # set INSTALL_PROGRAM and INSTALL_SCRIPT to ‘${INSTALL}’ and INSTALL_DATA to ‘${INSTALL} -m 644’
+AC_PROG_INSTALL # set INSTALL_PROGRAM and INSTALL_SCRIPT to â€˜${INSTALL}â€™ and INSTALL_DATA to â€˜${INSTALL} -m 644â€™
 AC_SUBST(INSTALL)
 
 ### Checks for libraries.
@@ -397,9 +397,7 @@ echo " !!    everything should be okay, the new default method will be used.    
 echo " !!  * if you are upgrading an existing installation of the interfacetable_v3t plugin:        !!"
 echo " !!    - by default, the new method will be used.                                             !!"
 echo " !!      YOU WILL NEED TO CONVERT THE EXISTING RRD FILES! See the upgrade procedure at        !!"
-echo " !!      http://www.tontonitch.com/tiki/tiki-index.php?page=Nagios+plugins+-+interfacetable_v !!"
-echo " !!      3t+-+documentation+-+0.05+-+Upgrade&structure=Nagios+plugins+-+interfacetable_v3t+-+ !!"
-echo " !!      documentation+-+0.05                                                                 !!"
+echo " !!      https://github.com/Tontonitch/interfacetable_v3t/blob/master/doc/04-upgrade.md       !!"
 echo " !!    - or you can still use the old method                                                  !!"
 echo " !!       a) during the installation by using the configure option --with-portperfunit=bit    !!"
 echo " !!       b) or when running the plugin by using the plugin option --portperfunit=bit         !!"
