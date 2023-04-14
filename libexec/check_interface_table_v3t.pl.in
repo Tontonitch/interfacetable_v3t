@@ -677,8 +677,81 @@ my $gConfigTableOtherMsgCrit         = "";
 # ========================================================================
 sub check_options();
 
-
-
+# List used perl modules - useful for troubleshooting behavior variations
+if ($ghOptions{verbose}) {
+    logger(1, "List used perl modules - main");
+    my @modules = ('Net::SNMP', 'Config::General', 'Data::Dumper', 'Getopt::Long', 'Sort::Naturally', 'Time::HiRes', 'Encode', 'GeneralUtils', 'Settings', 'SnmpUtils');
+    foreach (@modules) {
+        eval "require $_";
+        if ($@) {
+            my $error = $@;
+            if ($error =~ /Can't locate/) {
+                warn "$_ is not installed.\n";
+            }
+            else {
+                warn "$_ had a problem: $@.\n";
+            }
+            next;
+        }
+        my $version = $_->VERSION ();
+        logger(1, " '$_' => '$version'");
+        #print "'$_' => '$version',\n";
+    }
+    logger(1, "List used perl modules - package GeneralUtils");
+    @modules = ('Exporter');
+    foreach (@modules) {
+        eval "require $_";
+        if ($@) {
+            my $error = $@;
+            if ($error =~ /Can't locate/) {
+                warn "$_ is not installed.\n";
+            }
+            else {
+                warn "$_ had a problem: $@.\n";
+            }
+            next;
+        }
+        my $version = $_->VERSION ();
+        logger(1, " '$_' => '$version'");
+        #print "'$_' => '$version',\n";
+    }
+    logger(1, "List used perl modules - package Settings");
+    @modules = ('Exporter', 'GeneralUtils');
+    foreach (@modules) {
+        eval "require $_";
+        if ($@) {
+            my $error = $@;
+            if ($error =~ /Can't locate/) {
+                warn "$_ is not installed.\n";
+            }
+            else {
+                warn "$_ had a problem: $@.\n";
+            }
+            next;
+        }
+        my $version = $_->VERSION ();
+        logger(1, " '$_' => '$version'");
+        #print "'$_' => '$version',\n";
+    }
+    logger(1, "List used perl modules - package SnmpUtils");
+    @modules = ('Data::Dumper', 'Storable', 'Exporter', 'GeneralUtils', 'Exception::Class');
+    foreach (@modules) {
+        eval "require $_";
+        if ($@) {
+            my $error = $@;
+            if ($error =~ /Can't locate/) {
+                warn "$_ is not installed.\n";
+            }
+            else {
+                warn "$_ had a problem: $@.\n";
+            }
+            next;
+        }
+        my $version = $_->VERSION ();
+        logger(1, " '$_' => '$version'");
+        #print "'$_' => '$version',\n";
+    }
+}
 
 # OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
 # OOOOOOOOOOOOOOOOOOOOOOOOOOOOO            OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
@@ -688,6 +761,8 @@ sub check_options();
 
 # Get command line options and adapt default values in %ghOptions
 check_options();
+
+
 
 # Set the timeout
 logger(1, "Set global plugin timeout to ${TIMEOUT}s");
