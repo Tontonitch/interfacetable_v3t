@@ -295,6 +295,7 @@ my %oid_juniper_nsrpVsdMemberStatus = ( name => "nsrpVsdMemberStatus", mib => "N
 # ------------------------------------------------------------------------
 
 my %oid_netapp_productModel     = ( name => "productModel",     mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.1.5.0" );
+my %oid_netapp_cdot_nodeModel   = ( name => "nodeModel",        mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.25.2.1.4" );  # + ".<index>"
 
 # -- netifTable
 my %oid_netapp_netifIndex            = ( name => "netifIndex",         mib => "NETWORK-APPLIANCE-MIB", oid => "1.3.6.1.4.1.789.1.22.1.2.1.1" );  # + ".<index>"
@@ -970,13 +971,27 @@ if ($ghOptions{'nodetype'} eq "cisco") {
         $grefhCurrent->{MD}->{Node}->{cisco_serial} = "$refhSNMPResult->{$oid_cisco_ChassisSrNumStr{'oid'}}";
     }
 }
-if ($ghOptions{'nodetype'} eq "netapp" or $ghOptions{'nodetype'} eq "netapp-cdot") {
+if ($ghOptions{'nodetype'} eq "netapp") {
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_netapp_productModel{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
         $refhSNMPResult = GetDataWithSnmp (\%hOptions);
     };
     ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_netapp_productModel ])) if ($@);
     $grefhCurrent->{MD}->{Node}->{netapp_model} = "$refhSNMPResult->{$oid_netapp_productModel{'oid'}}";
+}
+if ($ghOptions{'nodetype'} eq "netapp-cdot") {
+    eval {
+        my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_netapp_cdot_nodeModel{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
+        $refhSNMPResult = GetTableDataWithSnmp (\%hOptions);
+    };
+    ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_netapp_cdot_nodeModel ])) if ($@);
+    my $nodeid = 0;
+    $grefhCurrent->{MD}->{Node}->{netapp_model} = "";
+    for my $value ( values %$refhSNMPResult ) {
+        $nodeid++;
+        $grefhCurrent->{MD}->{Node}->{netapp_model} .= ", " if ($grefhCurrent->{MD}->{Node}->{netapp_model} ne "");
+        $grefhCurrent->{MD}->{Node}->{netapp_model} .= "node".$nodeid.": ".$value;
+    }
 }
 if ($ghOptions{'nodetype'} eq "bigip") {
     eval {
