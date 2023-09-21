@@ -226,7 +226,7 @@ fdTableSort = {
 
                                                 aclone = a.cloneNode(true);
                                                 //aclone.appendChild(document.createTextNode(thtext));
-                                                aclone.innerHTML = thtext;
+                                                aclone.innerText = thtext;
                                                 aclone.title = "Sort on \u201c" + thtext.replace('<br />', '') + "\u201d";
                                                 aclone.onclick = aclone.onkeydown = workArr[c][i].onclick = fdTableSort.initWrapper;
                                                 workArr[c][i].appendChild(aclone);
