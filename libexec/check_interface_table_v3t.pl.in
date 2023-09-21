@@ -1996,7 +1996,13 @@ sub Get_InterfaceNames {
                 }
             }
 
-			# Detect long name, which may be reduced for a cleaner interface table
+            #Replace + character, like in SFP+
+            if ($Name =~ /\+/) {
+                $Name =~ s/\+/plus/g;
+                logger(2, "  Interface name containing a + character, renamed to \"$Name\"");
+            }
+
+            # Detect long name, which may be reduced for a cleaner interface table
             my $name_warning_length = 40;
             if (length($Name) > $name_warning_length) {
                 logger(2, "  Interface name quite long! (> $name_warning_length char.). Name: \"$Name\"");
