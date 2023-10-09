@@ -947,10 +947,10 @@ eval {
     $refhSNMPResult = GetDataWithSnmp (\%hOptions);
 };
 ExitPlugin($ERRORS{"UNKNOWN"}, add_oid_details($@->message(), [ \%oid_sysDescr, \%oid_sysName, \%oid_sysContact, \%oid_sysLocation ])) if ($@);
-$grefhCurrent->{MD}->{Node}->{sysDescr} = "$refhSNMPResult->{$oid_sysDescr{'oid'}}";
-$grefhCurrent->{MD}->{Node}->{sysName}  = "$refhSNMPResult->{$oid_sysName{'oid'}}";
-$grefhCurrent->{MD}->{Node}->{sysContact} = "$refhSNMPResult->{$oid_sysContact{'oid'}}";
-$grefhCurrent->{MD}->{Node}->{sysLocation}  = "$refhSNMPResult->{$oid_sysLocation{'oid'}}";
+$grefhCurrent->{MD}->{Node}->{sysDescr} = (defined $refhSNMPResult->{$oid_sysDescr{'oid'}}) ? $refhSNMPResult->{$oid_sysDescr{'oid'}} : "";
+$grefhCurrent->{MD}->{Node}->{sysName} = (defined $refhSNMPResult->{$oid_sysName{'oid'}}) ? $refhSNMPResult->{$oid_sysName{'oid'}} : "";
+$grefhCurrent->{MD}->{Node}->{sysContact} = (defined $refhSNMPResult->{$oid_sysContact{'oid'}}) ? $refhSNMPResult->{$oid_sysContact{'oid'}} : "";
+$grefhCurrent->{MD}->{Node}->{sysLocation} = (defined $refhSNMPResult->{$oid_sysLocation{'oid'}}) ? $refhSNMPResult->{$oid_sysLocation{'oid'}} : "";
 if ($ghOptions{'nodetype'} eq "cisco") {
     eval {
         my %hOptions = ( %ghSNMPOptions, (oids => [ "$oid_cisco_ChassisModel{'oid'}","$oid_cisco_ChassisSrNumStr{'oid'}" ], cachetimer => $gLongCacheTimer, outputhashkeyidx => 0, checkempty => 0));
