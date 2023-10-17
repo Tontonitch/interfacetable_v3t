@@ -5852,30 +5852,37 @@ sub GenerateInterfaceTableData {
                         $servicename =~ s/[: ]/_/g;
                         $servicename =~ s/,/./g;
                         if ($ghOptions{'grapher'} eq  "pnp4nagios") {
+                          if ($ghOptions{'icingaweb2-module-pnp'}) {
+                            $CellContent .= '<a href="' .
+                                '/icingaweb2/pnp/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
+                                '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
+                          } else {
                             $CellContent .= '<a class=\'tips\' ' .
                                 'href="' . $ghOptions{'grapherurl'} . '/index.php/graph?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '" ' .
                                 'rel="' . $ghOptions{'grapherurl'} . '/index.php/popup?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
                                 '<img src="../img/chart.png" alt="Trends" /></a>';
+                                '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
+                          }
                         } elsif ($ghOptions{'grapher'} eq  "nagiosgrapher") {
                             $CellContent .= '<a href="' .
                                 #$ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename .
                                 #'&page_act=[1]+Interface+traffic' .
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
-                                '<img src="../img/chart.png" alt="Trends" /></a>';
+                                '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "netwaysgrapherv2") {
                             $CellContent .= '<a href="' .
                                 $ghOptions{'grapherurl'} . '/graphs.cgi?host=' . $ghOptions{'hostdisplay'} . '&srv=' . $servicename . '">' .
-                                '<img src="../img/chart.png" alt="Trends" /></a>';
+                                '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
                         } elsif ($ghOptions{'grapher'} eq  "ingraph") {
                             my $parentService = '&parentService=' . $serviceDescription if ($serviceDescription);
                             if ($ghOptions{'nodetype'} eq  "bigip") {
                                 $CellContent .= '<a href="' .
                                     $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port_bigip' . $parentService. '">' .
-                                    '<img src="../img/chart.png" alt="Trends" /></a>';
+                                    '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
                             } else {
                                 $CellContent .= '<a href="' .
                                     $ghOptions{'grapherurl'} . '/?host=' . $ghOptions{'hostdisplay'} . '&service=' . $servicename . '::check_interface_table_port' . $parentService. '">' .
-                                    '<img src="../img/chart.png" alt="Trends" /></a>';
+                                    '<img src="' . $ghOptions{img_prefix} . '/chart.png" alt="Trends" /></a>';
                             }
                         } elsif ($ghOptions{'grapher'} eq  "nagiosxi") {
                             $CellContent .= '<a href="' .
@@ -5888,7 +5895,7 @@ sub GenerateInterfaceTableData {
                     $CellContent .= '<a href="xxxxxxxxxxxx.cgi?' .
                         'host=' . $ghOptions{'hostquery'} .
                         '&ifindex=' . $InterfaceIndex . '">' .
-                        '<img src="../img/binocular.png" alt="Details" /></a>';
+                        '<img src="' . $ghOptions{img_prefix} . '/binocular.png" alt="Details" /></a>';
                 }
             }
 
@@ -6020,7 +6027,7 @@ sub Convert2HtmlTable {
                     # Tooltip
                     if ( defined $Cell->{Tooltip} and $ghOptions{'tips'}) {
                         #$HTMLTable .= ' onclick="DoNav(\''.$Cell->{InterfaceGraphURL}. '\');"';
-                        $Title .= "<img height=14 width=14 style=\"float: right;\" src=\"../img/information-button.png\" " .
+                        $Title .= "<img height=14 width=14 style=\"float: right;\" src=\"' . $ghOptions{img_prefix} . '/information-button.png\" " .
                             "onmouseout=\"UnTip()\" onmouseover=\"Tip('<i>$Cell->{Tooltip}</i>')\">"
                     }
 
@@ -6144,9 +6151,9 @@ sub WriteHtmlFile {
     <title>Interfacetable_v3t - ' . $grefhCurrent->{MD}->{Node}->{sysName} . '</title>
     <link rel="stylesheet" type="text/css" href="../css/' . $ghOptions{'css'} . '.css">
     <link rel="stylesheet" type="text/css" href="../css/button.css">
-    <script type="text/javascript" src="../js/functions.js"></script>
-    <script type="text/javascript" src="../js/tablesort.js"></script>
-    <script type="text/javascript" src="../js/customsort.js"></script>';
+    <script type="text/javascript" src="' . $ghOptions{js_prefix} . '/functions.js"></script>
+    <script type="text/javascript" src="' . $ghOptions{js_prefix} . '/tablesort.js"></script>
+    <script type="text/javascript" src="' . $ghOptions{js_prefix} . '/customsort.js"></script>';
         if ( $ghOptions{'enableperfdata'} and $ghOptions{'grapher'} eq  "pnp4nagios" ) {
             print OUT '    <script src="/pnp4nagios/media/js/jquery-min.js" type="text/javascript"></script>
     <script src="/pnp4nagios/media/js/jquery.cluetip.js" type="text/javascript"></script>
@@ -6159,13 +6166,13 @@ sub WriteHtmlFile {
         }
         print OUT '  </head>
 <body>
-  <script type="text/javascript" src="../js/wz_tooltip.js"></script>';
+  <script type="text/javascript" src="' . $ghOptions{js_prefix} . '/wz_tooltip.js"></script>';
         # -- Body header --
         print OUT '<div width=98% align=center>';
         print OUT '    <div id="header">
         <div class="buttons">
             <a href="' . $ghOptions{htmltableurl} . '/index.php">
-                <img src="../img/house.png" alt="node selector"/>
+                <img src="' . $ghOptions{img_prefix} . '/house.png" alt="node selector"/>
                 node selector
             </a>
         </div>
@@ -6216,11 +6223,11 @@ sub WriteHtmlFile {
         print OUT '
         <div class="buttons">
         <a class="green" href="javascript:history.back();">
-            <img src="../img/arrow_left.png" alt="back"/>
+            <img src="' . $ghOptions{img_prefix} . '/arrow_left.png" alt="back"/>
             back
         </a>
         <a class="red" href="' . $ghOptions{reseturl} . '/InterfaceTableReset_v3t.cgi?Command=rm&What=' . $gInterfaceInformationFile . '">
-            <img src="../img/arrow_refresh.png" alt="reset table"/>
+            <img src="' . $ghOptions{img_prefix} . '/arrow_refresh.png" alt="reset table"/>
             reset table
         </a>
     </div>
@@ -7035,7 +7042,7 @@ sub print_usage () {
         [--portperfunit <unit>] [--perfdataformat <format>] [--perfdatathreshold <format>] [--outputshort]
         [--snmp-timeout <timeout>] [--snmp-retries <number of retries>] [--snmp-maxmsgsize <maximum message size>]
         [--(no)configtable] [--(no)unixsnmp] [--debugfile=/path/to/file.debug]
-        [--(no)pkt] [--(no)type] [--ifname]
+        [--(no)pkt] [--(no)type] [--ifname] [--icingaweb2-module-pnp]
 
     * other usages:
       $PROGNAME [--help | -?]
@@ -7241,6 +7248,8 @@ sub print_usage () {
     --grapherurl (optional)
         Graphing system url. Default values are:
         Ex: /pnp4nagios
+    --icingaweb2-module-pnp
+        link pnp4nagios graphs to icingaweb2-module-pnp and fix img/js sources in icingaweb2
     --portperfunit (optional)
         In/out traffic in perfdata could be reported in bits (counters) or in bps (calculated value).
         Using bps avoid abnormal load values to be plotted on the graphs.
@@ -7388,6 +7397,7 @@ sub check_options () {
         'htmltabledir=s',                       # interface table HTML directory
         'htmltableurl=s',                       # interface table URL location
         'htmltablelinktarget=s',                # interface table link target attribute for the plugin output
+        'icingaweb2-module-pnp',                # link pnp4nagios graphs to icingaweb2-module-pnp
         'alias!',                               # add alias info for each interface
         'alias-matching!',                      # interface exclusion/inclusion also check against ifAlias (not only ifDescr)
         'exclude|e=s@',                         # list of interfaces globally excluded
@@ -7495,6 +7505,7 @@ sub check_options () {
         'htmltabledir'              => "@sharedir@/tables",
         'htmltableurl'              => "@htmlurl@/tables",
         'htmltablelinktarget'       => "_self",
+        'icingaweb2-module-pnp'     => 0,
         'alias'                     => 0,
         'alias-matching'            => 0,
         'exclude'                   => undef,
@@ -7543,6 +7554,8 @@ sub check_options () {
         'config'                    => '',
         'css'                       => "icinga",             # Used css stylesheet. Can be classic, icinga or nagiosxi.
         'ifdetails'                 => 0,
+        'js_prefix'                 => '../',
+        'img_prefix'                => '../',
         'configtable'               => 1,
         'tips'                      => 1,
         'default-table-sorting'     => "index",              # Default table sorting, can be index (default) or name
@@ -7907,6 +7920,11 @@ sub check_options () {
     if (! -e "$ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css") {
         print "Could not find the css file: $ghOptions{'htmltabledir'}/../css/$ghOptions{'css'}.css\n";
         exit $ERRORS{"UNKNOWN"};
+    }
+    if (exists $commandline{'icingaweb2-module-pnp'}) {
+        $ghOptions{'icingaweb2-module-pnp'} = 1;
+        $ghOptions{'js_prefix'}  = '/interfacetable_v3t/js/';
+        $ghOptions{'img_prefix'} = '/interfacetable_v3t/img/';
     }
     if (exists $commandline{ifdetails}) {
         $ghOptions{'ifdetails'} = 1;
